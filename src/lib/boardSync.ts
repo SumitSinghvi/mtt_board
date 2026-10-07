@@ -113,34 +113,90 @@ export async function syncBoardToSupabase(board: Board): Promise<void> {
 
       for (let tIdx = 0; tIdx < col.tasks.length; tIdx++) {
         const t = col.tasks[tIdx]
-        await supabase.from("tasks").upsert({
-          id: t.id,
-          board_id: board.id,
-          column_id: col.id,
-          title: t.title,
-          description: t.description,
-          priority: t.priority,
-          assignee: t.assignee,
-          customer_name: t.customerName,
-          customer_phone: t.customerPhone,
-          customer_email: t.customerEmail,
-          amount: t.amount,
-          advance_paid: t.advancePaid,
-          due_date: t.dueDate,
-          travel_start_date: t.travelStartDate,
-          travel_end_date: t.travelEndDate,
-          pickup_location: t.pickupLocation,
-          destination: t.destination,
-          vehicle_type: t.vehicleType,
-          pax_adults: t.paxAdults,
-          pax_kids: t.paxKids,
-          position: tIdx,
-          checklist: t.checklist || [],
-          activities: t.activities || [],
-        })
+        await syncTaskToSupabase(board.id, col.id, t, tIdx)
       }
     }
   } catch (err) {
     console.warn("syncBoardToSupabase error:", err)
+  }
+}
+
+export async function syncTaskToSupabase(
+  boardId: string,
+  columnId: string,
+  task: Task,
+  position = 0
+): Promise<void> {
+  try {
+    await supabase.from("tasks").upsert({
+      id: task.id,
+      board_id: boardId,
+      column_id: columnId,
+      title: task.title,
+      description: task.description,
+      priority: task.priority,
+      assignee: task.assignee,
+      customer_name: task.customerName,
+      customer_phone: task.customerPhone,
+      customer_email: task.customerEmail,
+      amount: task.amount,
+      advance_paid: task.advancePaid,
+      due_date: task.dueDate,
+      travel_start_date: task.travelStartDate,
+      travel_end_date: task.travelEndDate,
+      pickup_location: task.pickupLocation,
+      destination: task.destination,
+      vehicle_type: task.vehicleType,
+      pax_adults: task.paxAdults,
+      pax_kids: task.paxKids,
+      position,
+      checklist: task.checklist || [],
+      activities: task.activities || [],
+      updated_at: new Date().toISOString(),
+    })
+  } catch (err) {
+    console.warn("syncTaskToSupabase error:", err)
+  }
+}
+
+export async function deleteTaskFromSupabase(taskId: string): Promise<void> {
+  try {
+    await supabase.from("tasks").delete().eq("id", taskId)
+  } catch (err) {
+    console.warn("deleteTaskFromSupabase error:", err)
+  }
+}
+
+export async function deleteBoardFromSupabase(boardId: string): Promise<void> {
+  try {
+    await supabase.from("boards").delete().eq("id", boardId)
+  } catch (err) {
+    console.warn("deleteBoardFromSupabase error:", err)
+  }
+}
+
+export async function syncColumnToSupabase(
+  boardId: string,
+  columnId: string,
+  title: string,
+  position = 0
+): Promise<void> {
+  try {
+    await supabase.from("columns").upsert({
+      id: columnId,
+      board_id: boardId,
+      title,
+      position,
+    })
+  } catch (err) {
+    console.warn("syncColumnToSupabase error:", err)
+  }
+}
+
+export async function deleteColumnFromSupabase(columnId: string): Promise<void> {
+  try {
+    await supabase.from("columns").delete().eq("id", columnId)
+  } catch (err) {
+    console.warn("deleteColumnFromSupabase error:", err)
   }
 }

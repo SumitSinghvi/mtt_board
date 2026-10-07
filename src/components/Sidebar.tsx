@@ -10,6 +10,7 @@ import {
   Settings,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
+import { useAuthStore } from "../store/authStore"
 
 export function Sidebar() {
   const {
@@ -23,6 +24,7 @@ export function Sidebar() {
     sidebarOpen,
     setSidebarOpen,
   } = useBoardStore()
+  const { profile } = useAuthStore()
 
   const [isCreating, setIsCreating] = useState(false)
   const [newTitle, setNewTitle] = useState("")
@@ -30,7 +32,26 @@ export function Sidebar() {
   const [boardType, setBoardType] = useState<"tour" | "general" | "fleet">("tour")
   const [filterQuery, setFilterQuery] = useState("")
 
-  const filteredBoards = boards.filter((b) =>
+  const userRole = profile?.role || "admin"
+
+  // Filter boards based on user's role:
+  // - Admin: All boards
+  // - Visa: Boards with 'visa' in title (or general), not fleet
+  // - Travel: Tour & travel boards, not sensitive financial-only
+  // - Accounts: All boards (for billing & commercials)
+  const roleFilteredBoards = boards.filter((b) => {
+    if (userRole === "admin" || userRole === "accounts") return true
+    const titleLower = b.title.toLowerCase()
+    if (userRole === "visa") {
+      return titleLower.includes("visa") || !titleLower.includes("fleet")
+    }
+    if (userRole === "travel") {
+      return !titleLower.includes("accounting") && !titleLower.includes("payroll")
+    }
+    return true
+  })
+
+  const filteredBoards = roleFilteredBoards.filter((b) =>
     b.title.toLowerCase().includes(filterQuery.toLowerCase())
   )
 
@@ -214,45 +235,49 @@ export function Sidebar() {
             {currentView === "customers" && <ChevronRight className="size-3.5 text-amber-600" />}
           </button>
 
-          {/* Staff & Roles Page */}
-          <button
-            type="button"
-            onClick={() => {
-              setCurrentView("staff")
-              if (window.innerWidth < 768) setSidebarOpen(false)
-            }}
-            className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition ${
-              currentView === "staff"
-                ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
-                : "text-stone-700 hover:bg-stone-100"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck className={`size-4 ${currentView === "staff" ? "text-amber-600" : "text-stone-400"}`} />
-              <span>Staff & Roles</span>
-            </div>
-            {currentView === "staff" && <ChevronRight className="size-3.5 text-amber-600" />}
-          </button>
+          {/* Staff & Roles Page - Admin Only */}
+          {userRole === "admin" && (
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentView("staff")
+                if (window.innerWidth < 768) setSidebarOpen(false)
+              }}
+              className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition ${
+                currentView === "staff"
+                  ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
+                  : "text-stone-700 hover:bg-stone-100"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className={`size-4 ${currentView === "staff" ? "text-amber-600" : "text-stone-400"}`} />
+                <span>Staff & Roles</span>
+              </div>
+              {currentView === "staff" && <ChevronRight className="size-3.5 text-amber-600" />}
+            </button>
+          )}
 
-          {/* Settings Page */}
-          <button
-            type="button"
-            onClick={() => {
-              setCurrentView("settings")
-              if (window.innerWidth < 768) setSidebarOpen(false)
-            }}
-            className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition ${
-              currentView === "settings"
-                ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
-                : "text-stone-700 hover:bg-stone-100"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Settings className={`size-4 ${currentView === "settings" ? "text-amber-600" : "text-stone-400"}`} />
-              <span>Settings</span>
-            </div>
-            {currentView === "settings" && <ChevronRight className="size-3.5 text-amber-600" />}
-          </button>
+          {/* Settings Page - Admin Only */}
+          {userRole === "admin" && (
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentView("settings")
+                if (window.innerWidth < 768) setSidebarOpen(false)
+              }}
+              className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition ${
+                currentView === "settings"
+                  ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
+                  : "text-stone-700 hover:bg-stone-100"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Settings className={`size-4 ${currentView === "settings" ? "text-amber-600" : "text-stone-400"}`} />
+                <span>Settings</span>
+              </div>
+              {currentView === "settings" && <ChevronRight className="size-3.5 text-amber-600" />}
+            </button>
+          )}
         </div>
 
         {/* Create Board Modal */}

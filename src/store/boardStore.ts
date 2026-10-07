@@ -1,7 +1,15 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { type Board, type Task, type BoardModules, type ActivityItem, BoardSchema } from "../schemas/board"
-import { fetchBoardsFromSupabase as loadSupabaseBoards, syncBoardToSupabase } from "../lib/boardSync"
+import {
+  fetchBoardsFromSupabase as loadSupabaseBoards,
+  syncBoardToSupabase,
+  syncTaskToSupabase,
+  deleteTaskFromSupabase,
+  deleteBoardFromSupabase,
+  syncColumnToSupabase,
+  deleteColumnFromSupabase,
+} from "../lib/boardSync"
 
 interface BoardState {
   boards: Board[]
@@ -9,17 +17,20 @@ interface BoardState {
   currentView: "board" | "customers" | "staff" | "settings"
   sidebarOpen: boolean
   loading: boolean
+  selectedTask: { boardId: string; columnId: string; taskId: string } | null
 
   // Actions
   fetchBoardsFromSupabase: () => Promise<void>
   setActiveBoardId: (id: string) => void
   setCurrentView: (view: "board" | "customers" | "staff" | "settings") => void
+  setSelectedTask: (task: { boardId: string; columnId: string; taskId: string } | null) => void
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
 
   createBoard: (title: string, description?: string, modules?: Partial<BoardModules>) => string
   updateBoard: (id: string, updates: Partial<Pick<Board, "title" | "description">>) => void
   updateBoardModules: (boardId: string, modules: Partial<BoardModules>) => void
+  permanentlyDeleteComponentGlobally: (key: keyof BoardModules) => void
   deleteBoard: (id: string) => void
 
   addColumn: (boardId: string, title: string) => void
@@ -203,6 +214,7 @@ export const useBoardStore = create<BoardState>()(
       currentView: "board",
       sidebarOpen: true,
       loading: false,
+      selectedTask: null,
 
       fetchBoardsFromSupabase: async () => {
         try {
@@ -231,6 +243,17 @@ export const useBoardStore = create<BoardState>()(
 
       setActiveBoardId: (id) => set({ activeBoardId: id, currentView: "board" }),
       setCurrentView: (view) => set({ currentView: view }),
+      setSelectedTask: (task) => {
+        if (task) {
+          set({
+            activeBoardId: task.boardId,
+            currentView: "board",
+            selectedTask: task,
+          })
+        } else {
+          set({ selectedTask: null })
+        }
+      },
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
@@ -260,6 +283,7 @@ export const useBoardStore = create<BoardState>()(
           activeBoardId: newBoard.id,
         }))
 
+        syncBoardToSupabase(newBoard)
         return newBoard.id
       },
 
@@ -267,6 +291,9 @@ export const useBoardStore = create<BoardState>()(
         set((state) => ({
           boards: state.boards.map((b) => (b.id === id ? { ...b, ...updates } : b)),
         }))
+
+        const target = get().boards.find((b) => b.id === id)
+        if (target) syncBoardToSupabase(target)
       },
 
       updateBoardModules: (boardId, moduleUpdates) => {
@@ -287,6 +314,31 @@ export const useBoardStore = create<BoardState>()(
               : b
           ),
         }))
+
+        const target = get().boards.find((b) => b.id === boardId)
+        if (target) syncBoardToSupabase(target)
+      },
+
+      permanentlyDeleteComponentGlobally: (key) => {
+        set((state) => ({
+          boards: state.boards.map((b) => ({
+            ...b,
+            modules: {
+              clientContact: true,
+              tripLogistics: false,
+              commercials: false,
+              subtasks: true,
+              ...b.modules,
+              [key]: false,
+            },
+          })),
+        }))
+
+        // Sync all updated boards to Supabase
+        const updatedBoards = get().boards
+        for (const b of updatedBoards) {
+          syncBoardToSupabase(b)
+        }
       },
 
       deleteBoard: (id) => {
@@ -299,6 +351,8 @@ export const useBoardStore = create<BoardState>()(
           boards: remaining,
           activeBoardId: nextActive,
         })
+
+        deleteBoardFromSupabase(id)
       },
 
       addColumn: (boardId, title) => {
@@ -314,6 +368,9 @@ export const useBoardStore = create<BoardState>()(
             b.id === boardId ? { ...b, columns: [...b.columns, newCol] } : b
           ),
         }))
+
+        const b = get().boards.find((x) => x.id === boardId)
+        syncColumnToSupabase(boardId, newCol.id, newCol.title, (b?.columns.length || 1) - 1)
       },
 
       deleteColumn: (boardId, columnId) => {
@@ -324,6 +381,8 @@ export const useBoardStore = create<BoardState>()(
               : b
           ),
         }))
+
+        deleteColumnFromSupabase(columnId)
       },
 
       updateColumnTitle: (boardId, columnId, title) => {
@@ -340,6 +399,8 @@ export const useBoardStore = create<BoardState>()(
               : b
           ),
         }))
+
+        syncColumnToSupabase(boardId, columnId, title.trim())
       },
 
       moveColumn: (boardId, sourceIndex, targetIndex) => {
@@ -390,6 +451,8 @@ export const useBoardStore = create<BoardState>()(
               : b
           ),
         }))
+
+        syncTaskToSupabase(boardId, columnId, newTask, 0)
       },
 
       updateTask: (boardId, columnId, taskId, updates) => {
@@ -410,6 +473,13 @@ export const useBoardStore = create<BoardState>()(
               : b
           ),
         }))
+
+        const board = get().boards.find((b) => b.id === boardId)
+        const col = board?.columns.find((c) => c.id === columnId)
+        const task = col?.tasks.find((t) => t.id === taskId)
+        if (task) {
+          syncTaskToSupabase(boardId, columnId, task)
+        }
       },
 
       deleteTask: (boardId, columnId, taskId) => {
@@ -427,6 +497,8 @@ export const useBoardStore = create<BoardState>()(
               : b
           ),
         }))
+
+        deleteTaskFromSupabase(taskId)
       },
 
       moveTask: (boardId, sourceColumnId, targetColumnId, taskId, targetIndex) => {
@@ -468,6 +540,14 @@ export const useBoardStore = create<BoardState>()(
             }),
           }
         })
+
+        // Cloud sync moved task to new column in Supabase
+        const board = get().boards.find((b) => b.id === boardId)
+        const targetCol = board?.columns.find((c) => c.id === targetColumnId)
+        const movedTask = targetCol?.tasks.find((t) => t.id === taskId)
+        if (movedTask) {
+          syncTaskToSupabase(boardId, targetColumnId, movedTask, targetIndex ?? 0)
+        }
       },
     }),
     {

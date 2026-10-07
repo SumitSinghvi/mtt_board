@@ -6,24 +6,85 @@ import {
   IndianRupee,
   User,
   CheckSquare,
-  Check,
+  Plus,
+  Trash2,
   Save,
+  AlertTriangle,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
+import type { BoardModules } from "../schemas/board"
 
 interface BoardSettingsModalProps {
   boardId: string
   onClose: () => void
 }
 
+interface ComponentMeta {
+  key: keyof BoardModules
+  title: string
+  description: string
+  icon: typeof MapPin
+  iconBg: string
+  iconColor: string
+}
+
+const ALL_SYSTEM_COMPONENTS: ComponentMeta[] = [
+  {
+    key: "tripLogistics",
+    title: "Trip & Route Logistics",
+    description: "Pickup location, destination circuit, travel start/end dates, vehicle, pax count",
+    icon: MapPin,
+    iconBg: "bg-amber-50",
+    iconColor: "text-amber-700",
+  },
+  {
+    key: "commercials",
+    title: "Commercials & Billing",
+    description: "Total quote amount, advance collected, and calculated balance due (₹)",
+    icon: IndianRupee,
+    iconBg: "bg-emerald-50",
+    iconColor: "text-emerald-700",
+  },
+  {
+    key: "clientContact",
+    title: "Client Contact Info",
+    description: "Customer selection, phone with 1-click WhatsApp chat link, and email",
+    icon: User,
+    iconBg: "bg-sky-50",
+    iconColor: "text-sky-700",
+  },
+  {
+    key: "subtasks",
+    title: "Operations Checklist & Subtasks",
+    description: "Sub-cards breakdown, per-subtask priority, due dates, assignees, and progress bar",
+    icon: CheckSquare,
+    iconBg: "bg-indigo-50",
+    iconColor: "text-indigo-700",
+  },
+]
+
 export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps) {
-  const { boards, updateBoard, updateBoardModules } = useBoardStore()
+  const { boards, updateBoard, updateBoardModules, permanentlyDeleteComponentGlobally } =
+    useBoardStore()
   const board = boards.find((b) => b.id === boardId)
 
   const [title, setTitle] = useState(board?.title || "")
   const [description, setDescription] = useState(board?.description || "")
 
-  const modules = board?.modules || {
+  // Persistent globally deleted components across all boards
+  const [deletedComponentKeys, setDeletedComponentKeys] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem("mtt_deleted_components")
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
+
+  // Pending confirmation for permanent delete
+  const [confirmDeleteComp, setConfirmDeleteComp] = useState<ComponentMeta | null>(null)
+
+  const modules: BoardModules = board?.modules || {
     clientContact: true,
     tripLogistics: false,
     commercials: false,
@@ -32,33 +93,49 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
 
   if (!board) return null
 
-  const handleToggle = (moduleKey: keyof typeof modules) => {
-    updateBoardModules(boardId, { [moduleKey]: !modules[moduleKey] })
+  // Components that exist (not permanently deleted)
+  const existingComponents = ALL_SYSTEM_COMPONENTS.filter(
+    (c) => !deletedComponentKeys.includes(c.key)
+  )
+
+  // Components that were permanently deleted (can be restored/re-added)
+  const deletedComponents = ALL_SYSTEM_COMPONENTS.filter((c) =>
+    deletedComponentKeys.includes(c.key)
+  )
+
+  const handleToggleComponent = (key: keyof BoardModules, enabled: boolean) => {
+    updateBoardModules(boardId, { [key]: enabled })
   }
 
-  const applyPreset = (preset: "tour" | "fleet" | "general") => {
-    if (preset === "tour") {
-      updateBoardModules(boardId, {
-        clientContact: true,
-        tripLogistics: true,
-        commercials: true,
-        subtasks: true,
-      })
-    } else if (preset === "fleet") {
-      updateBoardModules(boardId, {
-        clientContact: false,
-        tripLogistics: false,
-        commercials: false,
-        subtasks: true,
-      })
-    } else {
-      updateBoardModules(boardId, {
-        clientContact: true,
-        tripLogistics: false,
-        commercials: false,
-        subtasks: true,
-      })
+  const handleExecutePermanentDelete = () => {
+    if (!confirmDeleteComp) return
+    const compKey = confirmDeleteComp.key
+
+    // 1. Disable across all boards in store & Supabase
+    permanentlyDeleteComponentGlobally(compKey)
+
+    // 2. Mark as permanently deleted in local list
+    const updatedDeleted = Array.from(new Set([...deletedComponentKeys, compKey]))
+    setDeletedComponentKeys(updatedDeleted)
+    try {
+      localStorage.setItem("mtt_deleted_components", JSON.stringify(updatedDeleted))
+    } catch {
+      // ignore
     }
+
+    setConfirmDeleteComp(null)
+  }
+
+  const handleRestoreComponent = (comp: ComponentMeta) => {
+    const updated = deletedComponentKeys.filter((k) => k !== comp.key)
+    setDeletedComponentKeys(updated)
+    try {
+      localStorage.setItem("mtt_deleted_components", JSON.stringify(updated))
+    } catch {
+      // ignore
+    }
+    // Enable on current board
+    updateBoardModules(boardId, { [comp.key]: true })
   }
 
   const handleSaveInfo = (e: React.FormEvent) => {
@@ -74,183 +151,163 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
       onClick={onClose}
     >
       <div
-        className="relative flex w-[92vw] max-w-xl h-[80vh] flex-col rounded-2xl border border-stone-200 bg-white shadow-2xl animate-in fade-in-50 zoom-in-95 overflow-hidden"
+        className="relative flex w-[92vw] max-w-xl h-[84vh] flex-col rounded-2xl border border-stone-200 bg-white shadow-2xl animate-in fade-in-50 zoom-in-95 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4 bg-stone-50/70 shrink-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <div className="rounded-lg bg-amber-100 p-1.5 text-amber-800">
               <Sliders className="size-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-stone-900">Board Settings & Modules</h3>
-              <p className="text-xs text-stone-500">Configure enabled headings for {board.title}</p>
+              <h3 className="text-sm font-bold text-stone-900">Board Settings & Components</h3>
+              <p className="text-xs text-stone-500">Configure enabled components for {board.title}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+            className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition cursor-pointer"
           >
             <X className="size-4" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Quick Presets */}
+          {/* Active / Existing Components */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">
-              Quick Presets
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => applyPreset("tour")}
-                className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-amber-200 bg-amber-50/60 text-center hover:bg-amber-100/80 transition"
-              >
-                <span className="text-xs font-bold text-amber-900">Tour Booking</span>
-                <span className="text-[10px] text-amber-700 mt-0.5">All modules ON</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => applyPreset("general")}
-                className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-stone-200 bg-stone-50 text-center hover:bg-stone-100 transition"
-              >
-                <span className="text-xs font-bold text-stone-800">General Task</span>
-                <span className="text-[10px] text-stone-500 mt-0.5">Core only</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => applyPreset("fleet")}
-                className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-stone-200 bg-stone-50 text-center hover:bg-stone-100 transition"
-              >
-                <span className="text-xs font-bold text-stone-800">Fleet / Internal</span>
-                <span className="text-[10px] text-stone-500 mt-0.5">Subtasks only</span>
-              </button>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+                Components ({existingComponents.length})
+              </label>
+              <span className="text-[11px] text-stone-400">Toggle to use on this board</span>
             </div>
+
+            {existingComponents.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-stone-300 p-5 text-center text-xs text-stone-500 bg-stone-50/50">
+                All components have been deleted. You can restore or add them from below.
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {existingComponents.map((comp) => {
+                  const Icon = comp.icon
+                  const isEnabled = Boolean(modules[comp.key])
+
+                  return (
+                    <div
+                      key={comp.key}
+                      className={`group flex items-center justify-between p-3 rounded-xl border transition ${
+                        isEnabled
+                          ? "border-stone-200 bg-white shadow-2xs"
+                          : "border-stone-200/60 bg-stone-50/60 opacity-80"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0 pr-3">
+                        <div className={`rounded-lg ${comp.iconBg} p-2 ${comp.iconColor} shrink-0`}>
+                          <Icon className="size-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-stone-900 flex items-center gap-2">
+                            <span>{comp.title}</span>
+                            <span
+                              className={`inline-flex items-center rounded px-1.5 py-0.2 text-[9px] font-semibold border ${
+                                isEnabled
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-stone-100 text-stone-500 border-stone-200"
+                              }`}
+                            >
+                              {isEnabled ? "In Use" : "Disabled"}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-stone-500 truncate">
+                            {comp.description}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Controls: Use Toggle + Permanent Delete Button */}
+                      <div className="flex items-center gap-3 shrink-0">
+                        {/* Toggle switch for using on this board */}
+                        <label
+                          className="flex items-center gap-1.5 cursor-pointer select-none"
+                          title={isEnabled ? "Disable for this board" : "Enable for this board"}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isEnabled}
+                            onChange={(e) => handleToggleComponent(comp.key, e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="relative w-8 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-600"></div>
+                          <span className="text-[11px] font-semibold text-stone-600">
+                            {isEnabled ? "On" : "Off"}
+                          </span>
+                        </label>
+
+                        {/* Separate Permanent Delete Button */}
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteComp(comp)}
+                          title={`Permanently delete ${comp.title} from anywhere`}
+                          className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Module Toggles */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">
-              Section Modules on Cards
-            </label>
-            <div className="space-y-2">
-              {/* Trip Logistics Toggle */}
-              <div
-                onClick={() => handleToggle("tripLogistics")}
-                className="flex items-center justify-between p-3 rounded-xl border border-stone-200 hover:border-amber-400 bg-white cursor-pointer transition select-none"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-amber-50 p-2 text-amber-700">
-                    <MapPin className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-stone-900">Trip & Route Logistics</div>
-                    <div className="text-[11px] text-stone-500">
-                      Pickup point, destination circuit, travel dates, vehicle, pax
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className={`size-5 rounded-md flex items-center justify-center border transition ${
-                    modules.tripLogistics
-                      ? "bg-amber-600 border-amber-600 text-white"
-                      : "border-stone-300 bg-stone-50"
-                  }`}
-                >
-                  {modules.tripLogistics && <Check className="size-3.5 stroke-3" />}
-                </div>
-              </div>
+          {/* Add Deleted / Restorable Components */}
+          {deletedComponents.length > 0 && (
+            <div className="pt-2 border-t border-stone-200">
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">
+                Deleted Components ({deletedComponents.length})
+              </label>
 
-              {/* Commercials Toggle */}
-              <div
-                onClick={() => handleToggle("commercials")}
-                className="flex items-center justify-between p-3 rounded-xl border border-stone-200 hover:border-amber-400 bg-white cursor-pointer transition select-none"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-emerald-50 p-2 text-emerald-700">
-                    <IndianRupee className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-stone-900">Commercials & Billing</div>
-                    <div className="text-[11px] text-stone-500">
-                      Total quote amount, advance collected, and balance due
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className={`size-5 rounded-md flex items-center justify-center border transition ${
-                    modules.commercials
-                      ? "bg-amber-600 border-amber-600 text-white"
-                      : "border-stone-300 bg-stone-50"
-                  }`}
-                >
-                  {modules.commercials && <Check className="size-3.5 stroke-3" />}
-                </div>
-              </div>
+              <div className="space-y-2">
+                {deletedComponents.map((comp) => {
+                  const Icon = comp.icon
+                  return (
+                    <div
+                      key={comp.key}
+                      className="flex items-center justify-between p-3 rounded-xl border border-dashed border-stone-300 bg-stone-50/60 hover:bg-white hover:border-amber-400 transition"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 pr-2">
+                        <div className="rounded-lg bg-stone-200/70 p-2 text-stone-600 shrink-0">
+                          <Icon className="size-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-stone-700">{comp.title}</div>
+                          <div className="text-[11px] text-stone-400 truncate">
+                            {comp.description}
+                          </div>
+                        </div>
+                      </div>
 
-              {/* Client Contact Toggle */}
-              <div
-                onClick={() => handleToggle("clientContact")}
-                className="flex items-center justify-between p-3 rounded-xl border border-stone-200 hover:border-amber-400 bg-white cursor-pointer transition select-none"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-sky-50 p-2 text-sky-700">
-                    <User className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-stone-900">Client Contact Info</div>
-                    <div className="text-[11px] text-stone-500">
-                      Customer name, phone with 1-click Call/WhatsApp, and email
+                      {/* Add / Restore Component Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleRestoreComponent(comp)}
+                        title={`Restore and add ${comp.title}`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 shadow-2xs transition shrink-0 cursor-pointer"
+                      >
+                        <Plus className="size-3.5" />
+                        <span>Add Back</span>
+                      </button>
                     </div>
-                  </div>
-                </div>
-                <div
-                  className={`size-5 rounded-md flex items-center justify-center border transition ${
-                    modules.clientContact
-                      ? "bg-amber-600 border-amber-600 text-white"
-                      : "border-stone-300 bg-stone-50"
-                  }`}
-                >
-                  {modules.clientContact && <Check className="size-3.5 stroke-3" />}
-                </div>
-              </div>
-
-              {/* Operations Checklist Toggle */}
-              <div
-                onClick={() => handleToggle("subtasks")}
-                className="flex items-center justify-between p-3 rounded-xl border border-stone-200 hover:border-amber-400 bg-white cursor-pointer transition select-none"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-indigo-50 p-2 text-indigo-700">
-                    <CheckSquare className="size-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-stone-900">Operations Checklist & Subtasks</div>
-                    <div className="text-[11px] text-stone-500">
-                      Checklist items with progress tracker
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className={`size-5 rounded-md flex items-center justify-center border transition ${
-                    modules.subtasks
-                      ? "bg-amber-600 border-amber-600 text-white"
-                      : "border-stone-300 bg-stone-50"
-                  }`}
-                >
-                  {modules.subtasks && <Check className="size-3.5 stroke-3" />}
-                </div>
+                  )
+                })}
               </div>
             </div>
-          </div>
+          )}
 
           {/* Board Details Form */}
-          <form onSubmit={handleSaveInfo} className="space-y-3 pt-2 border-t border-stone-200">
+          <form onSubmit={handleSaveInfo} className="space-y-3 pt-4 border-t border-stone-200">
             <div>
               <label className="block text-xs font-semibold text-stone-700 mb-1">
                 Board Name
@@ -260,7 +317,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
               />
             </div>
 
@@ -272,7 +329,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
               />
             </div>
 
@@ -280,13 +337,13 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100"
+                className="rounded-lg px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100 transition"
               >
                 Close
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-stone-900 px-4 py-1.5 text-xs font-semibold text-white hover:bg-stone-800 transition"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-stone-900 px-4 py-1.5 text-xs font-semibold text-white hover:bg-stone-800 transition shadow-2xs cursor-pointer"
               >
                 <Save className="size-3.5" />
                 <span>Save Name</span>
@@ -294,6 +351,54 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
             </div>
           </form>
         </div>
+
+        {/* Confirmation Modal for Permanent Component Deletion */}
+        {confirmDeleteComp && (
+          <div
+            className="fixed inset-0 z-70 flex items-center justify-center bg-stone-950/70 backdrop-blur-xs p-4 animate-in fade-in-50"
+            onClick={() => setConfirmDeleteComp(null)}
+          >
+            <div
+              className="relative w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl animate-in zoom-in-95 space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-red-100 p-2.5 text-red-700 shrink-0">
+                  <AlertTriangle className="size-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-stone-900">
+                    Permanently Delete &ldquo;{confirmDeleteComp.title}&rdquo;?
+                  </h4>
+                  <p className="mt-1 text-xs text-stone-600 leading-relaxed">
+                    This will delete this component from <span className="font-semibold text-stone-900">all boards</span> across the entire system.
+                  </p>
+                  <p className="mt-1 text-[11px] text-amber-700 bg-amber-50 rounded-lg p-2 border border-amber-200">
+                    💡 If you only want to turn it off on this board, use the <strong>On/Off toggle</strong> switch instead.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-stone-100">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteComp(null)}
+                  className="rounded-lg px-3.5 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExecutePermanentDelete}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-red-700 shadow-2xs transition cursor-pointer"
+                >
+                  <Trash2 className="size-3.5" />
+                  <span>Yes, Delete Everywhere</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

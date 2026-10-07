@@ -23,6 +23,7 @@ import {
 import { useBoardStore } from "../store/boardStore"
 import { useCustomerStore } from "../store/customerStore"
 import { useStaffStore } from "../store/staffStore"
+import { useAuthStore } from "../store/authStore"
 import { CustomerCombobox } from "./CustomerCombobox"
 import { ActivitySection } from "./ActivitySection"
 import { formatDate } from "../lib/date"
@@ -45,6 +46,12 @@ const priorityColors: Record<Priority, { bg: string; text: string; border: strin
 export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps) {
   const { boards, updateTask, deleteTask, moveTask } = useBoardStore()
   const { staff } = useStaffStore()
+  const { profile } = useAuthStore()
+
+  const userRole = profile?.role || "admin"
+  const canViewCommercials = userRole === "admin" || userRole === "accounts"
+  const canEditCommercials = userRole === "admin" || userRole === "accounts"
+  const canDeleteCard = userRole === "admin"
 
   const currentBoard = boards.find((b) => b.id === boardId)
   const currentColumn = currentBoard?.columns.find((c) => c.id === columnId)
@@ -329,14 +336,16 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
 
           {/* Action Buttons */}
           <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              title="Delete Card"
-              onClick={handleDelete}
-              className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600 transition"
-            >
-              <Trash2 className="size-4" />
-            </button>
+            {canDeleteCard && (
+              <button
+                type="button"
+                title="Delete Card"
+                onClick={handleDelete}
+                className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600 transition"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            )}
             <button
               type="button"
               title="Close (Esc)"
@@ -842,8 +851,8 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                 )}
               </div>
 
-              {/* Commercials & Billing Card - when enabled */}
-              {modules.commercials && (
+              {/* Commercials & Billing Card - when enabled and permitted */}
+              {modules.commercials && canViewCommercials && (
                 <div className="rounded-xl border border-stone-200 bg-white p-4 space-y-3.5 shadow-2xs">
                   <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-stone-600">
                     <IndianRupee className="size-3.5 text-emerald-600" />
@@ -857,6 +866,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                     <input
                       type="number"
                       min={0}
+                      disabled={!canEditCommercials}
                       placeholder="0"
                       value={currentTask.amount ?? ""}
                       onChange={(e) =>
@@ -865,7 +875,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                           e.target.value ? Number(e.target.value) : undefined
                         )
                       }
-                      className="w-full rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1.5 text-xs font-semibold text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none"
+                      className="w-full rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1.5 text-xs font-semibold text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none disabled:opacity-75 disabled:cursor-not-allowed"
                     />
                   </div>
 
@@ -876,6 +886,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                     <input
                       type="number"
                       min={0}
+                      disabled={!canEditCommercials}
                       placeholder="0"
                       value={currentTask.advancePaid ?? ""}
                       onChange={(e) =>
@@ -884,7 +895,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                           e.target.value ? Number(e.target.value) : undefined
                         )
                       }
-                      className="w-full rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 focus:border-amber-500 focus:bg-white focus:outline-none"
+                      className="w-full rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 focus:border-amber-500 focus:bg-white focus:outline-none disabled:opacity-75 disabled:cursor-not-allowed"
                     />
                   </div>
 

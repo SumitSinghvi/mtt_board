@@ -20,8 +20,11 @@ import {
   BarChart2,
   Calendar,
   Layers,
+  UserCircle,
+  AlertTriangle,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
+import { useAuthStore } from "../store/authStore"
 import { CardModal } from "./CardModal"
 import { NewCardModal } from "./NewCardModal"
 import { BoardSettingsModal } from "./BoardSettingsModal"
@@ -49,9 +52,15 @@ export function KanbanBoard() {
     moveColumn,
     deleteTask,
     moveTask,
+    selectedTask: globalSelectedTask,
+    setSelectedTask: setGlobalSelectedTask,
   } = useBoardStore()
+  const { profile } = useAuthStore()
 
   const activeBoard = boards.find((b) => b.id === activeBoardId) || boards[0]
+
+  // Quick Filter State: all | my_tasks | urgent | due_today
+  const [quickFilter, setQuickFilter] = useState<"all" | "my_tasks" | "urgent" | "due_today">("all")
 
   // Board View Mode (Extensible switcher: board | dashboard | calendar)
   const [activeView, setActiveView] = useState<"board" | "dashboard" | "calendar">("board")
@@ -62,13 +71,6 @@ export function KanbanBoard() {
 
   // New Card Modal state
   const [newCardColumnId, setNewCardColumnId] = useState<string | null>(null)
-
-  // Card Details Modal state
-  const [selectedTask, setSelectedTask] = useState<{
-    boardId: string
-    columnId: string
-    taskId: string
-  } | null>(null)
 
   // Board Settings Modal state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -165,46 +167,105 @@ export function KanbanBoard() {
           )}
         </div>
 
-        {/* View Switcher: Board | Dashboard | Calendar */}
-        <div className="flex items-center rounded-lg border border-stone-200 bg-stone-100 p-1">
-          <button
-            type="button"
-            onClick={() => setActiveView("board")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition ${
-              activeView === "board"
-                ? "bg-white text-stone-900 shadow-2xs border border-stone-200/70"
-                : "text-stone-500 hover:text-stone-800"
-            }`}
-          >
-            <LayoutGrid className="size-3.5 text-amber-700" />
-            <span>Board</span>
-          </button>
+        {/* Center: View Switcher & Quick Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* View Switcher: Board | Dashboard | Calendar */}
+          <div className="flex items-center rounded-lg border border-stone-200 bg-stone-100 p-1">
+            <button
+              type="button"
+              onClick={() => setActiveView("board")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition ${
+                activeView === "board"
+                  ? "bg-white text-stone-900 shadow-2xs border border-stone-200/70"
+                  : "text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              <LayoutGrid className="size-3.5 text-amber-700" />
+              <span>Board</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveView("dashboard")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition ${
-              activeView === "dashboard"
-                ? "bg-white text-stone-900 shadow-2xs border border-stone-200/70"
-                : "text-stone-500 hover:text-stone-800"
-            }`}
-          >
-            <BarChart2 className="size-3.5 text-amber-700" />
-            <span>Dashboard</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveView("dashboard")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition ${
+                activeView === "dashboard"
+                  ? "bg-white text-stone-900 shadow-2xs border border-stone-200/70"
+                  : "text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              <BarChart2 className="size-3.5 text-amber-700" />
+              <span>Dashboard</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveView("calendar")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition ${
-              activeView === "calendar"
-                ? "bg-white text-stone-900 shadow-2xs border border-stone-200/70"
-                : "text-stone-500 hover:text-stone-800"
-            }`}
-          >
-            <Calendar className="size-3.5 text-amber-700" />
-            <span>Calendar</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveView("calendar")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition ${
+                activeView === "calendar"
+                  ? "bg-white text-stone-900 shadow-2xs border border-stone-200/70"
+                  : "text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              <Calendar className="size-3.5 text-amber-700" />
+              <span>Calendar</span>
+            </button>
+          </div>
+
+          {/* Quick Filter Pills (Board View only) */}
+          {activeView === "board" && (
+            <div className="flex items-center gap-1 pl-1">
+              <button
+                type="button"
+                onClick={() => setQuickFilter("all")}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                  quickFilter === "all"
+                    ? "bg-stone-900 text-white shadow-2xs"
+                    : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
+                }`}
+              >
+                All Cards
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setQuickFilter("my_tasks")}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                  quickFilter === "my_tasks"
+                    ? "bg-amber-600 text-white shadow-2xs"
+                    : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
+                }`}
+              >
+                <UserCircle className="size-3" />
+                <span>My Tasks</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setQuickFilter("urgent")}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                  quickFilter === "urgent"
+                    ? "bg-red-600 text-white shadow-2xs"
+                    : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
+                }`}
+              >
+                <AlertTriangle className="size-3" />
+                <span>Urgent Only</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setQuickFilter("due_today")}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                  quickFilter === "due_today"
+                    ? "bg-purple-600 text-white shadow-2xs"
+                    : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-50"
+                }`}
+              >
+                <Clock className="size-3" />
+                <span>Due Today</span>
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -226,7 +287,7 @@ export function KanbanBoard() {
         <BoardDashboard
           board={activeBoard}
           onOpenTask={(columnId, taskId) =>
-            setSelectedTask({
+            setGlobalSelectedTask({
               boardId: activeBoard.id,
               columnId,
               taskId,
@@ -237,7 +298,7 @@ export function KanbanBoard() {
         <BoardCalendar
           board={activeBoard}
           onOpenTask={(columnId, taskId) =>
-            setSelectedTask({
+            setGlobalSelectedTask({
               boardId: activeBoard.id,
               columnId,
               taskId,
@@ -434,28 +495,49 @@ export function KanbanBoard() {
 
                 {/* Tasks List */}
                 <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5">
-                  {column.tasks.map((task) => {
-                    const checklistItems = task.checklist || []
-                    const doneChecklist = checklistItems.filter((c) => c.done).length
+                  {column.tasks
+                    .filter((task) => {
+                      if (quickFilter === "all") return true
+                      if (quickFilter === "my_tasks") {
+                        if (!profile?.name) return true
+                        return (
+                          task.assignee?.toLowerCase() === profile.name.toLowerCase() ||
+                          task.checklist?.some(
+                            (c) => c.assignee?.toLowerCase() === profile.name.toLowerCase()
+                          )
+                        )
+                      }
+                      if (quickFilter === "urgent") {
+                        return task.priority === "urgent" || task.priority === "high"
+                      }
+                      if (quickFilter === "due_today") {
+                        const todayStr = new Date().toISOString().split("T")[0]
+                        return task.dueDate?.startsWith(todayStr)
+                      }
+                      return true
+                    })
+                    .map((task) => {
+                      const checklistItems = task.checklist || []
+                      const doneChecklist = checklistItems.filter((c) => c.done).length
 
-                    return (
-                      <div
-                        key={task.id}
-                        draggable
-                        onDragStart={(e) => onTaskDragStart(e, task.id, column.id)}
-                        onDragEnd={handleResetDrag}
-                        onClick={() =>
-                          setSelectedTask({
-                            boardId: activeBoard.id,
-                            columnId: column.id,
-                            taskId: task.id,
-                          })
-                        }
-                        className="group rounded-lg border border-stone-200/90 bg-white p-3 shadow-2xs transition hover:border-amber-400 hover:shadow-xs cursor-pointer active:cursor-grabbing"
-                      >
-                        {/* Priority & Delete */}
-                        <div className="flex items-center justify-between gap-1 mb-1.5">
-                          <span
+                      return (
+                        <div
+                          key={task.id}
+                          draggable
+                          onDragStart={(e) => onTaskDragStart(e, task.id, column.id)}
+                          onDragEnd={handleResetDrag}
+                          onClick={() =>
+                            setGlobalSelectedTask({
+                              boardId: activeBoard.id,
+                              columnId: column.id,
+                              taskId: task.id,
+                            })
+                          }
+                          className="group rounded-lg border border-stone-200/90 bg-white p-3 shadow-2xs transition hover:border-amber-400 hover:shadow-xs cursor-pointer active:cursor-grabbing"
+                        >
+                          {/* Priority & Delete */}
+                          <div className="flex items-center justify-between gap-1 mb-1.5">
+                            <span
                             className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
                               priorityColors[task.priority].bg
                             } ${priorityColors[task.priority].text} ${
@@ -704,12 +786,12 @@ export function KanbanBoard() {
       )}
 
       {/* Centered Card Details Modal */}
-      {selectedTask && (
+      {globalSelectedTask && (
         <CardModal
-          boardId={selectedTask.boardId}
-          columnId={selectedTask.columnId}
-          taskId={selectedTask.taskId}
-          onClose={() => setSelectedTask(null)}
+          boardId={globalSelectedTask.boardId}
+          columnId={globalSelectedTask.columnId}
+          taskId={globalSelectedTask.taskId}
+          onClose={() => setGlobalSelectedTask(null)}
         />
       )}
     </div>

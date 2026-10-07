@@ -4,6 +4,7 @@ import logoImg from "../assets/logo.png"
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
 import { AuthModal } from "./AuthModal"
+import { GlobalSearch } from "./GlobalSearch"
 
 const roleBadgeColor: Record<string, string> = {
   admin: "bg-red-50 text-red-700 border-red-200",
@@ -13,15 +14,15 @@ const roleBadgeColor: Record<string, string> = {
 }
 
 export function Topbar() {
-  const { sidebarOpen, toggleSidebar } = useBoardStore()
+  const { sidebarOpen, toggleSidebar, setSelectedTask } = useBoardStore()
   const { user, profile, signOut } = useAuthStore()
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-stone-200 bg-white px-4 shadow-2xs">
+      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between gap-4 border-b border-stone-200 bg-white px-4 shadow-2xs">
         {/* Left: Sidebar trigger + Logo */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={toggleSidebar}
@@ -40,6 +41,15 @@ export function Topbar() {
               className="h-8 sm:h-9 w-auto object-contain"
             />
           </div>
+        </div>
+
+        {/* Center: Global Cross-Board Search */}
+        <div className="flex-1 flex justify-center max-w-lg">
+          <GlobalSearch
+            onSelectTask={(boardId, columnId, taskId) =>
+              setSelectedTask({ boardId, columnId, taskId })
+            }
+          />
         </div>
 
         {/* Right: Auth Profile Status */}
