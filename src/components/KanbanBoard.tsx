@@ -11,7 +11,6 @@ import {
   FolderPlus,
   GripVertical,
   MapPin,
-  CheckSquare,
   Sliders,
   UserCheck,
   Clock,
@@ -20,6 +19,7 @@ import {
   LayoutGrid,
   BarChart2,
   Calendar,
+  Layers,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { CardModal } from "./CardModal"
@@ -27,6 +27,7 @@ import { NewCardModal } from "./NewCardModal"
 import { BoardSettingsModal } from "./BoardSettingsModal"
 import { BoardDashboard } from "./BoardDashboard"
 import { BoardCalendar } from "./BoardCalendar"
+import { formatDate } from "../lib/date"
 import type { Priority } from "../schemas/board"
 
 const priorityColors: Record<Priority, { bg: string; text: string; border: string }> = {
@@ -508,7 +509,7 @@ export function KanbanBoard() {
                             {task.dueDate && (
                               <span className="inline-flex items-center gap-1 text-[10px] text-stone-500">
                                 <Clock className="size-3 text-stone-400" />
-                                <span>{task.dueDate}</span>
+                                <span>{formatDate(task.dueDate)}</span>
                               </span>
                             )}
                           </div>
@@ -535,22 +536,37 @@ export function KanbanBoard() {
                                 </a>
                               </div>
                             )}
-                            {task.amount !== undefined && (
+                            {task.amount !== undefined ? (
                               <div className="flex items-center justify-between text-[11px] font-semibold text-stone-800">
                                 <div className="flex items-center gap-0.5">
                                   <IndianRupee className="size-3 text-emerald-600" />
                                   <span>{task.amount.toLocaleString("en-IN")}</span>
                                 </div>
                                 {checklistItems.length > 0 && (
-                                  <div className="flex items-center gap-1 text-[10px] text-stone-400 font-normal">
-                                    <CheckSquare className="size-3" />
+                                  <div
+                                    title={`${doneChecklist} of ${checklistItems.length} sub-cards done`}
+                                    className="flex items-center gap-1 text-[10px] text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded font-medium"
+                                  >
+                                    <Layers className="size-3 text-amber-600" />
                                     <span>
                                       {doneChecklist}/{checklistItems.length}
                                     </span>
                                   </div>
                                 )}
                               </div>
-                            )}
+                            ) : checklistItems.length > 0 ? (
+                              <div className="flex items-center justify-end text-[11px]">
+                                <div
+                                  title={`${doneChecklist} of ${checklistItems.length} sub-cards done`}
+                                  className="flex items-center gap-1 text-[10px] text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded font-medium"
+                                >
+                                  <Layers className="size-3 text-amber-600" />
+                                  <span>
+                                    {doneChecklist}/{checklistItems.length} sub-cards
+                                  </span>
+                                </div>
+                              </div>
+                            ) : null}
                           </div>
                         )}
 

@@ -3,10 +3,25 @@ import { z } from "zod"
 export const PrioritySchema = z.enum(["low", "medium", "high", "urgent"])
 export type Priority = z.infer<typeof PrioritySchema>
 
+export const ActivityItemSchema = z.object({
+  id: z.string(),
+  type: z.enum(["comment", "history"]),
+  author: z.string().default("Staff"),
+  content: z.string(),
+  createdAt: z.string(),
+})
+export type ActivityItem = z.infer<typeof ActivityItemSchema>
+
 export const ChecklistItemSchema = z.object({
   id: z.string(),
   text: z.string(),
+  description: z.string().optional(),
   done: z.boolean().default(false),
+  assignee: z.string().optional(),
+  dueDate: z.string().optional(),
+  priority: PrioritySchema.optional(),
+  notes: z.string().optional(),
+  activities: z.array(ActivityItemSchema).optional(),
 })
 export type ChecklistItem = z.infer<typeof ChecklistItemSchema>
 
@@ -30,6 +45,7 @@ export const TaskSchema = z.object({
   paxAdults: z.number().optional(),
   paxKids: z.number().optional(),
   checklist: z.array(ChecklistItemSchema).optional(),
+  activities: z.array(ActivityItemSchema).optional(),
   createdAt: z.string(),
 })
 export type Task = z.infer<typeof TaskSchema>

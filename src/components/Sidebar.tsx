@@ -5,6 +5,9 @@ import {
   Trash2,
   X,
   ChevronRight,
+  Users,
+  ShieldCheck,
+  Settings,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 
@@ -13,6 +16,8 @@ export function Sidebar() {
     boards,
     activeBoardId,
     setActiveBoardId,
+    currentView,
+    setCurrentView,
     createBoard,
     deleteBoard,
     sidebarOpen,
@@ -112,8 +117,12 @@ export function Sidebar() {
 
         {/* Boards List */}
         <div className="flex-1 overflow-y-auto p-2.5 space-y-1">
+          <div className="px-2 pt-1 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            Workflows & Pipelines
+          </div>
+
           {filteredBoards.map((board) => {
-            const isActive = board.id === activeBoardId
+            const isActive = board.id === activeBoardId && currentView === "board"
             const totalTasks = board.columns.reduce((sum, col) => sum + col.tasks.length, 0)
 
             return (
@@ -177,6 +186,73 @@ export function Sidebar() {
               No boards found.
             </div>
           )}
+        </div>
+
+        {/* Management & Administration Pages Section */}
+        <div className="border-t border-stone-200 bg-white p-2.5 space-y-1 shrink-0">
+          <div className="px-2 pt-1 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            Management
+          </div>
+
+          {/* Customers Page */}
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentView("customers")
+              if (window.innerWidth < 768) setSidebarOpen(false)
+            }}
+            className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition ${
+              currentView === "customers"
+                ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
+                : "text-stone-700 hover:bg-stone-100"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Users className={`size-4 ${currentView === "customers" ? "text-amber-600" : "text-stone-400"}`} />
+              <span>Customers</span>
+            </div>
+            {currentView === "customers" && <ChevronRight className="size-3.5 text-amber-600" />}
+          </button>
+
+          {/* Staff & Roles Page */}
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentView("staff")
+              if (window.innerWidth < 768) setSidebarOpen(false)
+            }}
+            className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition ${
+              currentView === "staff"
+                ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
+                : "text-stone-700 hover:bg-stone-100"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck className={`size-4 ${currentView === "staff" ? "text-amber-600" : "text-stone-400"}`} />
+              <span>Staff & Roles</span>
+            </div>
+            {currentView === "staff" && <ChevronRight className="size-3.5 text-amber-600" />}
+          </button>
+
+          {/* Settings Page */}
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentView("settings")
+              if (window.innerWidth < 768) setSidebarOpen(false)
+            }}
+            className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition ${
+              currentView === "settings"
+                ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
+                : "text-stone-700 hover:bg-stone-100"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Settings className={`size-4 ${currentView === "settings" ? "text-amber-600" : "text-stone-400"}`} />
+              <span>Settings</span>
+            </div>
+            {currentView === "settings" && <ChevronRight className="size-3.5 text-amber-600" />}
+          </button>
         </div>
 
         {/* Create Board Modal */}

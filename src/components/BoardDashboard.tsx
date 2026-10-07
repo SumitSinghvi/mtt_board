@@ -11,6 +11,7 @@ import {
   ArrowRight,
   ShieldAlert,
 } from "lucide-react"
+import { formatDate } from "../lib/date"
 import type { Board, Priority } from "../schemas/board"
 
 interface BoardDashboardProps {
@@ -320,7 +321,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
                         <>
                           <span className="text-stone-300">•</span>
                           <span className={task.dueDate < todayStr ? "text-red-600 font-semibold" : ""}>
-                            Due {task.dueDate}
+                            Due {formatDate(task.dueDate)}
                           </span>
                         </>
                       )}
@@ -371,7 +372,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
                       </div>
 
                       <div className="flex items-center gap-2 mt-1 text-[11px] text-stone-500">
-                        <span className="font-semibold text-stone-700">{task.travelStartDate}</span>
+                        <span className="font-semibold text-stone-700">{formatDate(task.travelStartDate)}</span>
                         {task.vehicleType && (
                           <>
                             <span className="text-stone-300">•</span>

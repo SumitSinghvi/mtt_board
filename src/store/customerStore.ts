@@ -1,11 +1,14 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { type Customer, CustomerSchema } from "../schemas/customer"
+import { supabase } from "../lib/supabase"
 
 interface CustomerState {
   customers: Customer[]
-  saveCustomer: (data: { name: string; phone?: string; email?: string }) => Customer
-  deleteCustomer: (id: string) => void
+  loading: boolean
+  fetchCustomersFromSupabase: () => Promise<void>
+  saveCustomer: (data: { name: string; phone?: string; email?: string }) => Promise<Customer>
+  deleteCustomer: (id: string) => Promise<void>
 }
 
 const initialCustomers: Customer[] = [
@@ -50,8 +53,49 @@ export const useCustomerStore = create<CustomerState>()(
   persist(
     (set, get) => ({
       customers: initialCustomers,
+      loading: false,
 
-      saveCustomer: ({ name, phone, email }) => {
+      fetchCustomersFromSupabase: async () => {
+        try {
+          set({ loading: true })
+          const { data, error } = await supabase
+            .from("customers")
+            .select("id, name, phone, email, created_at")
+            .order("created_at", { ascending: false })
+
+          if (error) {
+            console.warn("Error fetching customers from Supabase:", error.message)
+            return
+          }
+
+          if (data && data.length > 0) {
+            const mapped: Customer[] = data.map((c) => ({
+              id: c.id,
+              name: c.name,
+              phone: c.phone || undefined,
+              email: c.email || undefined,
+              createdAt: c.created_at || new Date().toISOString(),
+            }))
+            set({ customers: mapped })
+          } else {
+            // Seed initial customers to Supabase if empty
+            for (const cust of initialCustomers) {
+              await supabase.from("customers").upsert({
+                id: cust.id,
+                name: cust.name,
+                phone: cust.phone,
+                email: cust.email,
+              })
+            }
+          }
+        } catch (err) {
+          console.warn("fetchCustomersFromSupabase exception:", err)
+        } finally {
+          set({ loading: false })
+        }
+      },
+
+      saveCustomer: async ({ name, phone, email }) => {
         const trimmedName = name.trim()
         if (!trimmedName) {
           throw new Error("Customer name required")
@@ -72,6 +116,19 @@ export const useCustomerStore = create<CustomerState>()(
             customers: state.customers.map((c) => (c.id === existing.id ? updated : c)),
           }))
 
+          try {
+            await supabase
+              .from("customers")
+              .update({
+                phone: updated.phone,
+                email: updated.email,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", existing.id)
+          } catch {
+            // ignore
+          }
+
           return updated
         }
 
@@ -87,13 +144,30 @@ export const useCustomerStore = create<CustomerState>()(
           customers: [newCustomer, ...state.customers],
         }))
 
+        try {
+          await supabase.from("customers").insert({
+            id: newCustomer.id,
+            name: newCustomer.name,
+            phone: newCustomer.phone,
+            email: newCustomer.email,
+          })
+        } catch {
+          // ignore
+        }
+
         return newCustomer
       },
 
-      deleteCustomer: (id) => {
+      deleteCustomer: async (id) => {
         set((state) => ({
           customers: state.customers.filter((c) => c.id !== id),
         }))
+
+        try {
+          await supabase.from("customers").delete().eq("id", id)
+        } catch {
+          // ignore
+        }
       },
     }),
     {

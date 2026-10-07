@@ -1,14 +1,17 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { type Board, type Task, type BoardModules, BoardSchema } from "../schemas/board"
+import { type Board, type Task, type BoardModules, type ActivityItem, BoardSchema } from "../schemas/board"
+import { fetchBoardsFromSupabase as loadSupabaseBoards, syncBoardToSupabase } from "../lib/boardSync"
 
 interface BoardState {
   boards: Board[]
   activeBoardId: string | null
   currentView: "board" | "customers" | "staff" | "settings"
   sidebarOpen: boolean
+  loading: boolean
 
   // Actions
+  fetchBoardsFromSupabase: () => Promise<void>
   setActiveBoardId: (id: string) => void
   setCurrentView: (view: "board" | "customers" | "staff" | "settings") => void
   toggleSidebar: () => void
@@ -199,6 +202,32 @@ export const useBoardStore = create<BoardState>()(
       activeBoardId: initialBoards[0].id,
       currentView: "board",
       sidebarOpen: true,
+      loading: false,
+
+      fetchBoardsFromSupabase: async () => {
+        try {
+          set({ loading: true })
+          const remoteBoards = await loadSupabaseBoards()
+          if (remoteBoards && remoteBoards.length > 0) {
+            set((state) => ({
+              boards: remoteBoards,
+              activeBoardId:
+                state.activeBoardId && remoteBoards.some((b) => b.id === state.activeBoardId)
+                  ? state.activeBoardId
+                  : remoteBoards[0].id,
+            }))
+          } else {
+            // Seed initial boards to Supabase if database empty
+            for (const b of initialBoards) {
+              await syncBoardToSupabase(b)
+            }
+          }
+        } catch (err) {
+          console.warn("fetchBoardsFromSupabase error:", err)
+        } finally {
+          set({ loading: false })
+        }
+      },
 
       setActiveBoardId: (id) => set({ activeBoardId: id, currentView: "board" }),
       setCurrentView: (view) => set({ currentView: view }),
@@ -334,10 +363,19 @@ export const useBoardStore = create<BoardState>()(
       },
 
       addTask: (boardId, columnId, taskData) => {
+        const nowIso = new Date().toISOString()
+        const initialActivity: ActivityItem = {
+          id: `act-${Date.now()}`,
+          type: "history",
+          author: "System",
+          content: `Card created`,
+          createdAt: nowIso,
+        }
         const newTask: Task = {
           id: `task-${Date.now()}`,
-          createdAt: new Date().toISOString(),
+          createdAt: nowIso,
           ...taskData,
+          activities: [initialActivity, ...(taskData.activities || [])],
         }
 
         set((state) => ({
