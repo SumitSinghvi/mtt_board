@@ -8,12 +8,14 @@ import {
   MessageCircle,
   UserPlus,
   Check,
+  X,
+  Crown,
 } from "lucide-react"
 import { CustomerCombobox } from "../CustomerCombobox"
 import { useCustomerStore } from "../../store/customerStore"
 import { formatDate } from "../../lib/date"
 import { priorityColors } from "./priorityColors"
-import type { Task, Board, Priority } from "../../schemas/board"
+import { type Task, type Board, type Priority, getTaskAssignees } from "../../schemas/board"
 import type { StaffMember } from "../../store/staffStore"
 import { PhoneInput } from "../ui/PhoneInput"
 
@@ -132,28 +134,98 @@ export function CardDetailsSidebar({
               </select>
             </div>
 
-            {/* Assignee */}
+            {/* Assignees */}
             <div>
-              <label className="block text-[11px] font-semibold text-stone-500 mb-1 flex items-center gap-1">
-                <UserCheck className="size-3 text-stone-400" />
-                Assignee
+              <label className="block text-[11px] font-semibold text-stone-500 mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <UserCheck className="size-3 text-stone-400" />
+                  Assignees {getTaskAssignees(currentTask).length > 0 && `(${getTaskAssignees(currentTask).length})`}
+                </span>
               </label>
-              <select
-                value={currentTask.assignee || ""}
-                disabled={!canEdit}
-                onChange={(e) => onChangeField("assignee", e.target.value || undefined)}
-                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-800 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
-              >
-                <option value="">Unassigned</option>
-                {currentTask.assignee && !staff.some((m) => m.name === currentTask.assignee) && (
-                  <option value={currentTask.assignee}>{currentTask.assignee}</option>
+
+              {/* Chips / Pills of current assignees */}
+              <div className="flex flex-wrap gap-1 mb-1.5 min-h-[26px]">
+                {getTaskAssignees(currentTask).length === 0 ? (
+                  <span className="text-[11px] text-stone-400 italic py-0.5">Unassigned</span>
+                ) : (
+                  getTaskAssignees(currentTask).map((name) => {
+                    const isLeader = currentTask.leader === name
+                    return (
+                      <span
+                        key={name}
+                        className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium transition ${
+                          isLeader
+                            ? "bg-amber-100 text-amber-900 border border-amber-300 font-semibold"
+                            : "bg-stone-100 text-stone-700 border border-stone-200/80"
+                        }`}
+                      >
+                        {isLeader && <Crown className="size-3 text-amber-700 shrink-0" />}
+                        <span className="truncate max-w-[110px]">{name}</span>
+                        {isLeader && <span className="text-[9px] uppercase font-bold text-amber-700">Lead</span>}
+                        {canEdit && (
+                          <div className="flex items-center gap-0.5 ml-0.5">
+                            <button
+                              type="button"
+                              onClick={() => onChangeField("leader", isLeader ? undefined : name)}
+                              className={`rounded p-0.5 cursor-pointer ${
+                                isLeader
+                                  ? "text-amber-700 hover:text-amber-900"
+                                  : "text-stone-300 hover:text-amber-600"
+                              }`}
+                              title={isLeader ? "Unset Team Leader" : `Set ${name} as Team Leader`}
+                            >
+                              <Crown className="size-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const next = getTaskAssignees(currentTask).filter((n) => n !== name)
+                                onChangeField("assignees", next)
+                                if (isLeader) {
+                                  onChangeField("leader", next[0] || undefined)
+                                }
+                              }}
+                              className="hover:text-red-600 rounded p-0.5 text-stone-400 cursor-pointer"
+                              title={`Remove ${name}`}
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </div>
+                        )}
+                      </span>
+                    )
+                  })
                 )}
-                {staff.map((member) => (
-                  <option key={member.id} value={member.name}>
-                    {member.name}
-                  </option>
-                ))}
-              </select>
+              </div>
+
+              {/* Add Assignee Dropdown */}
+              {canEdit && (
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const memberName = e.target.value
+                    if (memberName) {
+                      const cur = getTaskAssignees(currentTask)
+                      if (!cur.includes(memberName)) {
+                        onChangeField("assignees", [...cur, memberName])
+                        if (!currentTask.leader) {
+                          onChangeField("leader", memberName)
+                        }
+                      }
+                    }
+                  }}
+                  className="w-full rounded-lg border border-stone-200 bg-white px-2 py-1 text-xs font-medium text-stone-700 focus:border-amber-500 focus:outline-none cursor-pointer"
+                >
+                  <option value="" disabled>+ Add assignee...</option>
+                  {staff
+                    .filter((m) => !getTaskAssignees(currentTask).includes(m.name))
+                    .map((member) => (
+                      <option key={member.id} value={member.name}>
+                        {member.name} ({member.role.charAt(0).toUpperCase() + member.role.slice(1)})
+                      </option>
+                    ))}
+                </select>
+              )}
             </div>
 
             {/* Due Date */}
@@ -244,13 +316,25 @@ export function CardDetailsSidebar({
             </div>
           )}
 
-          {/* Created Timestamp footer */}
-          {currentTask.createdAt && (
-            <div className="pt-2 border-t border-stone-200/60 flex items-center justify-between text-[11px] text-stone-400">
-              <span>Created:</span>
-              <span className="font-medium text-stone-600">
-                {formatDate(currentTask.createdAt)}
-              </span>
+          {/* Created info footer */}
+          {(currentTask.createdBy || currentTask.createdAt) && (
+            <div className="pt-2 border-t border-stone-200/60 space-y-1 text-[11px] text-stone-400">
+              {currentTask.createdBy && (
+                <div className="flex items-center justify-between">
+                  <span>Created by:</span>
+                  <span className="font-medium text-stone-700 truncate max-w-[140px]">
+                    {currentTask.createdBy}
+                  </span>
+                </div>
+              )}
+              {currentTask.createdAt && (
+                <div className="flex items-center justify-between">
+                  <span>Created on:</span>
+                  <span className="font-medium text-stone-600">
+                    {formatDate(currentTask.createdAt)}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </>

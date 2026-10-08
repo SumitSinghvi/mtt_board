@@ -145,7 +145,7 @@ function DueDatePicker({
             setIsOpen((prev) => !prev)
           }}
           className={`inline-flex items-center gap-1 text-[11px] text-stone-400 hover:text-stone-700 hover:bg-stone-100 px-2 py-0.5 rounded-md cursor-pointer transition select-none ${
-            showOnHoverOnly ? "opacity-0 group-hover:opacity-100" : ""
+            showOnHoverOnly ? "opacity-100 sm:opacity-0 sm:group-hover:opacity-100" : ""
           }`}
           title="Add due date"
         >
@@ -299,7 +299,7 @@ export function TodoPage() {
   const completedTodos = todos.filter((t) => t.completed)
 
   return (
-    <div className="flex-1 overflow-y-auto bg-white p-6 sm:p-10 lg:p-14">
+    <div className="flex-1 overflow-y-auto bg-white p-4 sm:p-10 lg:p-14">
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Notion-style Header */}
         <div className="border-b border-stone-100 pb-4">
@@ -307,7 +307,7 @@ export function TodoPage() {
             <span className="p-1 rounded-md bg-amber-50 text-amber-700">
               <CheckSquare className="size-5" />
             </span>
-            <h1 className="text-2xl font-bold tracking-tight text-stone-900">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900">
               Notes
             </h1>
             <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600 border border-stone-200 ml-1.5">
@@ -362,7 +362,7 @@ export function TodoPage() {
                   type="button"
                   onClick={() => deleteTodo(todo.id)}
                   title="Delete item"
-                  className="opacity-0 group-hover:opacity-100 p-1 text-stone-300 hover:text-red-600 rounded transition cursor-pointer"
+                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 text-stone-300 hover:text-red-600 rounded transition cursor-pointer"
                 >
                   <Trash2 className="size-3.5" />
                 </button>

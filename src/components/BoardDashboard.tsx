@@ -61,9 +61,9 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
   }).slice(0, 6)
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* 1. Adaptive KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Core KPI: Total Cards */}
         <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs">
           <div className="flex items-center justify-between text-stone-500">

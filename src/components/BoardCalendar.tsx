@@ -186,13 +186,13 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
   }, [currentYear, currentMonth, todayStr])
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-stone-100/70 p-6">
+    <div className="flex-1 flex flex-col overflow-hidden bg-stone-100/70 p-3 sm:p-6">
       {/* Calendar Control Bar */}
-      <div className="flex items-center justify-between border-b border-stone-200 bg-white px-5 py-3 rounded-t-xl shadow-2xs">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="size-5 text-amber-700" />
-            <h2 className="text-base font-bold text-stone-900">
+      <div className="flex items-center justify-between border-b border-stone-200 bg-white px-3 sm:px-5 py-2.5 sm:py-3 rounded-t-xl shadow-2xs">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <CalendarIcon className="size-4 sm:size-5 text-amber-700" />
+            <h2 className="text-sm sm:text-base font-bold text-stone-900">
               {MONTH_NAMES[currentMonth]} {currentYear}
             </h2>
           </div>
@@ -200,13 +200,13 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
           <button
             type="button"
             onClick={handleGoToday}
-            className="rounded border border-stone-200 bg-stone-50 px-2 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition"
+            className="rounded border border-stone-200 bg-stone-50 px-2 py-0.5 sm:py-1 text-[11px] sm:text-xs font-semibold text-stone-700 hover:bg-stone-100 transition"
           >
             Today
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5">
           <button
             type="button"
             onClick={handlePrevMonth}
@@ -227,7 +227,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
       </div>
 
       {/* Week Day Header */}
-      <div className="grid grid-cols-7 border-x border-stone-200 bg-stone-50/90 text-center text-[11px] font-bold text-stone-600 py-2 uppercase tracking-wider">
+      <div className="grid grid-cols-7 border-x border-stone-200 bg-stone-50/90 text-center text-[10px] sm:text-[11px] font-bold text-stone-600 py-1.5 sm:py-2 uppercase tracking-wider">
         {DAY_NAMES.map((day) => (
           <div key={day}>{day}</div>
         ))}
@@ -241,14 +241,14 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
           return (
             <div
               key={cell.dateStr}
-              className={`flex flex-col bg-white p-1.5 min-h-0 overflow-hidden transition-colors ${
+              className={`flex flex-col bg-white p-1 sm:p-1.5 min-h-0 overflow-hidden transition-colors ${
                 !cell.isCurrentMonth ? "bg-stone-50/60 text-stone-400" : "text-stone-900"
               } ${cell.isToday ? "bg-amber-50/30 ring-1 ring-inset ring-amber-400/50" : ""}`}
             >
               {/* Day Number Row */}
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-0.5 sm:mb-1">
                 <span
-                  className={`inline-flex items-center justify-center text-xs font-semibold rounded-full size-6 ${
+                  className={`inline-flex items-center justify-center text-[11px] sm:text-xs font-semibold rounded-full size-5 sm:size-6 ${
                     cell.isToday
                       ? "bg-amber-600 text-white font-bold"
                       : cell.isCurrentMonth
@@ -264,7 +264,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                     type="button"
                     onClick={() => onQuickAddForDate(cell.dateStr)}
                     title={`Add card for ${cell.dateStr}`}
-                    className="opacity-0 hover:opacity-100 text-stone-400 hover:text-amber-700 p-0.5 rounded transition"
+                    className="opacity-0 hover:opacity-100 text-stone-400 hover:text-amber-700 p-0.5 rounded transition hidden sm:block"
                   >
                     <Plus className="size-3" />
                   </button>
@@ -282,7 +282,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                       key={`${card.id}-${cell.dateStr}`}
                       onClick={() => onOpenTask(card.columnId, card.id)}
                       title={`${card.title} • ${card.columnTitle}`}
-                      className="group flex flex-col p-1 rounded bg-stone-50 hover:bg-amber-50/80 border border-stone-200/80 hover:border-amber-300 cursor-pointer shadow-2xs transition text-[11px] leading-tight"
+                      className="group flex flex-col p-0.5 sm:p-1 rounded bg-stone-50 hover:bg-amber-50/80 border border-stone-200/80 hover:border-amber-300 cursor-pointer shadow-2xs transition text-[10px] sm:text-[11px] leading-tight"
                     >
                       <div className="flex items-center gap-1 min-w-0">
                         <span
@@ -295,8 +295,8 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                         </span>
                       </div>
 
-                      {/* Sub-label: Trip or Due badge */}
-                      <div className="flex items-center gap-1 text-[9px] text-stone-500 mt-0.5 truncate">
+                      {/* Sub-label: Trip or Due badge (hidden on extra-small screens for neat layout) */}
+                      <div className="hidden sm:flex items-center gap-1 text-[9px] text-stone-500 mt-0.5 truncate">
                         {isTripStart && (
                           <span className="flex items-center gap-0.5 text-amber-800 font-medium truncate">
                             {card.destination ? (

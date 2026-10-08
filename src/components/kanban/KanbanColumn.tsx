@@ -9,6 +9,8 @@ import {
   Pencil,
 } from "lucide-react"
 import { KanbanCard } from "./KanbanCard"
+import { useAuthStore } from "../../store/authStore"
+import { canUserEditTask } from "../../lib/permissions"
 import type { Column } from "../../schemas/board"
 
 interface KanbanColumnProps {
@@ -70,6 +72,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   onDeleteTask,
   onMoveTask,
 }: KanbanColumnProps) {
+  const { profile } = useAuthStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
   const [renameTitle, setRenameTitle] = useState(column.title)
@@ -98,7 +101,7 @@ export const KanbanColumn = memo(function KanbanColumn({
         onDropContainer(e, colIdx, column.id)
       }}
       onDragEnd={onResetDrag}
-      className={`flex w-80 shrink-0 flex-col rounded-xl border bg-stone-50/90 shadow-2xs max-h-full transition-all duration-150 ${
+      className={`flex w-[82vw] max-w-xs sm:w-80 shrink-0 flex-col rounded-xl border bg-stone-50/90 shadow-2xs max-h-full transition-all duration-150 ${
         isDraggingThisCol
           ? "opacity-40 scale-[0.98] border-amber-400 border-dashed"
           : isOverThisCol
@@ -264,27 +267,30 @@ export const KanbanColumn = memo(function KanbanColumn({
 
       {/* Tasks List */}
       <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5">
-        {column.tasks.map((task) => (
-          <KanbanCard
-            key={task.id}
-            task={task}
-            columnId={column.id}
-            colIdx={colIdx}
-            totalColumns={totalColumns}
-            prevColumnTitle={prevColumnTitle}
-            prevColumnId={prevColumnId}
-            nextColumnTitle={nextColumnTitle}
-            nextColumnId={nextColumnId}
-            canDeleteCard={canDeleteCards}
-            canViewCommercials={canViewCommercials}
-            canEditCard={canEditCards}
-            onTaskDragStart={onTaskDragStart}
-            onResetDrag={onResetDrag}
-            onSelectTask={onSelectTask}
-            onDeleteTask={onDeleteTask}
-            onMoveTask={onMoveTask}
-          />
-        ))}
+        {column.tasks.map((task) => {
+          const isTaskEditable = canUserEditTask(task, profile, !canEditCards)
+          return (
+            <KanbanCard
+              key={task.id}
+              task={task}
+              columnId={column.id}
+              colIdx={colIdx}
+              totalColumns={totalColumns}
+              prevColumnTitle={prevColumnTitle}
+              prevColumnId={prevColumnId}
+              nextColumnTitle={nextColumnTitle}
+              nextColumnId={nextColumnId}
+              canDeleteCard={canDeleteCards && (isAdmin || isTaskEditable)}
+              canViewCommercials={canViewCommercials}
+              canEditCard={isTaskEditable}
+              onTaskDragStart={onTaskDragStart}
+              onResetDrag={onResetDrag}
+              onSelectTask={onSelectTask}
+              onDeleteTask={onDeleteTask}
+              onMoveTask={onMoveTask}
+            />
+          )
+        })}
 
         {column.tasks.length === 0 && (
           <div className="py-6 text-center text-[11px] text-stone-400 border border-dashed border-stone-200 rounded-lg">

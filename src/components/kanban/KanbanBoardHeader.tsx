@@ -18,19 +18,19 @@ export function KanbanBoardHeader({
   onOpenSettings,
 }: KanbanBoardHeaderProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-6 py-3.5">
+    <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 border-b border-stone-200 bg-white px-3 sm:px-6 py-2.5 sm:py-3.5">
       <div>
-        <h1 className="text-lg font-bold text-stone-900 tracking-tight">{boardTitle}</h1>
-        {boardDescription && <p className="text-xs text-stone-500 mt-0.5">{boardDescription}</p>}
+        <h1 className="text-base sm:text-lg font-bold text-stone-900 tracking-tight">{boardTitle}</h1>
+        {boardDescription && <p className="text-xs text-stone-500 mt-0.5 line-clamp-1 sm:line-clamp-none">{boardDescription}</p>}
       </div>
 
       {/* Center: View Switcher */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center rounded-lg border border-stone-200 bg-stone-100 p-1">
+        <div className="flex items-center rounded-lg border border-stone-200 bg-stone-100 p-0.5 sm:p-1">
           <button
             type="button"
             onClick={() => onViewChange("board")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-md text-xs font-semibold transition ${
               activeView === "board"
                 ? "bg-white text-stone-900 shadow-2xs border border-stone-200/70"
                 : "text-stone-500 hover:text-stone-800"
@@ -43,7 +43,7 @@ export function KanbanBoardHeader({
           <button
             type="button"
             onClick={() => onViewChange("dashboard")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-md text-xs font-semibold transition ${
               activeView === "dashboard"
                 ? "bg-white text-stone-900 shadow-2xs border border-stone-200/70"
                 : "text-stone-500 hover:text-stone-800"
@@ -56,7 +56,7 @@ export function KanbanBoardHeader({
           <button
             type="button"
             onClick={() => onViewChange("calendar")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-md text-xs font-semibold transition ${
               activeView === "calendar"
                 ? "bg-white text-stone-900 shadow-2xs border border-stone-200/70"
                 : "text-stone-500 hover:text-stone-800"

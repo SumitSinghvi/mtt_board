@@ -165,7 +165,7 @@ export function CardSubcardsSection({
                         onDeleteSubCard(item.id)
                       }}
                       title="Delete sub-card"
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
+                      className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
                     >
                       <Trash2 className="size-3.5" />
                     </button>

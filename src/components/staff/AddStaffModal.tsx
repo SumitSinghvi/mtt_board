@@ -58,9 +58,9 @@ export function AddStaffModal({ isOpen, onClose, onAddStaff }: AddStaffModalProp
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-xl border border-stone-200 bg-white p-6 shadow-xl z-10">
+      <div className="relative w-full max-w-md rounded-xl border border-stone-200 bg-white p-4 sm:p-6 shadow-xl z-10">
         <div className="flex items-center justify-between pb-3 border-b border-stone-100">
           <h2 className="text-sm font-bold text-stone-900">Add Staff Member</h2>
           <button

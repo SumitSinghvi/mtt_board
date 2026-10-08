@@ -150,7 +150,7 @@ export function PhoneInput({
 
       {/* Country Selection Dropdown */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-1 z-50 w-72 max-h-64 rounded-lg border border-stone-200 bg-white shadow-lg overflow-hidden animate-in fade-in-50 zoom-in-95 flex flex-col">
+        <div className="absolute left-0 top-full mt-1 z-50 w-72 max-w-[85vw] max-h-64 rounded-lg border border-stone-200 bg-white shadow-lg overflow-hidden animate-in fade-in-50 zoom-in-95 flex flex-col">
           {/* Search Bar */}
           <div className="p-2 border-b border-stone-100 bg-stone-50/70">
             <div className="relative">

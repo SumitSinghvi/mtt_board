@@ -12,13 +12,16 @@ import {
   ChevronRight,
   Flame,
   Layers,
+  Crown,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
 import { getUserPermissions } from "../lib/permissions"
 import { CardModal } from "./CardModal"
 import { formatDate } from "../lib/date"
-import type { Task, Priority } from "../schemas/board"
+import { type Task, type Priority, getTaskAssignees } from "../schemas/board"
+import { DashboardCalendar } from "./DashboardCalendar"
+import { DashboardCharts } from "./DashboardCharts"
 
 interface FlattenedTask {
   boardId: string
@@ -47,6 +50,7 @@ export function MainDashboard() {
 
   const [tripFilter, setTripFilter] = useState<"7days" | "today" | "all">("7days")
   const [urgentFilter, setUrgentFilter] = useState<"all" | "overdue" | "urgent">("all")
+  const [dashboardTab, setDashboardTab] = useState<"overview" | "calendar">("overview")
 
   // Active card modal state inside dashboard
   const [activeTaskModal, setActiveTaskModal] = useState<{
@@ -181,73 +185,123 @@ export function MainDashboard() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-stone-100/70 p-4 sm:p-5 space-y-4">
-      {/* KPI Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+    <div className="flex-1 overflow-y-auto bg-stone-100/70 p-3 sm:p-5 space-y-4">
+      {/* Top Header & View Mode Switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-stone-200/80">
+        <div>
+          <h1 className="text-xl font-black text-stone-900 tracking-tight flex items-center gap-2">
+            Operations Hub
+          </h1>
+          <p className="text-xs text-stone-500">
+            Real-time departures, urgent actions, cross-board calendar & pipelines
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 bg-stone-200/80 p-1 rounded-xl self-start sm:self-auto border border-stone-300/60 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setDashboardTab("overview")}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
+              dashboardTab === "overview"
+                ? "bg-white text-stone-900 shadow-2xs"
+                : "text-stone-600 hover:text-stone-900"
+            }`}
+          >
+            <Layers className="size-3.5" />
+            Overview
+          </button>
+          <button
+            type="button"
+            onClick={() => setDashboardTab("calendar")}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
+              dashboardTab === "calendar"
+                ? "bg-white text-stone-900 shadow-2xs"
+                : "text-stone-600 hover:text-stone-900"
+            }`}
+          >
+            <Calendar className="size-3.5 text-amber-600" />
+            Operations Calendar
+          </button>
+        </div>
+      </div>
+
+      {dashboardTab === "calendar" ? (
+        <div className="space-y-4">
+          <DashboardCalendar
+            tasks={allFlattenedTasks}
+            boards={activeBoards}
+            onSelectTask={(boardId, columnId, taskId) =>
+              setActiveTaskModal({ boardId, columnId, taskId })
+            }
+          />
+        </div>
+      ) : (
+        <>
+          {/* KPI Stat Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
         {/* Metric 1: Departures Next 7 Days */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5 shadow-2xs flex items-center justify-between">
+        <div className="rounded-xl sm:rounded-2xl border border-stone-200 bg-white p-3 sm:p-5 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
               Departures (7 Days)
             </span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-stone-900">
+            <span className="text-xl sm:text-3xl font-extrabold text-stone-900">
               {next7DaysTripCount}
             </span>
-            <span className="block text-[11px] text-emerald-600 font-semibold mt-0.5">
+            <span className="block text-[10px] sm:text-[11px] text-emerald-600 font-semibold mt-0.5">
               Scheduled this week
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-amber-50 border border-amber-100 text-amber-700">
-            <Car className="size-6" />
+          <div className="p-2.5 sm:p-3 rounded-xl bg-amber-50 border border-amber-100 text-amber-700">
+            <Car className="size-5 sm:size-6" />
           </div>
         </div>
 
         {/* Metric 2: Urgent & Overdue Actions */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5 shadow-2xs flex items-center justify-between">
+        <div className="rounded-xl sm:rounded-2xl border border-stone-200 bg-white p-3 sm:p-5 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
               Urgent & Overdue
             </span>
-            <span className={`text-2xl sm:text-3xl font-extrabold ${totalUrgentCount > 0 ? "text-red-600" : "text-stone-900"}`}>
+            <span className={`text-xl sm:text-3xl font-extrabold ${totalUrgentCount > 0 ? "text-red-600" : "text-stone-900"}`}>
               {totalUrgentCount}
             </span>
-            <span className="block text-[11px] text-stone-500 font-medium mt-0.5">
+            <span className="block text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
               Requires attention
             </span>
           </div>
-          <div className={`p-3 rounded-xl border ${totalUrgentCount > 0 ? "bg-red-50 border-red-100 text-red-600 animate-pulse" : "bg-stone-50 border-stone-100 text-stone-500"}`}>
-            <AlertTriangle className="size-6" />
+          <div className={`p-2.5 sm:p-3 rounded-xl border ${totalUrgentCount > 0 ? "bg-red-50 border-red-100 text-red-600 animate-pulse" : "bg-stone-50 border-stone-100 text-stone-500"}`}>
+            <AlertTriangle className="size-5 sm:size-6" />
           </div>
         </div>
 
         {/* Metric 3: Total Active Cards */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5 shadow-2xs flex items-center justify-between">
+        <div className="rounded-xl sm:rounded-2xl border border-stone-200 bg-white p-3 sm:p-5 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
               Active Bookings
             </span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-stone-900">
+            <span className="text-xl sm:text-3xl font-extrabold text-stone-900">
               {allFlattenedTasks.length}
             </span>
-            <span className="block text-[11px] text-stone-500 font-medium mt-0.5">
+            <span className="block text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
               In progress across boards
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 text-blue-700">
-            <Layers className="size-6" />
+          <div className="p-2.5 sm:p-3 rounded-xl bg-blue-50 border border-blue-100 text-blue-700">
+            <Layers className="size-5 sm:size-6" />
           </div>
         </div>
 
         {/* Metric 4: Active Pipelines */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5 shadow-2xs flex items-center justify-between">
+        <div className="rounded-xl sm:rounded-2xl border border-stone-200 bg-white p-3 sm:p-5 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
               Active Boards
             </span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-stone-900">
+            <span className="text-xl sm:text-3xl font-extrabold text-stone-900">
               {activeBoards.length}
             </span>
-            <span className="block text-[11px] text-stone-500 font-medium mt-0.5">
+            <span className="block text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
               Operational workflows
             </span>
           </div>
@@ -398,10 +452,18 @@ export function MainDashboard() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {task.assignee && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded">
-                            <UserCheck className="size-3 text-stone-400" />
-                            <span>{task.assignee}</span>
+                        {getTaskAssignees(task).length > 0 && (
+                          <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${
+                            task.leader ? "font-semibold text-amber-900 bg-amber-100/90 border border-amber-300/80" : "font-medium text-stone-600 bg-stone-100"
+                          }`}>
+                            {task.leader ? (
+                              <Crown className="size-3 text-amber-700 shrink-0" />
+                            ) : (
+                              <UserCheck className="size-3 text-stone-400 shrink-0" />
+                            )}
+                            <span className="truncate max-w-[120px]">
+                              {task.leader ? `${task.leader} (Lead)` : getTaskAssignees(task).join(", ")}
+                            </span>
                           </span>
                         )}
                         <span className="text-amber-600 font-bold group-hover:translate-x-0.5 transition flex items-center text-[11px]">
@@ -522,10 +584,18 @@ export function MainDashboard() {
                         <span className="text-stone-400 text-[10px] italic">No due date set</span>
                       )}
 
-                      {task.assignee ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded">
-                          <UserCheck className="size-3 text-stone-400" />
-                          <span>{task.assignee}</span>
+                      {getTaskAssignees(task).length > 0 ? (
+                        <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${
+                          task.leader ? "font-semibold text-amber-900 bg-amber-100/90 border border-amber-300/80" : "font-medium text-stone-600 bg-stone-100"
+                        }`}>
+                          {task.leader ? (
+                            <Crown className="size-3 text-amber-700 shrink-0" />
+                          ) : (
+                            <UserCheck className="size-3 text-stone-400 shrink-0" />
+                          )}
+                          <span className="truncate max-w-[120px]">
+                            {task.leader ? `${task.leader} (Lead)` : getTaskAssignees(task).join(", ")}
+                          </span>
                         </span>
                       ) : (
                         <span className="text-stone-400 text-[10px]">Unassigned</span>
@@ -538,6 +608,14 @@ export function MainDashboard() {
           </div>
         </div>
       </div>
+
+
+      {/* Analytics & Workload Charts */}
+      <DashboardCharts
+        tasks={allFlattenedTasks}
+        boards={activeBoards}
+        onSelectBoard={handleJumpToBoard}
+      />
 
       {/* Pipelines & Boards Overview Section */}
       <div className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
@@ -595,6 +673,8 @@ export function MainDashboard() {
           })}
         </div>
       </div>
+        </>
+      )}
 
       {/* Render Card Modal when a card is opened from the dashboard */}
       {activeTaskModal && (

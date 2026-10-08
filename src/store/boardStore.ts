@@ -327,10 +327,23 @@ export const useBoardStore = create<BoardState>()(
           content: `Card created`,
           createdAt: nowIso,
         }
+        const assignees =
+          Array.isArray(taskData.assignees) && taskData.assignees.length > 0
+            ? taskData.assignees
+            : taskData.assignee
+            ? [taskData.assignee]
+            : []
+
+        const leader = taskData.leader || (assignees.length > 0 ? assignees[0] : undefined)
+
         const newTask: Task = {
           id: `task-${Date.now()}`,
           createdAt: nowIso,
+          createdBy: taskData.createdBy || userProfile?.name || author,
           ...taskData,
+          assignees,
+          assignee: assignees[0] || undefined,
+          leader,
           activities: [initialActivity, ...(taskData.activities || [])],
         }
 

@@ -11,12 +11,13 @@ import {
   Clock,
   Layers,
   MessageSquare,
+  Crown,
 } from "lucide-react"
 import { formatDate } from "../../lib/date"
 import { getWhatsAppUrl } from "../../lib/utils"
 import { useAuthStore } from "../../store/authStore"
 import { getTaskCommentsInfo, markTaskCommentsRead } from "../../lib/unreadComments"
-import type { Task, Priority } from "../../schemas/board"
+import { type Task, type Priority, getTaskAssignees } from "../../schemas/board"
 
 const priorityColors: Record<Priority, { bg: string; text: string; border: string }> = {
   urgent: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
@@ -140,7 +141,7 @@ export const KanbanCard = memo(function KanbanCard({
                 onDeleteTask(task.id)
               }
             }}
-            className="opacity-0 group-hover:opacity-100 rounded p-1 text-stone-400 hover:text-red-600 transition"
+            className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 rounded p-1 text-stone-400 hover:text-red-600 transition"
           >
             <Trash2 className="size-3" />
           </button>
@@ -167,23 +168,54 @@ export const KanbanCard = memo(function KanbanCard({
         </div>
       )}
 
-      {/* Meta Tags: Assignee & Due Date */}
-      {(task.assignee || task.dueDate) && (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          {task.assignee && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-stone-700 bg-stone-100 px-1.5 py-0.5 rounded">
-              <UserCheck className="size-3 text-stone-500" />
-              <span>{task.assignee}</span>
-            </span>
-          )}
-          {task.dueDate && (
-            <span className="inline-flex items-center gap-1 text-[10px] text-stone-500">
-              <Clock className="size-3 text-stone-400" />
-              <span>{formatDate(task.dueDate)}</span>
-            </span>
-          )}
-        </div>
-      )}
+      {/* Meta Tags: Assignees & Due Date */}
+      {(() => {
+        const allAssignees = getTaskAssignees(task)
+        if (allAssignees.length === 0 && !task.dueDate) return null
+
+        const leader = task.leader && allAssignees.includes(task.leader) ? task.leader : null
+        const otherAssignees = leader ? allAssignees.filter((n) => n !== leader) : allAssignees
+        const ordered = leader ? [leader, ...otherAssignees] : allAssignees
+
+        return (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {ordered.slice(0, 2).map((name) => {
+              const isLeader = name === leader
+              return (
+                <span
+                  key={name}
+                  className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${
+                    isLeader
+                      ? "font-semibold text-amber-900 bg-amber-100/90 border border-amber-300/80 shadow-2xs"
+                      : "font-medium text-stone-700 bg-stone-100"
+                  }`}
+                >
+                  {isLeader ? (
+                    <Crown className="size-3 text-amber-700 shrink-0" />
+                  ) : (
+                    <UserCheck className="size-3 text-stone-500 shrink-0" />
+                  )}
+                  <span className="truncate max-w-[85px]">{name}</span>
+                </span>
+              )
+            })}
+            {ordered.length > 2 && (
+              <span
+                title={ordered.slice(2).join(", ")}
+                className="text-[10px] font-semibold text-stone-600 bg-stone-200/80 px-1.5 py-0.5 rounded"
+              >
+                +{ordered.length - 2}
+              </span>
+            )}
+            {task.dueDate && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-stone-500">
+                <Clock className="size-3 text-stone-400" />
+                <span>{formatDate(task.dueDate)}</span>
+              </span>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Customer & Amount details */}
       {(task.customerName || task.amount || task.customerPhone) && (

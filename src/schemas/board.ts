@@ -31,6 +31,9 @@ export const TaskSchema = z.object({
   description: z.string().optional(),
   priority: PrioritySchema.default("medium"),
   assignee: z.string().optional(),
+  assignees: z.array(z.string()).optional(),
+  leader: z.string().optional(),
+  createdBy: z.string().optional(),
   customerName: z.string().optional(),
   customerPhone: z.string().optional(),
   customerEmail: z.string().optional(),
@@ -49,6 +52,14 @@ export const TaskSchema = z.object({
   createdAt: z.string(),
 })
 export type Task = z.infer<typeof TaskSchema>
+
+export function getTaskAssignees(task?: Partial<Task> | null): string[] {
+  if (!task) return []
+  if (Array.isArray(task.assignees) && task.assignees.length > 0) {
+    return task.assignees
+  }
+  return task.assignee ? [task.assignee] : []
+}
 
 export const ColumnSchema = z.object({
   id: z.string(),

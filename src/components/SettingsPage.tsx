@@ -48,15 +48,15 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-stone-100/70 p-6 space-y-6">
+    <div className="flex-1 overflow-y-auto bg-stone-100/70 p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 bg-white px-6 py-4 rounded-xl shadow-2xs">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-stone-200 bg-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-2xs">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="p-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
             <Settings className="size-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-stone-900 tracking-tight">App Settings</h1>
+            <h1 className="text-base sm:text-lg font-bold text-stone-900 tracking-tight">App Settings</h1>
             <p className="text-xs text-stone-500">
               Agency profile, invoice defaults, and local data backup
             </p>
@@ -71,9 +71,9 @@ export function SettingsPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Left 2 Cols: Agency Details Form */}
-        <div className="lg:col-span-2 rounded-xl border border-stone-200 bg-white p-6 shadow-2xs">
+        <div className="lg:col-span-2 rounded-xl border border-stone-200 bg-white p-4 sm:p-6 shadow-2xs">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-stone-100">
             <Building className="size-4 text-amber-700" />
             <h2 className="text-sm font-bold text-stone-900">Agency & Billing Profile</h2>

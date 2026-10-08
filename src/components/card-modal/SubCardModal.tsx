@@ -42,16 +42,16 @@ export function SubCardModal({
 
   return (
     <div
-      className="fixed inset-0 z-60 flex items-center justify-center bg-stone-950/65 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in-50"
+      className="fixed inset-0 z-60 flex items-center justify-center bg-stone-950/65 backdrop-blur-xs p-2 sm:p-4 animate-in fade-in-50"
       onClick={onClose}
     >
       <div
-        className="relative flex w-[94vw] max-w-6xl xl:max-w-7xl h-[85vh] flex-col rounded-2xl border border-stone-200 bg-white shadow-2xl animate-in zoom-in-95 overflow-hidden"
+        className="relative flex w-full sm:w-[94vw] max-w-6xl xl:max-w-7xl h-[92vh] sm:h-[85vh] flex-col rounded-xl sm:rounded-2xl border border-stone-200 bg-white shadow-2xl animate-in zoom-in-95 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sub-Card Fixed Header */}
-        <div className="flex items-center justify-between gap-4 border-b border-stone-200 px-6 py-4 bg-stone-50/70 shrink-0">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-3.5 sm:px-6 py-3 sm:py-4 bg-stone-50/70 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <input
               type="checkbox"
               checked={subCard.done}
@@ -62,7 +62,7 @@ export function SubCardModal({
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-semibold text-[11px] shrink-0">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-semibold text-[10px] sm:text-[11px] shrink-0">
                   <Layers className="size-3" />
                   Sub-Card
                 </span>
@@ -76,7 +76,7 @@ export function SubCardModal({
                 value={subCard.text}
                 onChange={(e) => onUpdateSubCard(subCard.id, { text: e.target.value })}
                 placeholder="Sub-card title / task..."
-                className={`w-full text-lg sm:text-xl font-bold bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-80 disabled:cursor-not-allowed ${
+                className={`w-full text-base sm:text-xl font-bold bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-80 disabled:cursor-not-allowed ${
                   subCard.done ? "line-through text-stone-400" : "text-stone-900"
                 }`}
               />
@@ -107,8 +107,8 @@ export function SubCardModal({
         </div>
 
         {/* Sub-Card Scrollable Body with Stable 2-Column Split */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
             {/* Left Primary Section (7/12 width) */}
             <div className="space-y-6 lg:col-span-7">
               {/* Sub-Card Description */}

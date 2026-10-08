@@ -128,22 +128,22 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-3 sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-2 sm:p-4"
       onClick={onClose}
     >
       <div
-        className="relative flex w-[92vw] max-w-xl h-[84vh] flex-col rounded-2xl border border-stone-200 bg-white shadow-2xl animate-in fade-in-50 zoom-in-95 overflow-hidden"
+        className="relative flex w-full sm:w-[92vw] max-w-xl h-[90vh] sm:h-[84vh] flex-col rounded-xl sm:rounded-2xl border border-stone-200 bg-white shadow-2xl animate-in fade-in-50 zoom-in-95 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4 bg-stone-50/70 shrink-0">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between border-b border-stone-200 px-3.5 sm:px-6 py-3 sm:py-4 bg-stone-50/70 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5">
             <div className="rounded-lg bg-amber-100 p-1.5 text-amber-800">
               <Sliders className="size-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-stone-900">Board Settings & Components</h3>
-              <p className="text-xs text-stone-500">Configure enabled components for {board.title}</p>
+              <h3 className="text-xs sm:text-sm font-bold text-stone-900">Board Settings & Components</h3>
+              <p className="text-[11px] sm:text-xs text-stone-500">Configure enabled components for {board.title}</p>
             </div>
           </div>
           <button
@@ -155,7 +155,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-5 sm:space-y-6">
           {/* Active / Existing Components */}
           <div>
             <div className="flex items-center justify-between mb-2">

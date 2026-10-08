@@ -21,7 +21,7 @@ export function Topbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between gap-4 border-b border-stone-200 bg-white px-4 shadow-2xs">
+      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between gap-2 sm:gap-4 border-b border-stone-200 bg-white px-3 sm:px-4 shadow-2xs">
         {/* Left: Sidebar trigger + Logo */}
         <div className="flex items-center gap-3 shrink-0">
           <button

@@ -8,18 +8,25 @@ import {
   Trash2,
   X,
   FileText,
+  ShieldAlert,
 } from "lucide-react"
 import { useCustomerStore } from "../store/customerStore"
 import { useBoardStore } from "../store/boardStore"
+import { useAuthStore } from "../store/authStore"
 import { PhoneInput } from "./ui/PhoneInput"
 
 export function CustomersPage() {
   const { customers, fetchCustomersFromSupabase, saveCustomer, deleteCustomer } = useCustomerStore()
-  const { boards } = useBoardStore()
+  const { boards, setCurrentView } = useBoardStore()
+  const { profile } = useAuthStore()
+
+  const isAdmin = profile?.role === "admin"
 
   useEffect(() => {
-    fetchCustomersFromSupabase()
-  }, [fetchCustomersFromSupabase])
+    if (isAdmin) {
+      fetchCustomersFromSupabase()
+    }
+  }, [fetchCustomersFromSupabase, isAdmin])
 
   const [search, setSearch] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -65,17 +72,38 @@ export function CustomersPage() {
     setIsModalOpen(false)
   }
 
+  if (!isAdmin) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-stone-100/70 p-6 text-center">
+        <div className="p-3 rounded-full bg-stone-200 text-stone-600 mb-3">
+          <ShieldAlert className="size-8" />
+        </div>
+        <h2 className="text-base font-bold text-stone-800">Access Restricted</h2>
+        <p className="text-xs text-stone-500 mt-1 max-w-sm">
+          The Customers directory is restricted to administrator accounts.
+        </p>
+        <button
+          type="button"
+          onClick={() => setCurrentView("dashboard")}
+          className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-amber-700 transition cursor-pointer"
+        >
+          Return to Dashboard
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-stone-100/70 p-6">
+    <div className="flex-1 flex flex-col overflow-hidden bg-stone-100/70 p-3 sm:p-6">
       {/* Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 bg-white px-6 py-4 rounded-t-xl shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-stone-200 bg-white px-4 sm:px-6 py-3 sm:py-4 rounded-t-xl shadow-2xs">
         <div>
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
               <Users className="size-5" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-stone-900 tracking-tight">Customer Directory</h1>
+              <h1 className="text-base sm:text-lg font-bold text-stone-900 tracking-tight">Customer Directory</h1>
               <p className="text-xs text-stone-500">
                 {customers.length} saved clients • autofills in cards across boards
               </p>
@@ -83,22 +111,22 @@ export function CustomersPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
             <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
               placeholder="Search name, phone, email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-64 rounded-lg border border-stone-300 bg-stone-50 pl-8 pr-3 py-1.5 text-xs text-stone-900 placeholder-stone-400 focus:bg-white focus:border-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-stone-300 bg-stone-50 pl-8 pr-3 py-1.5 text-xs text-stone-900 placeholder-stone-400 focus:bg-white focus:border-amber-500 focus:outline-none"
             />
           </div>
 
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-amber-700 transition"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-amber-700 transition shrink-0"
           >
             <Plus className="size-3.5" />
             <span>Add Customer</span>
@@ -107,7 +135,7 @@ export function CustomersPage() {
       </div>
 
       {/* Customers Table / Card View */}
-      <div className="flex-1 overflow-y-auto bg-white border-x border-b border-stone-200 rounded-b-xl shadow-2xs">
+      <div className="flex-1 overflow-y-auto overflow-x-auto bg-white border-x border-b border-stone-200 rounded-b-xl shadow-2xs">
         {filtered.length === 0 ? (
           <div className="p-12 text-center text-stone-400">
             <Users className="size-10 mx-auto text-stone-300 mb-2" />
@@ -115,7 +143,7 @@ export function CustomersPage() {
             <p className="text-xs text-stone-500 mt-1">Try another search or add a new customer.</p>
           </div>
         ) : (
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full min-w-[600px] text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-stone-200 bg-stone-50 text-[11px] font-bold uppercase tracking-wider text-stone-600">
                 <th className="py-3 px-5">Customer Name</th>
@@ -216,9 +244,9 @@ export function CustomersPage() {
 
       {/* Add Customer Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs" onClick={() => setIsModalOpen(false)} />
-          <div className="relative w-full max-w-md rounded-xl border border-stone-200 bg-white p-6 shadow-xl z-10">
+          <div className="relative w-full max-w-md rounded-xl border border-stone-200 bg-white p-4 sm:p-6 shadow-xl z-10">
             <div className="flex items-center justify-between pb-3 border-b border-stone-100">
               <h2 className="text-sm font-bold text-stone-900">Add New Customer</h2>
               <button

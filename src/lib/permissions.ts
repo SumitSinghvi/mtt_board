@@ -1,5 +1,7 @@
 import type { StaffRole, StaffPermissions } from "../store/staffStore"
 import type { UserProfile } from "../store/authStore"
+import type { Task } from "../schemas/board"
+import { getTaskAssignees } from "../schemas/board"
 
 export function getDefaultRolePermissions(role: StaffRole): StaffPermissions {
   switch (role) {
@@ -60,4 +62,51 @@ export function getUserPermissions(profile: UserProfile | null): StaffPermission
     canDeleteCards: profile.permissions?.canDeleteCards ?? roleDefaults.canDeleteCards,
     canViewCommercials: profile.permissions?.canViewCommercials ?? roleDefaults.canViewCommercials,
   }
+}
+
+/**
+ * Checks if current user can edit a specific task.
+ * Allowed if:
+ * 1. User is an admin
+ * 2. User created the card (task.createdBy or initial "Card created" activity author)
+ * 3. User is explicitly assigned to the card (in assignees / assignee)
+ */
+export function canUserEditTask(
+  task: Task,
+  profile: UserProfile | null,
+  isArchived = false
+): boolean {
+  if (isArchived || !profile) return false
+
+  const perms = getUserPermissions(profile)
+  if (!perms.canEditCards) return false
+
+  // Admins can always edit any card
+  if (profile.role === "admin") return true
+
+  // Card creator can edit
+  const creator = task.createdBy || task.activities?.find((a) => a.content === "Card created")?.author
+  if (creator) {
+    const creatorClean = creator.trim().toLowerCase()
+    if (
+      creatorClean === profile.name.trim().toLowerCase() ||
+      creatorClean === profile.id.toLowerCase() ||
+      creatorClean === profile.email.trim().toLowerCase()
+    ) {
+      return true
+    }
+  }
+
+  // Assigned staff can edit
+  const assignees = getTaskAssignees(task)
+  const isAssigned = assignees.some((person) => {
+    const clean = person.trim().toLowerCase()
+    return (
+      clean === profile.name.trim().toLowerCase() ||
+      clean === profile.id.toLowerCase() ||
+      clean === profile.email.trim().toLowerCase()
+    )
+  })
+
+  return isAssigned
 }

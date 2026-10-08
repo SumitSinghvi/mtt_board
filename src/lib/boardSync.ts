@@ -33,12 +33,19 @@ export async function fetchBoardsFromSupabase(): Promise<Board[]> {
 
     const tasksMap = new Map<string, Task[]>()
     ;(tasksData || []).forEach((row) => {
+      const rawAssignees = Array.isArray(row.assignees) ? row.assignees : []
+      const fallbackAssignee = row.assignee || undefined
+      const assignees = rawAssignees.length > 0 ? rawAssignees : (fallbackAssignee ? [fallbackAssignee] : [])
+
       const task: Task = {
         id: row.id,
         title: row.title,
         description: row.description || undefined,
         priority: row.priority || "medium",
-        assignee: row.assignee || undefined,
+        assignee: assignees[0] || undefined,
+        assignees,
+        leader: row.leader || undefined,
+        createdBy: row.created_by || undefined,
         customerName: row.customer_name || undefined,
         customerPhone: row.customer_phone || undefined,
         customerEmail: row.customer_email || undefined,
@@ -159,6 +166,13 @@ export async function syncTaskToSupabase(
 
   const performSync = async () => {
     try {
+      const assigneesList =
+        Array.isArray(task.assignees) && task.assignees.length > 0
+          ? task.assignees
+          : task.assignee
+          ? [task.assignee]
+          : []
+
       await supabase.from("tasks").upsert({
         id: task.id,
         board_id: boardId,
@@ -166,7 +180,10 @@ export async function syncTaskToSupabase(
         title: task.title,
         description: task.description?.trim() ? task.description.trim() : null,
         priority: task.priority,
-        assignee: task.assignee || null,
+        assignee: assigneesList[0] || null,
+        assignees: assigneesList,
+        leader: task.leader || null,
+        created_by: task.createdBy || null,
         customer_name: task.customerName || null,
         customer_phone: task.customerPhone || null,
         customer_email: task.customerEmail || null,

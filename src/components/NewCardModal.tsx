@@ -9,6 +9,7 @@ import {
   UserCheck,
   UserPlus,
   Check,
+  Crown,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useCustomerStore } from "../store/customerStore"
@@ -43,7 +44,8 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [priority, setPriority] = useState<Priority>("medium")
-  const [assignee, setAssignee] = useState("")
+  const [assignees, setAssignees] = useState<string[]>([])
+  const [leader, setLeader] = useState<string>("")
   const [dueDate, setDueDate] = useState("")
 
   const { staff } = useStaffStore()
@@ -101,7 +103,9 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
       title: title.trim(),
       description: description.trim() || undefined,
       priority,
-      assignee: assignee.trim() || undefined,
+      assignees,
+      assignee: assignees[0] || undefined,
+      leader: leader || (assignees.length > 0 ? assignees[0] : undefined),
       customerName: modules.clientContact && customerName.trim() ? customerName.trim() : undefined,
       customerPhone: modules.clientContact && customerPhone.trim() ? customerPhone.trim() : undefined,
       customerEmail: modules.clientContact && customerEmail.trim() ? customerEmail.trim() : undefined,
@@ -114,18 +118,18 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-3 sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-2 sm:p-4"
       onClick={onClose}
     >
       {/* Fixed Geometry Container */}
       <div
-        className="relative flex w-[94vw] max-w-6xl xl:max-w-7xl h-[85vh] flex-col rounded-2xl border border-stone-200 bg-white shadow-2xl animate-in fade-in-50 zoom-in-95 overflow-hidden"
+        className="relative flex w-full sm:w-[94vw] max-w-6xl xl:max-w-7xl h-[92vh] sm:h-[85vh] flex-col rounded-xl sm:rounded-2xl border border-stone-200 bg-white shadow-2xl animate-in fade-in-50 zoom-in-95 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Fixed Header */}
-        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4 bg-stone-50/70 shrink-0">
+        <div className="flex items-center justify-between border-b border-stone-200 px-3.5 sm:px-6 py-3 sm:py-4 bg-stone-50/70 shrink-0">
           <div>
-            <h2 className="text-base font-bold text-stone-900">Create New Card</h2>
+            <h2 className="text-sm sm:text-base font-bold text-stone-900">Create New Card</h2>
             <p className="text-xs text-stone-500 mt-0.5">
               Add a new card to {currentBoard.title}
             </p>
@@ -141,7 +145,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
         </div>
 
         {/* Scrollable Form Body with matching 2-column split */}
-        <form id="new-card-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+        <form id="new-card-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-5">
           {/* Title */}
           <div>
             <label className="block text-xs font-bold text-stone-700 mb-1.5">
@@ -224,21 +228,88 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                 </span>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-stone-600 mb-1 flex items-center gap-1">
-                    <UserCheck className="size-3.5 text-stone-400" />
-                    Assignee
+                  <label className="block text-[11px] font-semibold text-stone-600 mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <UserCheck className="size-3.5 text-stone-400" />
+                      Assignees {assignees.length > 0 && `(${assignees.length})`}
+                    </span>
                   </label>
+
+                  {/* Selected Assignees Chips */}
+                  <div className="flex flex-wrap gap-1 mb-1.5 min-h-[26px]">
+                    {assignees.length === 0 ? (
+                      <span className="text-xs text-stone-400 italic py-0.5">Unassigned</span>
+                    ) : (
+                      assignees.map((name) => {
+                        const isLeader = (leader || assignees[0]) === name
+                        return (
+                          <span
+                            key={name}
+                            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium transition ${
+                              isLeader
+                                ? "bg-amber-100 text-amber-900 border border-amber-300 font-semibold"
+                                : "bg-stone-100 text-stone-700 border border-stone-200/80"
+                            }`}
+                          >
+                            {isLeader && <Crown className="size-3 text-amber-700 shrink-0" />}
+                            <span className="truncate max-w-[120px]">{name}</span>
+                            {isLeader && <span className="text-[9px] uppercase font-bold text-amber-700">Lead</span>}
+                            <div className="flex items-center gap-0.5 ml-0.5">
+                              <button
+                                type="button"
+                                onClick={() => setLeader(name)}
+                                className={`rounded p-0.5 cursor-pointer ${
+                                  isLeader
+                                    ? "text-amber-700"
+                                    : "text-stone-300 hover:text-amber-600"
+                                }`}
+                                title={isLeader ? "Team Leader" : `Make ${name} Team Leader`}
+                              >
+                                <Crown className="size-3" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const next = assignees.filter((n) => n !== name)
+                                  setAssignees(next)
+                                  if (leader === name) {
+                                    setLeader(next[0] || "")
+                                  }
+                                }}
+                                className="hover:text-red-600 rounded p-0.5 text-stone-400 cursor-pointer"
+                                title={`Remove ${name}`}
+                              >
+                                <X className="size-3" />
+                              </button>
+                            </div>
+                          </span>
+                        )
+                      })
+                    )}
+                  </div>
+
+                  {/* Add Assignee Dropdown */}
                   <select
-                    value={assignee}
-                    onChange={(e) => setAssignee(e.target.value)}
-                    className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
+                    value=""
+                    onChange={(e) => {
+                      const selected = e.target.value
+                      if (selected && !assignees.includes(selected)) {
+                        setAssignees((prev) => [...prev, selected])
+                        if (!leader && assignees.length === 0) {
+                          setLeader(selected)
+                        }
+                      }
+                    }}
+                    className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none cursor-pointer"
                   >
-                    <option value="">Unassigned</option>
-                    {activeStaff.map((member) => (
-                      <option key={member.id} value={member.name}>
-                        {member.name} ({member.role.charAt(0).toUpperCase() + member.role.slice(1)})
-                      </option>
-                    ))}
+                    <option value="" disabled>+ Add assignee...</option>
+                    {activeStaff
+                      .filter((member) => !assignees.includes(member.name))
+                      .map((member) => (
+                        <option key={member.id} value={member.name}>
+                          {member.name} ({member.role.charAt(0).toUpperCase() + member.role.slice(1)})
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -335,7 +406,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
         </form>
 
         {/* Fixed Footer */}
-        <div className="flex items-center justify-end gap-2.5 px-6 py-3.5 border-t border-stone-200 bg-stone-50/80 shrink-0">
+        <div className="flex items-center justify-end gap-2.5 px-3.5 sm:px-6 py-3 sm:py-3.5 border-t border-stone-200 bg-stone-50/80 shrink-0">
           <button
             type="button"
             onClick={onClose}

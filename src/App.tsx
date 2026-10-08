@@ -26,6 +26,9 @@ export default function App() {
 
   useEffect(() => {
     initializeAuth()
+    if (window.innerWidth < 768) {
+      useBoardStore.getState().setSidebarOpen(false)
+    }
   }, [initializeAuth])
 
   useEffect(() => {

@@ -149,7 +149,7 @@ export function Sidebar() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-stone-200 bg-white transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 max-w-[85vw] flex-col border-r border-stone-200 bg-white transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:hidden"
         }`}
       >
@@ -418,41 +418,41 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Management & Administration Pages Section */}
-        <div className="border-t border-stone-200 bg-white p-2.5 space-y-1 shrink-0">
-          <div className="px-2 pt-1 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400">
-            Management
-          </div>
-
-          {/* Customers Page */}
-          <button
-            type="button"
-            onClick={() => {
-              setCurrentView("customers")
-              if (window.innerWidth < 768) setSidebarOpen(false)
-            }}
-            className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition ${
-              currentView === "customers"
-                ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
-                : "text-stone-700 hover:bg-stone-100"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Users className={`size-4 ${currentView === "customers" ? "text-amber-600" : "text-stone-400"}`} />
-              <span>Customers</span>
+        {/* Management & Administration Pages Section - Admin Only */}
+        {userRole === "admin" && (
+          <div className="border-t border-stone-200 bg-white p-2.5 space-y-1 shrink-0">
+            <div className="px-2 pt-1 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+              Management
             </div>
-            {currentView === "customers" && <ChevronRight className="size-3.5 text-amber-600" />}
-          </button>
 
-          {/* Staff & Roles Page - Admin Only */}
-          {userRole === "admin" && (
+            {/* Customers Page - Admin Only */}
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentView("customers")
+                if (window.innerWidth < 768) setSidebarOpen(false)
+              }}
+              className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition cursor-pointer ${
+                currentView === "customers"
+                  ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
+                  : "text-stone-700 hover:bg-stone-100"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Users className={`size-4 ${currentView === "customers" ? "text-amber-600" : "text-stone-400"}`} />
+                <span>Customers</span>
+              </div>
+              {currentView === "customers" && <ChevronRight className="size-3.5 text-amber-600" />}
+            </button>
+
+            {/* Staff & Roles Page - Admin Only */}
             <button
               type="button"
               onClick={() => {
                 setCurrentView("staff")
                 if (window.innerWidth < 768) setSidebarOpen(false)
               }}
-              className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition ${
+              className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition cursor-pointer ${
                 currentView === "staff"
                   ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
                   : "text-stone-700 hover:bg-stone-100"
@@ -464,17 +464,15 @@ export function Sidebar() {
               </div>
               {currentView === "staff" && <ChevronRight className="size-3.5 text-amber-600" />}
             </button>
-          )}
 
-          {/* Settings Page - Admin Only */}
-          {userRole === "admin" && (
+            {/* Settings Page - Admin Only */}
             <button
               type="button"
               onClick={() => {
                 setCurrentView("settings")
                 if (window.innerWidth < 768) setSidebarOpen(false)
               }}
-              className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition ${
+              className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition cursor-pointer ${
                 currentView === "settings"
                   ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
                   : "text-stone-700 hover:bg-stone-100"
@@ -486,8 +484,8 @@ export function Sidebar() {
               </div>
               {currentView === "settings" && <ChevronRight className="size-3.5 text-amber-600" />}
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Create Board Modal */}
         {isCreating && (

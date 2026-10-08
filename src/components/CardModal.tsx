@@ -5,18 +5,19 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Lock,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useStaffStore, initialStaff } from "../store/staffStore"
 import { useAuthStore } from "../store/authStore"
-import { getUserPermissions } from "../lib/permissions"
+import { getUserPermissions, canUserEditTask } from "../lib/permissions"
 import { ActivitySection } from "./ActivitySection"
 import { CardSubcardsSection } from "./card-modal/CardSubcardsSection"
 import { CardDetailsSidebar } from "./card-modal/CardDetailsSidebar"
 import { SubCardModal } from "./card-modal/SubCardModal"
 import { formatDate } from "../lib/date"
 import { markTaskCommentsRead } from "../lib/unreadComments"
-import type { Priority, Task, ChecklistItem, ActivityItem } from "../schemas/board"
+import { type Priority, type Task, type ChecklistItem, type ActivityItem } from "../schemas/board"
 
 interface CardModalProps {
   boardId: string
@@ -35,11 +36,12 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   const isArchived = !!currentBoard?.isArchived
 
   const permissions = getUserPermissions(profile)
-  const canDeleteCard = !isArchived && permissions.canDeleteCards
-  const canEditCard = !isArchived && permissions.canEditCards
 
   const currentColumn = currentBoard?.columns.find((c) => c.id === columnId)
   const currentTask = currentColumn?.tasks.find((t) => t.id === taskId)
+
+  const canEditCard = currentTask ? canUserEditTask(currentTask, profile, isArchived) : false
+  const canDeleteCard = !isArchived && permissions.canDeleteCards && (profile?.role === "admin" || canEditCard)
 
   // Sub-card Modal state
   const [activeSubCardId, setActiveSubCardId] = useState<string | null>(null)
@@ -100,12 +102,36 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   }
 
   const handleFieldChange = (field: keyof Task, value: unknown) => {
+    if (!canEditCard && field !== "activities") return
+
     // Audit log significant changes
+    if (field === "assignees") {
+      const nextAssignees = (value as string[]) || []
+      const msg =
+        nextAssignees.length === 0
+          ? "Unassigned all staff"
+          : `Assignees updated: ${nextAssignees.join(", ")}`
+      logTaskHistory(msg, {
+        assignees: nextAssignees,
+        assignee: nextAssignees[0] || undefined,
+      })
+      return
+    }
+
     if (field === "assignee" && value !== currentTask.assignee) {
+      const next = value ? [String(value)] : []
       const msg = value
         ? `Assigned to ${String(value)}`
         : `Unassigned (previously ${currentTask.assignee || "none"})`
-      logTaskHistory(msg, { assignee: value as string })
+      logTaskHistory(msg, { assignee: value as string, assignees: next })
+      return
+    }
+
+    if (field === "leader" && value !== currentTask.leader) {
+      const msg = value
+        ? `Designated ${String(value)} as Team Leader`
+        : `Removed Team Leader designation (was ${currentTask.leader || "none"})`
+      logTaskHistory(msg, { leader: (value as string) || undefined })
       return
     }
 
@@ -128,6 +154,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   }
 
   const handleColumnChange = (targetColId: string) => {
+    if (!canEditCard) return
     if (targetColId === columnId) return
     const targetCol = currentBoard.columns.find((c) => c.id === targetColId)
     const historyEvent: ActivityItem = {
@@ -299,16 +326,16 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-3 sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-xs p-2 sm:p-4"
       onClick={onClose}
     >
       {/* Fixed Geometry Container */}
       <div
-        className="relative flex w-[94vw] max-w-6xl xl:max-w-7xl h-[85vh] flex-col rounded-2xl border border-stone-200 bg-white shadow-2xl animate-in fade-in-50 zoom-in-95 overflow-hidden"
+        className="relative flex w-full sm:w-[94vw] max-w-6xl xl:max-w-7xl h-[92vh] sm:h-[85vh] flex-col rounded-xl sm:rounded-2xl border border-stone-200 bg-white shadow-2xl animate-in fade-in-50 zoom-in-95 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Fixed Header */}
-        <div className="flex items-center justify-between gap-4 border-b border-stone-200 px-6 py-4 bg-stone-50/70 shrink-0">
+        <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-3.5 sm:px-6 py-3 sm:py-4 bg-stone-50/70 shrink-0">
           <div className="flex-1 min-w-0 flex items-center gap-2">
             <input
               type="text"
@@ -318,12 +345,12 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                 setLocalTitle(e.target.value)
                 handleFieldChange("title", e.target.value)
               }}
-              className="w-full text-lg sm:text-xl font-bold text-stone-900 bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-85 disabled:cursor-not-allowed"
+              className="w-full text-base sm:text-xl font-bold text-stone-900 bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-85 disabled:cursor-not-allowed"
               placeholder="Card Title"
             />
             {isArchived && (
-              <span className="shrink-0 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-900 border border-amber-300">
-                Archived (Read-Only)
+              <span className="shrink-0 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-amber-900 border border-amber-300">
+                Archived
               </span>
             )}
           </div>
@@ -351,9 +378,17 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
           </div>
         </div>
 
+        {/* Read-Only Restriction Banner */}
+        {!canEditCard && (
+          <div className="flex items-center gap-2 bg-amber-50 border-b border-amber-200/80 px-4 py-2 text-xs text-amber-800 shrink-0">
+            <Lock className="size-3.5 shrink-0 text-amber-700" />
+            <span>Read-only: Only administrators, assigned staff, or the card creator can modify this card.</span>
+          </div>
+        )}
+
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
             {/* Left Primary Section (7/12 width) */}
             <div className="space-y-6 lg:col-span-7">
               {/* Notes & Description - Collapsible */}

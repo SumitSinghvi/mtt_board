@@ -11,8 +11,8 @@ interface StaffTableProps {
 
 export function StaffTable({ staff, onEditStaff, onUpdateRole, onDeleteStaff }: StaffTableProps) {
   return (
-    <div className="flex-1 overflow-y-auto bg-white border border-stone-200 rounded-xl shadow-2xs">
-      <table className="w-full text-left border-collapse text-xs">
+    <div className="flex-1 overflow-y-auto overflow-x-auto bg-white border border-stone-200 rounded-xl shadow-2xs">
+      <table className="w-full min-w-[560px] text-left border-collapse text-xs">
         <thead>
           <tr className="border-b border-stone-200 bg-stone-50 text-[11px] font-bold uppercase tracking-wider text-stone-600">
             <th className="py-3 px-5">Staff Name</th>

@@ -201,8 +201,8 @@ export function KanbanBoard() {
         />
       ) : (
         /* Columns Container (Board View) */
-        <div className="flex-1 overflow-x-auto p-6">
-          <div className="flex items-start gap-4 h-full pb-4">
+        <div className="flex-1 overflow-x-auto p-3 sm:p-4 md:p-6">
+          <div className="flex items-start gap-3 sm:gap-4 h-full pb-4">
             {activeBoard.columns.map((column, colIdx) => (
               <KanbanColumn
                 key={column.id}
@@ -253,7 +253,7 @@ export function KanbanBoard() {
             {/* Add Column Button / Form (Admin Only, Active Boards Only) */}
             {!isArchived && isAdmin && (
               isAddingColumn ? (
-                <div className="w-80 shrink-0 rounded-xl border border-stone-300 bg-white p-3 shadow-xs">
+                <div className="w-[82vw] max-w-xs sm:w-80 shrink-0 rounded-xl border border-stone-300 bg-white p-3 shadow-xs">
                   <form onSubmit={handleAddColumn} className="space-y-2">
                     <input
                       type="text"
@@ -285,7 +285,7 @@ export function KanbanBoard() {
                 <button
                   type="button"
                   onClick={() => setIsAddingColumn(true)}
-                  className="flex h-12 w-80 shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-stone-300 text-xs font-semibold text-stone-600 hover:border-amber-500 hover:text-amber-700 hover:bg-amber-50/50 transition"
+                  className="flex h-12 w-[82vw] max-w-xs sm:w-80 shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-stone-300 text-xs font-semibold text-stone-600 hover:border-amber-500 hover:text-amber-700 hover:bg-amber-50/50 transition"
                 >
                   <PlusCircle className="size-4" />
                   <span>Add New Column</span>

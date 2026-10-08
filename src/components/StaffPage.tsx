@@ -47,28 +47,28 @@ export function StaffPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-stone-100/70 p-6 space-y-6">
+    <div className="flex-1 flex flex-col overflow-hidden bg-stone-100/70 p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 bg-white px-6 py-4 rounded-xl shadow-2xs">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-stone-200 bg-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-2xs">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="p-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
             <ShieldCheck className="size-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-stone-900 tracking-tight">Staff & Role Access</h1>
+            <h1 className="text-base sm:text-lg font-bold text-stone-900 tracking-tight">Staff & Role Access</h1>
             <p className="text-xs text-stone-500">
               Manage operators, drivers, tour coordinators, and role privileges
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             type="button"
             onClick={() => fetchStaffFromSupabase()}
             title="Sync with Supabase"
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 transition disabled:opacity-50"
+            className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 transition disabled:opacity-50"
           >
             <RefreshCw className={`size-3.5 ${loading ? "animate-spin text-amber-600" : "text-stone-500"}`} />
             <span>Sync Profiles</span>
@@ -77,7 +77,7 @@ export function StaffPage() {
           <button
             type="button"
             onClick={() => setIsInviteOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-amber-700 transition"
+            className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-amber-700 transition"
           >
             <UserPlus className="size-3.5" />
             <span>Add Staff Member</span>
