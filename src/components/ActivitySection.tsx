@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { MessageSquare, History, Send, Clock, UserCheck } from "lucide-react"
 import type { ActivityItem } from "../schemas/board"
-import { useStaffStore } from "../store/staffStore"
+import { useAuthStore } from "../store/authStore"
 import { formatDate } from "../lib/date"
 
 interface ActivitySectionProps {
@@ -19,14 +19,13 @@ export function ActivitySection({
 }: ActivitySectionProps) {
   const [activeTab, setActiveTab] = useState<"all" | "comments" | "history">("comments")
   const [commentText, setCommentText] = useState("")
-  const { staff } = useStaffStore()
-  const activeStaff = staff.find((s) => s.status === "active")?.name || "Mohit Singhvi"
-  const [author, setAuthor] = useState(activeStaff)
+  const { profile } = useAuthStore()
+  const authorName = profile?.name || "Mohit Tours Staff"
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!commentText.trim()) return
-    onAddComment(commentText.trim(), author)
+    onAddComment(commentText.trim(), authorName)
     setCommentText("")
   }
 
@@ -92,20 +91,17 @@ export function ActivitySection({
 
       {/* New Comment Input Box */}
       <form onSubmit={handleSubmit} className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-medium text-stone-500">Post as:</span>
-          <select
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            className="rounded-md border border-stone-200 bg-white px-2 py-0.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
-          >
-            {staff.map((m) => (
-              <option key={m.id} value={m.name}>
-                {m.name} ({m.role})
-              </option>
-            ))}
-          </select>
-        </div>
+        {profile?.name && (
+          <div className="flex items-center gap-1.5 text-[11px] text-stone-500">
+            <span>Commenting as</span>
+            <span className="font-semibold text-stone-700">{profile.name}</span>
+            {profile.role && (
+              <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">
+                {profile.role}
+              </span>
+            )}
+          </div>
+        )}
 
         <div className="flex gap-2">
           <textarea
