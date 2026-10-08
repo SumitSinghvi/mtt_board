@@ -9,6 +9,7 @@ interface ActivitySectionProps {
   onAddComment: (comment: string, author: string) => void
   title?: string
   placeholder?: string
+  readOnly?: boolean
 }
 
 export function ActivitySection({
@@ -16,6 +17,7 @@ export function ActivitySection({
   onAddComment,
   title = "Activity & History",
   placeholder = "Write a comment or update note...",
+  readOnly = false,
 }: ActivitySectionProps) {
   const [activeTab, setActiveTab] = useState<"all" | "comments" | "history">("comments")
   const [commentText, setCommentText] = useState("")
@@ -24,7 +26,7 @@ export function ActivitySection({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!commentText.trim()) return
+    if (readOnly || !commentText.trim()) return
     onAddComment(commentText.trim(), authorName)
     setCommentText("")
   }
@@ -89,38 +91,44 @@ export function ActivitySection({
         </div>
       </div>
 
-      {/* New Comment Input Box */}
-      <form onSubmit={handleSubmit} className="space-y-2">
-        {profile?.name && (
-          <div className="flex items-center gap-1.5 text-[11px] text-stone-500">
-            <span>Commenting as</span>
-            <span className="font-semibold text-stone-700">{profile.name}</span>
-            {profile.role && (
-              <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">
-                {profile.role}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="flex gap-2">
-          <textarea
-            rows={2}
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder={placeholder}
-            className="flex-1 rounded-lg border border-stone-200 bg-white p-2.5 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:outline-none resize-none shadow-2xs"
-          />
-          <button
-            type="submit"
-            disabled={!commentText.trim()}
-            className="self-end rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-40 disabled:hover:bg-amber-600 transition shadow-2xs flex items-center gap-1"
-          >
-            <Send className="size-3.5" />
-            <span>Send</span>
-          </button>
+      {/* New Comment Input Box or Read-Only Notice */}
+      {readOnly ? (
+        <div className="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-center text-xs text-stone-500 italic">
+          Board is archived. Comments and updates are disabled.
         </div>
-      </form>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-2">
+          {profile?.name && (
+            <div className="flex items-center gap-1.5 text-[11px] text-stone-500">
+              <span>Commenting as</span>
+              <span className="font-semibold text-stone-700">{profile.name}</span>
+              {profile.role && (
+                <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">
+                  {profile.role}
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <textarea
+              rows={2}
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder={placeholder}
+              className="flex-1 rounded-lg border border-stone-200 bg-white p-2.5 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:outline-none resize-none shadow-2xs"
+            />
+            <button
+              type="submit"
+              disabled={!commentText.trim()}
+              className="self-end rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-40 disabled:hover:bg-amber-600 transition shadow-2xs flex items-center gap-1"
+            >
+              <Send className="size-3.5" />
+              <span>Send</span>
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* Activity Timeline List */}
       <div className="space-y-2.5 pt-1">
@@ -150,9 +158,9 @@ export function ActivitySection({
                         <span>{act.author}</span>
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-stone-500 font-medium">
+                      <span className="flex items-center gap-1 text-stone-700 font-medium">
                         <History className="size-3 text-stone-400" />
-                        <span>System / History</span>
+                        <span>{act.author || "System"}</span>
                       </span>
                     )}
                   </div>

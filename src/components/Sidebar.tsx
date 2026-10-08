@@ -1,16 +1,22 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   LayoutDashboard,
+  CheckSquare,
   Plus,
   Trash2,
   X,
   ChevronRight,
+  ChevronDown,
   Users,
   ShieldCheck,
   Settings,
+  Archive,
+  ArchiveRestore,
+  GripVertical,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
+import { getUserPermissions } from "../lib/permissions"
 
 export function Sidebar() {
   const {
@@ -21,6 +27,9 @@ export function Sidebar() {
     setCurrentView,
     createBoard,
     deleteBoard,
+    archiveBoard,
+    unarchiveBoard,
+    reorderBoards,
     sidebarOpen,
     setSidebarOpen,
   } = useBoardStore()
@@ -29,17 +38,21 @@ export function Sidebar() {
   const [isCreating, setIsCreating] = useState(false)
   const [newTitle, setNewTitle] = useState("")
   const [newDescription, setNewDescription] = useState("")
-  const [boardType, setBoardType] = useState<"tour" | "general" | "fleet">("tour")
   const [filterQuery, setFilterQuery] = useState("")
+  const [draggedBoardIdx, setDraggedBoardIdx] = useState<number | null>(null)
+  const [dragOverBoardIdx, setDragOverBoardIdx] = useState<number | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
 
-  const userRole = profile?.role || "admin"
+  const userRole = profile?.role || "travel"
+  const permissions = getUserPermissions(profile)
 
-  // Filter boards based on user's role:
-  // - Admin: All boards
-  // - Visa: Boards with 'visa' in title (or general), not fleet
-  // - Travel: Tour & travel boards, not sensitive financial-only
-  // - Accounts: All boards (for billing & commercials)
+  // Filter boards based on user's permissions & role:
+  // 1. Explicit allowedBoardIds if configured by Admin
+  // 2. Otherwise default role-based visibility
   const roleFilteredBoards = boards.filter((b) => {
+    if (permissions.allowedBoardIds && permissions.allowedBoardIds.length > 0) {
+      return permissions.allowedBoardIds.includes(b.id)
+    }
     if (userRole === "admin" || userRole === "accounts") return true
     const titleLower = b.title.toLowerCase()
     if (userRole === "visa") {
@@ -51,26 +64,70 @@ export function Sidebar() {
     return true
   })
 
-  const filteredBoards = roleFilteredBoards.filter((b) =>
+  const activeRoleBoards = roleFilteredBoards.filter((b) => !b.isArchived)
+  const archivedRoleBoards = roleFilteredBoards.filter((b) => b.isArchived)
+
+  // Keep active board in sync with authorized boards (active or archived)
+  useEffect(() => {
+    if (roleFilteredBoards.length > 0 && !roleFilteredBoards.some((b) => b.id === activeBoardId)) {
+      setActiveBoardId(activeRoleBoards[0]?.id || roleFilteredBoards[0].id)
+    }
+  }, [activeRoleBoards, roleFilteredBoards, activeBoardId, setActiveBoardId])
+
+  const filteredBoards = activeRoleBoards.filter((b) =>
     b.title.toLowerCase().includes(filterQuery.toLowerCase())
   )
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedBoardIdx(index)
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("text/plain", `board:${index}`)
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedBoardIdx !== null && draggedBoardIdx !== index) {
+      setDragOverBoardIdx(index)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault()
+    if (draggedBoardIdx !== null && draggedBoardIdx !== targetIndex) {
+      const sourceBoard = filteredBoards[draggedBoardIdx]
+      const targetBoard = filteredBoards[targetIndex]
+      if (sourceBoard && targetBoard) {
+        const globalSourceIdx = boards.findIndex((b) => b.id === sourceBoard.id)
+        const globalTargetIdx = boards.findIndex((b) => b.id === targetBoard.id)
+        if (globalSourceIdx !== -1 && globalTargetIdx !== -1) {
+          reorderBoards(globalSourceIdx, globalTargetIdx)
+        }
+      }
+    }
+    setDraggedBoardIdx(null)
+    setDragOverBoardIdx(null)
+  }
+
+  const handleArchive = (id: string, title: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (confirm(`Archive board "${title}"? You can restore it anytime from Archived Boards.`)) {
+      archiveBoard(id, true)
+    }
+  }
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTitle.trim()) return
 
-    const modules =
-      boardType === "tour"
-        ? { clientContact: true, tripLogistics: true, commercials: true, subtasks: true }
-        : boardType === "fleet"
-        ? { clientContact: false, tripLogistics: false, commercials: false, subtasks: true }
-        : { clientContact: true, tripLogistics: false, commercials: false, subtasks: true }
+    const modules = {
+      clientContact: true,
+      subtasks: true,
+    }
 
-    const newId = createBoard(newTitle, newDescription, modules)
+    const newId = createBoard(newTitle.trim(), newDescription.trim() || undefined, modules)
     setActiveBoardId(newId)
     setNewTitle("")
     setNewDescription("")
-    setBoardType("tour")
     setIsCreating(false)
   }
 
@@ -105,14 +162,16 @@ export function Sidebar() {
           </div>
 
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              title="Create New Board"
-              onClick={() => setIsCreating(true)}
-              className="rounded-md p-1.5 text-stone-600 hover:bg-stone-100 hover:text-amber-700 transition"
-            >
-              <Plus className="size-4" />
-            </button>
+            {userRole === "admin" && (
+              <button
+                type="button"
+                title="Create New Board"
+                onClick={() => setIsCreating(true)}
+                className="rounded-md p-1.5 text-stone-600 hover:bg-stone-100 hover:text-amber-700 transition cursor-pointer"
+              >
+                <Plus className="size-4" />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setSidebarOpen(false)}
@@ -136,21 +195,77 @@ export function Sidebar() {
           </div>
         )}
 
+        {/* Dashboard & Personal Checklist Navigation Items */}
+        <div className="p-2.5 pb-2 border-b border-stone-100 space-y-1">
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentView("dashboard")
+              if (window.innerWidth < 768) setSidebarOpen(false)
+            }}
+            className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+              currentView === "dashboard"
+                ? "bg-amber-600 text-white shadow-sm shadow-amber-600/20"
+                : "text-stone-700 hover:bg-stone-100 hover:text-stone-900"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <LayoutDashboard className={`size-4 ${currentView === "dashboard" ? "text-white" : "text-amber-600"}`} />
+              <span>Dashboard</span>
+            </div>
+            {currentView === "dashboard" ? (
+              <span className="size-1.5 rounded-full bg-white animate-pulse" />
+            ) : (
+              <ChevronRight className="size-3.5 text-stone-400" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentView("todos")
+              if (window.innerWidth < 768) setSidebarOpen(false)
+            }}
+            className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+              currentView === "todos"
+                ? "bg-amber-600 text-white shadow-sm shadow-amber-600/20"
+                : "text-stone-700 hover:bg-stone-100 hover:text-stone-900"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <CheckSquare className={`size-4 ${currentView === "todos" ? "text-white" : "text-stone-500"}`} />
+              <span>Notes</span>
+            </div>
+            {currentView === "todos" ? (
+              <span className="size-1.5 rounded-full bg-white animate-pulse" />
+            ) : (
+              <ChevronRight className="size-3.5 text-stone-400" />
+            )}
+          </button>
+        </div>
+
         {/* Boards List */}
         <div className="flex-1 overflow-y-auto p-2.5 space-y-1">
           <div className="px-2 pt-1 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400">
             Workflows & Pipelines
           </div>
 
-          {filteredBoards.map((board) => {
+          {filteredBoards.map((board, idx) => {
             const isActive = board.id === activeBoardId && currentView === "board"
             const totalTasks = board.columns.reduce((sum, col) => sum + col.tasks.length, 0)
+            const isDragOver = dragOverBoardIdx === idx
 
             return (
               <div
                 key={board.id}
+                draggable={userRole === "admin"}
+                onDragStart={(e) => handleDragStart(e, idx)}
+                onDragOver={(e) => handleDragOver(e, idx)}
+                onDragLeave={() => setDragOverBoardIdx(null)}
+                onDrop={(e) => handleDrop(e, idx)}
                 onClick={() => {
                   setActiveBoardId(board.id)
+                  if (currentView !== "board") setCurrentView("board")
                   if (window.innerWidth < 768) setSidebarOpen(false)
                 }}
                 role="button"
@@ -158,15 +273,26 @@ export function Sidebar() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     setActiveBoardId(board.id)
+                    if (currentView !== "board") setCurrentView("board")
                   }
                 }}
-                className={`group flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium cursor-pointer transition select-none ${
+                className={`group relative flex items-center justify-between rounded-lg px-2 py-2 text-xs font-medium cursor-pointer transition select-none ${
                   isActive
                     ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
                     : "text-stone-700 hover:bg-stone-100"
+                } ${
+                  isDragOver ? "ring-2 ring-amber-500 bg-amber-50/50" : ""
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  {userRole === "admin" && (
+                    <div
+                      title="Drag to reorder"
+                      className="opacity-0 group-hover:opacity-60 hover:!opacity-100 cursor-grab text-stone-400 p-0.5 -ml-1 shrink-0"
+                    >
+                      <GripVertical className="size-3.5" />
+                    </div>
+                  )}
                   <LayoutDashboard
                     className={`size-4 shrink-0 ${isActive ? "text-amber-600" : "text-stone-400"}`}
                   />
@@ -178,7 +304,7 @@ export function Sidebar() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <span
                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
                       isActive ? "bg-amber-200/70 text-amber-900" : "bg-stone-100 text-stone-600"
@@ -186,15 +312,27 @@ export function Sidebar() {
                   >
                     {totalTasks}
                   </span>
-                  {boards.length > 1 && (
-                    <button
-                      type="button"
-                      title="Delete board"
-                      onClick={(e) => handleDelete(board.id, board.title, e)}
-                      className="opacity-0 group-hover:opacity-100 rounded p-1 text-stone-400 hover:bg-red-50 hover:text-red-600 transition"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
+                  {userRole === "admin" && (
+                    <>
+                      <button
+                        type="button"
+                        title="Archive board"
+                        onClick={(e) => handleArchive(board.id, board.title, e)}
+                        className="opacity-0 group-hover:opacity-100 rounded p-1 text-stone-400 hover:bg-amber-100/70 hover:text-amber-700 transition cursor-pointer"
+                      >
+                        <Archive className="size-3.5" />
+                      </button>
+                      {activeRoleBoards.length > 1 && (
+                        <button
+                          type="button"
+                          title="Delete board"
+                          onClick={(e) => handleDelete(board.id, board.title, e)}
+                          className="opacity-0 group-hover:opacity-100 rounded p-1 text-stone-400 hover:bg-red-50 hover:text-red-600 transition cursor-pointer"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      )}
+                    </>
                   )}
                   {isActive && <ChevronRight className="size-3.5 text-amber-600" />}
                 </div>
@@ -205,6 +343,77 @@ export function Sidebar() {
           {filteredBoards.length === 0 && (
             <div className="px-3 py-6 text-center text-xs text-stone-400">
               No boards found.
+            </div>
+          )}
+
+          {/* Archived Boards Collapsible Section */}
+          {archivedRoleBoards.length > 0 && (
+            <div className="pt-2 border-t border-stone-200/70 mt-3">
+              <button
+                type="button"
+                onClick={() => setShowArchived((prev) => !prev)}
+                className="w-full flex items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-stone-600 transition cursor-pointer"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Archive className="size-3 text-stone-400" />
+                  <span>Archived ({archivedRoleBoards.length})</span>
+                </span>
+                <ChevronDown
+                  className={`size-3 transition-transform ${showArchived ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {showArchived && (
+                <div className="space-y-1 mt-1.5">
+                  {archivedRoleBoards.map((ab) => {
+                    const isArchivedActive = ab.id === activeBoardId && currentView === "board"
+                    return (
+                      <div
+                        key={ab.id}
+                        onClick={() => {
+                          setActiveBoardId(ab.id)
+                          if (currentView !== "board") setCurrentView("board")
+                          if (window.innerWidth < 768) setSidebarOpen(false)
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            setActiveBoardId(ab.id)
+                            if (currentView !== "board") setCurrentView("board")
+                          }
+                        }}
+                        className={`group flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs cursor-pointer transition select-none ${
+                          isArchivedActive
+                            ? "bg-amber-100/70 text-amber-900 font-semibold shadow-2xs border border-amber-300"
+                            : "text-stone-600 bg-stone-100/60 hover:bg-stone-200/60 border border-stone-200/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <Archive className="size-3.5 text-stone-400 shrink-0" />
+                          <span className="truncate flex-1 font-medium">
+                            {ab.title}
+                          </span>
+                        </div>
+                        {userRole === "admin" && (
+                          <button
+                            type="button"
+                            title="Restore board"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              unarchiveBoard(ab.id)
+                            }}
+                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 hover:text-amber-800 bg-white px-2 py-0.5 rounded border border-stone-200 hover:border-amber-300 shadow-2xs transition cursor-pointer shrink-0 ml-1.5"
+                          >
+                            <ArchiveRestore className="size-3" />
+                            <span>Restore</span>
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -309,54 +518,6 @@ export function Sidebar() {
                     onChange={(e) => setNewTitle(e.target.value)}
                     className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">
-                    Board Type & Headings
-                  </label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setBoardType("tour")}
-                      className={`p-2 rounded-lg border text-center transition text-[11px] font-semibold ${
-                        boardType === "tour"
-                          ? "border-amber-600 bg-amber-50 text-amber-900"
-                          : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100"
-                      }`}
-                    >
-                      Tour Booking
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBoardType("general")}
-                      className={`p-2 rounded-lg border text-center transition text-[11px] font-semibold ${
-                        boardType === "general"
-                          ? "border-amber-600 bg-amber-50 text-amber-900"
-                          : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100"
-                      }`}
-                    >
-                      General Task
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBoardType("fleet")}
-                      className={`p-2 rounded-lg border text-center transition text-[11px] font-semibold ${
-                        boardType === "fleet"
-                          ? "border-amber-600 bg-amber-50 text-amber-900"
-                          : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100"
-                      }`}
-                    >
-                      Fleet / Ops
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-stone-400 mt-1">
-                    {boardType === "tour"
-                      ? "Includes Trip Logistics & Commercials"
-                      : boardType === "fleet"
-                      ? "Subtasks & Assignee only (no tour headings)"
-                      : "Core tasks & Client contact"}
-                  </p>
                 </div>
 
                 <div>

@@ -1,7 +1,8 @@
 import { create } from "zustand"
 import { supabase } from "../lib/supabase"
 import type { User, Session } from "@supabase/supabase-js"
-import type { StaffRole } from "./staffStore"
+import type { StaffRole, StaffPermissions } from "./staffStore"
+import { useStaffStore } from "./staffStore"
 
 export interface UserProfile {
   id: string
@@ -10,6 +11,7 @@ export interface UserProfile {
   phone: string
   role: StaffRole
   status: string
+  permissions?: StaffPermissions
 }
 
 interface AuthState {
@@ -36,13 +38,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, name, phone, role, status")
+        .select("id, email, name, phone, role, status, permissions")
         .eq("id", userId)
         .maybeSingle()
 
       if (error) {
         console.warn("Error fetching profile:", error.message)
       }
+
+      // Check if local staff store has linked permissions for this email or ID
+      const localStaff = useStaffStore.getState().staff.find(
+        (s) => s.id === userId || s.email.toLowerCase() === email.toLowerCase()
+      )
 
       if (data) {
         set({
@@ -55,18 +62,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               ? data.role
               : "travel") as StaffRole,
             status: data.status || "active",
+            permissions: (data.permissions as StaffPermissions) || localStaff?.permissions,
           },
         })
       } else {
         // Fallback default admin for initial admin / first user
-        const defaultRole: StaffRole = email.includes("admin") || email.includes("mohit") ? "admin" : "travel"
+        const defaultRole: StaffRole =
+          localStaff?.role ||
+          (email.includes("admin") || email.includes("mohit") ? "admin" : "travel")
         const fallbackProfile: UserProfile = {
           id: userId,
           email,
-          name: email.split("@")[0],
-          phone: "",
+          name: localStaff?.name || email.split("@")[0],
+          phone: localStaff?.phone || "",
           role: defaultRole,
           status: "active",
+          permissions: localStaff?.permissions,
         }
         set({ profile: fallbackProfile })
 

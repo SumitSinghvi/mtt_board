@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, memo } from "react"
 import {
   Plus,
   Trash2,
@@ -29,6 +29,11 @@ interface KanbanColumnProps {
   onUpdateColumnTitle: (columnId: string, title: string) => void
   onMoveColumn: (fromIdx: number, toIdx: number) => void
   onDeleteColumn: (columnId: string, title: string) => void
+  canCreateCards?: boolean
+  canDeleteCards?: boolean
+  canViewCommercials?: boolean
+  canEditCards?: boolean
+  isAdmin?: boolean
   onAddCardClick: (columnId: string) => void
   onTaskDragStart: (e: React.DragEvent, taskId: string, sourceColId: string) => void
   onSelectTask: (taskId: string) => void
@@ -36,7 +41,7 @@ interface KanbanColumnProps {
   onMoveTask: (taskId: string, targetColId: string) => void
 }
 
-export function KanbanColumn({
+export const KanbanColumn = memo(function KanbanColumn({
   column,
   colIdx,
   totalColumns,
@@ -44,6 +49,11 @@ export function KanbanColumn({
   prevColumnId,
   nextColumnTitle,
   nextColumnId,
+  canCreateCards = true,
+  canDeleteCards = true,
+  canViewCommercials = true,
+  canEditCards = true,
+  isAdmin = false,
   isDraggingThisCol,
   isOverThisCol,
   onColumnDragStart,
@@ -73,11 +83,20 @@ export function KanbanColumn({
 
   return (
     <div
-      draggable
-      onDragStart={(e) => onColumnDragStart(e, colIdx)}
-      onDragOver={(e) => onColumnDragOver(e, colIdx)}
+      draggable={isAdmin}
+      onDragStart={(e) => {
+        if (!isAdmin) return
+        onColumnDragStart(e, colIdx)
+      }}
+      onDragOver={(e) => {
+        if (!isAdmin) return
+        onColumnDragOver(e, colIdx)
+      }}
       onDragLeave={onColumnDragLeave}
-      onDrop={(e) => onDropContainer(e, colIdx, column.id)}
+      onDrop={(e) => {
+        if (!isAdmin) return
+        onDropContainer(e, colIdx, column.id)
+      }}
       onDragEnd={onResetDrag}
       className={`flex w-80 shrink-0 flex-col rounded-xl border bg-stone-50/90 shadow-2xs max-h-full transition-all duration-150 ${
         isDraggingThisCol
@@ -91,12 +110,14 @@ export function KanbanColumn({
       <div className="relative flex items-center justify-between border-b border-stone-200 px-3 py-2 bg-white/80 rounded-t-xl select-none">
         <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-1">
           {/* Drag Grip Handle */}
-          <div
-            title="Drag column to move left or right"
-            className="cursor-grab active:cursor-grabbing p-0.5 text-stone-400 hover:text-amber-700 transition shrink-0"
-          >
-            <GripVertical className="size-4" />
-          </div>
+          {isAdmin && (
+            <div
+              title="Drag column to move left or right"
+              className="cursor-grab active:cursor-grabbing p-0.5 text-stone-400 hover:text-amber-700 transition shrink-0"
+            >
+              <GripVertical className="size-4" />
+            </div>
+          )}
 
           {isRenaming ? (
             <input
@@ -118,11 +139,14 @@ export function KanbanColumn({
           ) : (
             <span
               onDoubleClick={() => {
+                if (!isAdmin) return
                 setRenameTitle(column.title)
                 setIsRenaming(true)
               }}
-              title="Double-click to rename"
-              className="text-xs font-bold text-stone-800 truncate cursor-pointer hover:text-amber-800"
+              title={isAdmin ? "Double-click to rename" : undefined}
+              className={`text-xs font-bold text-stone-800 truncate ${
+                isAdmin ? "cursor-pointer hover:text-amber-800" : ""
+              }`}
             >
               {column.title}
             </span>
@@ -135,26 +159,29 @@ export function KanbanColumn({
 
         {/* Header Actions: Quick + Add Card & Three Dots Action Menu */}
         <div className="flex items-center gap-0.5 shrink-0">
-          <button
-            type="button"
-            title="Add Card to this column"
-            onClick={() => onAddCardClick(column.id)}
-            className="rounded p-1 text-stone-500 hover:bg-stone-200/60 hover:text-stone-800 transition"
-          >
-            <Plus className="size-3.5" />
-          </button>
-
-          <div className="relative">
+          {canCreateCards && (
             <button
               type="button"
-              title="Column actions"
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-              className={`rounded p-1 text-stone-500 hover:bg-stone-200/60 hover:text-stone-800 transition ${
-                isMenuOpen ? "bg-stone-200/70 text-stone-900" : ""
-              }`}
+              title="Add Card to this column"
+              onClick={() => onAddCardClick(column.id)}
+              className="rounded p-1 text-stone-500 hover:bg-stone-200/60 hover:text-stone-800 transition"
             >
-              <MoreHorizontal className="size-3.5" />
+              <Plus className="size-3.5" />
             </button>
+          )}
+
+          {isAdmin && (
+            <div className="relative">
+              <button
+                type="button"
+                title="Column actions"
+                onClick={() => setIsMenuOpen((prev) => !prev)}
+                className={`rounded p-1 text-stone-500 hover:bg-stone-200/60 hover:text-stone-800 transition ${
+                  isMenuOpen ? "bg-stone-200/70 text-stone-900" : ""
+                }`}
+              >
+                <MoreHorizontal className="size-3.5" />
+              </button>
 
             {isMenuOpen && (
               <>
@@ -231,6 +258,7 @@ export function KanbanColumn({
               </>
             )}
           </div>
+        )}
         </div>
       </div>
 
@@ -247,6 +275,9 @@ export function KanbanColumn({
             prevColumnId={prevColumnId}
             nextColumnTitle={nextColumnTitle}
             nextColumnId={nextColumnId}
+            canDeleteCard={canDeleteCards}
+            canViewCommercials={canViewCommercials}
+            canEditCard={canEditCards}
             onTaskDragStart={onTaskDragStart}
             onResetDrag={onResetDrag}
             onSelectTask={onSelectTask}
@@ -263,16 +294,18 @@ export function KanbanColumn({
       </div>
 
       {/* Column Footer */}
-      <div className="p-2 border-t border-stone-200 bg-white/50 rounded-b-xl">
-        <button
-          type="button"
-          onClick={() => onAddCardClick(column.id)}
-          className="flex w-full items-center justify-center gap-1 rounded-md py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-200/60 transition"
-        >
-          <Plus className="size-3.5" />
-          <span>Add Card</span>
-        </button>
-      </div>
+      {canCreateCards && (
+        <div className="p-2 border-t border-stone-200 bg-white/50 rounded-b-xl">
+          <button
+            type="button"
+            onClick={() => onAddCardClick(column.id)}
+            className="flex w-full items-center justify-center gap-1 rounded-md py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-200/60 transition"
+          >
+            <Plus className="size-3.5" />
+            <span>Add Card</span>
+          </button>
+        </div>
+      )}
     </div>
   )
-}
+})

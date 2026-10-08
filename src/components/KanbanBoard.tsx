@@ -1,6 +1,8 @@
-import { useState } from "react"
-import { FolderPlus, PlusCircle } from "lucide-react"
+import { useState, useCallback } from "react"
+import { FolderPlus, PlusCircle, Archive, ArchiveRestore } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
+import { useAuthStore } from "../store/authStore"
+import { getUserPermissions } from "../lib/permissions"
 import { CardModal } from "./CardModal"
 import { NewCardModal } from "./NewCardModal"
 import { BoardSettingsModal } from "./BoardSettingsModal"
@@ -21,11 +23,17 @@ export function KanbanBoard() {
     moveColumn,
     deleteTask,
     moveTask,
+    unarchiveBoard,
     selectedTask: globalSelectedTask,
     setSelectedTask: setGlobalSelectedTask,
   } = useBoardStore()
 
   const activeBoard = boards.find((b) => b.id === activeBoardId) || boards[0]
+  const isArchived = !!activeBoard?.isArchived
+
+  const { profile } = useAuthStore()
+  const permissions = getUserPermissions(profile)
+  const isAdmin = profile?.role === "admin" || !profile
 
   // Board View Mode
   const [activeView, setActiveView] = useState<"board" | "dashboard" | "calendar">("board")
@@ -45,6 +53,72 @@ export function KanbanBoard() {
   const [draggedColIndex, setDraggedColIndex] = useState<number | null>(null)
   const [dragOverColIndex, setDragOverColIndex] = useState<number | null>(null)
 
+  const handleResetDrag = useCallback(() => {
+    setDragType(null)
+    setDraggedTaskId(null)
+    setDraggedSourceColId(null)
+    setDraggedColIndex(null)
+    setDragOverColIndex(null)
+  }, [])
+
+  const onColumnDragStart = useCallback((e: React.DragEvent, colIdx: number) => {
+    if (isArchived) return
+    setDragType("column")
+    setDraggedColIndex(colIdx)
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("text/plain", `col:${colIdx}`)
+  }, [isArchived])
+
+  const onColumnDragOver = useCallback((e: React.DragEvent, colIdx: number) => {
+    if (isArchived) return
+    e.preventDefault()
+    setDragOverColIndex((prev) => (prev !== colIdx ? colIdx : prev))
+  }, [isArchived])
+
+  const onTaskDragStart = useCallback((e: React.DragEvent, taskId: string, sourceColId: string) => {
+    if (isArchived) return
+    e.stopPropagation()
+    setDragType("task")
+    setDraggedTaskId(taskId)
+    setDraggedSourceColId(sourceColId)
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("text/plain", `task:${taskId}`)
+  }, [isArchived])
+
+  const onDropContainer = useCallback((e: React.DragEvent, targetColIdx: number, targetColId: string) => {
+    if (isArchived || !activeBoard) return
+    e.preventDefault()
+
+    if (dragType === "column" && draggedColIndex !== null) {
+      if (draggedColIndex !== targetColIdx) {
+        moveColumn(activeBoard.id, draggedColIndex, targetColIdx)
+      }
+    } else if (dragType === "task" && draggedTaskId && draggedSourceColId) {
+      moveTask(activeBoard.id, draggedSourceColId, targetColId, draggedTaskId)
+    }
+
+    handleResetDrag()
+  }, [isArchived, activeBoard, dragType, draggedColIndex, draggedTaskId, draggedSourceColId, moveColumn, moveTask, handleResetDrag])
+
+  const handleSelectTask = useCallback((taskId: string, columnId: string) => {
+    if (!activeBoard) return
+    setGlobalSelectedTask({
+      boardId: activeBoard.id,
+      columnId,
+      taskId,
+    })
+  }, [activeBoard, setGlobalSelectedTask])
+
+  const handleDeleteTask = useCallback((columnId: string, taskId: string) => {
+    if (!activeBoard) return
+    deleteTask(activeBoard.id, columnId, taskId)
+  }, [activeBoard, deleteTask])
+
+  const handleMoveTaskDirect = useCallback((columnId: string, taskId: string, targetColId: string) => {
+    if (!activeBoard) return
+    moveTask(activeBoard.id, columnId, targetColId, taskId)
+  }, [activeBoard, moveTask])
+
   if (!activeBoard) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8 text-center text-stone-500">
@@ -63,51 +137,6 @@ export function KanbanBoard() {
     setIsAddingColumn(false)
   }
 
-  const handleResetDrag = () => {
-    setDragType(null)
-    setDraggedTaskId(null)
-    setDraggedSourceColId(null)
-    setDraggedColIndex(null)
-    setDragOverColIndex(null)
-  }
-
-  const onColumnDragStart = (e: React.DragEvent, colIdx: number) => {
-    setDragType("column")
-    setDraggedColIndex(colIdx)
-    e.dataTransfer.effectAllowed = "move"
-    e.dataTransfer.setData("text/plain", `col:${colIdx}`)
-  }
-
-  const onColumnDragOver = (e: React.DragEvent, colIdx: number) => {
-    e.preventDefault()
-    if (dragType === "column" && draggedColIndex !== null && draggedColIndex !== colIdx) {
-      setDragOverColIndex(colIdx)
-    }
-  }
-
-  const onTaskDragStart = (e: React.DragEvent, taskId: string, sourceColId: string) => {
-    e.stopPropagation()
-    setDragType("task")
-    setDraggedTaskId(taskId)
-    setDraggedSourceColId(sourceColId)
-    e.dataTransfer.effectAllowed = "move"
-    e.dataTransfer.setData("text/plain", `task:${taskId}`)
-  }
-
-  const onDropContainer = (e: React.DragEvent, targetColIdx: number, targetColId: string) => {
-    e.preventDefault()
-
-    if (dragType === "column" && draggedColIndex !== null) {
-      if (draggedColIndex !== targetColIdx) {
-        moveColumn(activeBoard.id, draggedColIndex, targetColIdx)
-      }
-    } else if (dragType === "task" && draggedTaskId && draggedSourceColId) {
-      moveTask(activeBoard.id, draggedSourceColId, targetColId, draggedTaskId)
-    }
-
-    handleResetDrag()
-  }
-
   return (
     <div className="flex flex-1 flex-col overflow-hidden bg-stone-100/70">
       {/* Board Header Bar */}
@@ -115,9 +144,32 @@ export function KanbanBoard() {
         boardTitle={activeBoard.title}
         boardDescription={activeBoard.description}
         activeView={activeView}
+        isAdmin={isAdmin}
         onViewChange={setActiveView}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
+
+      {/* Archived Read-Only Notice Banner */}
+      {isArchived && (
+        <div className="bg-amber-100/90 border-b border-amber-300 px-6 py-2.5 flex items-center justify-between text-xs text-amber-900 shrink-0">
+          <div className="flex items-center gap-2">
+            <Archive className="size-4 text-amber-700 shrink-0" />
+            <span>
+              <strong>Archived Board (Read-Only)</strong> — You are viewing an archived workflow. Cards and columns cannot be added, edited, or moved.
+            </span>
+          </div>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => unarchiveBoard(activeBoard.id)}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-600 text-white font-semibold hover:bg-amber-700 transition shadow-2xs cursor-pointer"
+            >
+              <ArchiveRestore className="size-3.5" />
+              <span>Restore Board</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Main Content Area */}
       {activeView === "dashboard" ? (
@@ -142,7 +194,7 @@ export function KanbanBoard() {
             })
           }
           onQuickAddForDate={() => {
-            if (activeBoard.columns.length > 0) {
+            if (permissions.canCreateCards && activeBoard.columns.length > 0) {
               setNewCardColumnId(activeBoard.columns[0].id)
             }
           }}
@@ -169,6 +221,11 @@ export function KanbanBoard() {
                     ? activeBoard.columns[colIdx + 1].id
                     : undefined
                 }
+                canCreateCards={!isArchived && permissions.canCreateCards}
+                canDeleteCards={!isArchived && permissions.canDeleteCards}
+                canViewCommercials={permissions.canViewCommercials}
+                canEditCards={!isArchived && permissions.canEditCards}
+                isAdmin={!isArchived && isAdmin}
                 isDraggingThisCol={dragType === "column" && draggedColIndex === colIdx}
                 isOverThisCol={dragType === "column" && dragOverColIndex === colIdx}
                 onColumnDragStart={onColumnDragStart}
@@ -187,59 +244,53 @@ export function KanbanBoard() {
                 }}
                 onAddCardClick={(colId) => setNewCardColumnId(colId)}
                 onTaskDragStart={onTaskDragStart}
-                onSelectTask={(taskId) =>
-                  setGlobalSelectedTask({
-                    boardId: activeBoard.id,
-                    columnId: column.id,
-                    taskId,
-                  })
-                }
-                onDeleteTask={(taskId) => deleteTask(activeBoard.id, column.id, taskId)}
-                onMoveTask={(taskId, targetColId) =>
-                  moveTask(activeBoard.id, column.id, targetColId, taskId)
-                }
+                onSelectTask={(taskId) => handleSelectTask(taskId, column.id)}
+                onDeleteTask={(taskId) => handleDeleteTask(column.id, taskId)}
+                onMoveTask={(taskId, targetColId) => handleMoveTaskDirect(column.id, taskId, targetColId)}
               />
             ))}
 
-            {/* Add Column Button / Form */}
-            {isAddingColumn ? (
-              <div className="w-80 shrink-0 rounded-xl border border-stone-300 bg-white p-3 shadow-xs">
-                <form onSubmit={handleAddColumn} className="space-y-2">
-                  <input
-                    type="text"
-                    required
-                    autoFocus
-                    placeholder="Column Title (e.g. In Review, Invoiced)"
-                    value={newColumnTitle}
-                    onChange={(e) => setNewColumnTitle(e.target.value)}
-                    className="w-full rounded border border-stone-300 px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                  />
-                  <div className="flex justify-end gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddingColumn(false)}
-                      className="rounded px-2.5 py-1 text-xs text-stone-600 hover:bg-stone-100"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="rounded bg-amber-600 px-3 py-1 text-xs font-medium text-white hover:bg-amber-700"
-                    >
-                      Add Column
-                    </button>
-                  </div>
-                </form>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setIsAddingColumn(true)}
-                className="flex h-12 w-80 shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-stone-300 text-xs font-semibold text-stone-600 hover:border-amber-500 hover:text-amber-700 hover:bg-amber-50/50 transition"
-              >
-                <PlusCircle className="size-4" />
-                <span>Add New Column</span>
-              </button>
+            {/* Add Column Button / Form (Admin Only, Active Boards Only) */}
+            {!isArchived && isAdmin && (
+              isAddingColumn ? (
+                <div className="w-80 shrink-0 rounded-xl border border-stone-300 bg-white p-3 shadow-xs">
+                  <form onSubmit={handleAddColumn} className="space-y-2">
+                    <input
+                      type="text"
+                      required
+                      autoFocus
+                      placeholder="Column Title (e.g. In Review, Invoiced)"
+                      value={newColumnTitle}
+                      onChange={(e) => setNewColumnTitle(e.target.value)}
+                      className="w-full rounded border border-stone-300 px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                    />
+                    <div className="flex justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingColumn(false)}
+                        className="rounded px-2.5 py-1 text-xs text-stone-600 hover:bg-stone-100"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="rounded bg-amber-600 px-3 py-1 text-xs font-medium text-white hover:bg-amber-700"
+                      >
+                        Add Column
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsAddingColumn(true)}
+                  className="flex h-12 w-80 shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-stone-300 text-xs font-semibold text-stone-600 hover:border-amber-500 hover:text-amber-700 hover:bg-amber-50/50 transition"
+                >
+                  <PlusCircle className="size-4" />
+                  <span>Add New Column</span>
+                </button>
+              )
             )}
           </div>
         </div>

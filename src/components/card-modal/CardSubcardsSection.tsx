@@ -16,6 +16,7 @@ import type { ChecklistItem } from "../../schemas/board"
 interface CardSubcardsSectionProps {
   checklist: ChecklistItem[]
   isOpen: boolean
+  canEdit?: boolean
   onToggleOpen: () => void
   onToggleItem: (id: string) => void
   onOpenSubCard: (id: string) => void
@@ -26,6 +27,7 @@ interface CardSubcardsSectionProps {
 export function CardSubcardsSection({
   checklist,
   isOpen,
+  canEdit = true,
   onToggleOpen,
   onToggleItem,
   onOpenSubCard,
@@ -99,8 +101,9 @@ export function CardSubcardsSection({
                   <input
                     type="checkbox"
                     checked={item.done}
+                    disabled={!canEdit}
                     onChange={() => onToggleItem(item.id)}
-                    className="size-4 rounded text-amber-600 focus:ring-amber-500 shrink-0 cursor-pointer"
+                    className="size-4 rounded text-amber-600 focus:ring-amber-500 shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                   />
                   <span
                     onClick={() => onOpenSubCard(item.id)}
@@ -154,39 +157,43 @@ export function CardSubcardsSection({
                   </button>
 
                   {/* Delete Sub-Card */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDeleteSubCard(item.id)
-                    }}
-                    title="Delete sub-card"
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
+                  {canEdit && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDeleteSubCard(item.id)
+                      }}
+                      title="Delete sub-card"
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
 
           {/* Add Sub-Card Quick Form */}
-          <form onSubmit={handleAddSubmit} className="flex gap-2 pt-1">
-            <input
-              type="text"
-              placeholder="Add new sub-card (e.g. Arrange airport taxi, Collect advance receipt)..."
-              value={newChecklistText}
-              onChange={(e) => setNewChecklistText(e.target.value)}
-              className="flex-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none shadow-2xs"
-            />
-            <button
-              type="submit"
-              className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 shadow-2xs transition"
-            >
-              <Plus className="size-3.5" />
-              <span>Add Sub-Card</span>
-            </button>
-          </form>
+          {canEdit && (
+            <form onSubmit={handleAddSubmit} className="flex gap-2 pt-1">
+              <input
+                type="text"
+                placeholder="Add new sub-card (e.g. Arrange airport taxi, Collect advance receipt)..."
+                value={newChecklistText}
+                onChange={(e) => setNewChecklistText(e.target.value)}
+                className="flex-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none shadow-2xs"
+              />
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 shadow-2xs transition"
+              >
+                <Plus className="size-3.5" />
+                <span>Add Sub-Card</span>
+              </button>
+            </form>
+          )}
         </>
       )}
     </div>

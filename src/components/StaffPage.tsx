@@ -6,6 +6,8 @@ import { StaffTable } from "./staff/StaffTable"
 import { AddStaffModal } from "./staff/AddStaffModal"
 import { EditStaffModal } from "./staff/EditStaffModal"
 
+import { getDefaultRolePermissions } from "../lib/permissions"
+
 export function StaffPage() {
   const { staff, loading, fetchStaffFromSupabase, addStaff, updateStaff, updateStaffRole, deleteStaff } =
     useStaffStore()
@@ -18,21 +20,24 @@ export function StaffPage() {
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null)
 
-  const handleAddMember = (data: { name: string; phone: string; email: string; role: StaffRole }) => {
-    addStaff({
-      name: data.name,
-      phone: data.phone,
-      email: data.email,
-      role: data.role,
-      status: "active",
-      permissions: {
-        allowedBoardIds: undefined,
-        canCreateCards: true,
-        canEditCards: true,
-        canDeleteCards: data.role === "admin",
-        canViewCommercials: data.role === "admin" || data.role === "accounts",
+  const handleAddMember = async (data: {
+    name: string
+    phone: string
+    email: string
+    role: StaffRole
+    password: string
+  }) => {
+    return await addStaff(
+      {
+        name: data.name,
+        phone: data.phone,
+        email: data.email,
+        role: data.role,
+        status: "active",
+        permissions: getDefaultRolePermissions(data.role),
       },
-    })
+      data.password
+    )
   }
 
   const handleDeleteStaff = (memberId: string, memberName: string) => {

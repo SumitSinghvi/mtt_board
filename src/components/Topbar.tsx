@@ -1,9 +1,7 @@
-import { useState } from "react"
-import { PanelLeftClose, PanelLeft, LogOut, LogIn } from "lucide-react"
+import { PanelLeftClose, PanelLeft, LogOut } from "lucide-react"
 import logoImg from "../assets/logo.png"
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
-import { AuthModal } from "./AuthModal"
 import { GlobalSearch } from "./GlobalSearch"
 
 const roleBadgeColor: Record<string, string> = {
@@ -14,9 +12,12 @@ const roleBadgeColor: Record<string, string> = {
 }
 
 export function Topbar() {
-  const { sidebarOpen, toggleSidebar, setSelectedTask } = useBoardStore()
+  const sidebarOpen = useBoardStore((s) => s.sidebarOpen)
+  const toggleSidebar = useBoardStore((s) => s.toggleSidebar)
+  const setSelectedTask = useBoardStore((s) => s.setSelectedTask)
+  const setActiveBoardId = useBoardStore((s) => s.setActiveBoardId)
+  const setCurrentView = useBoardStore((s) => s.setCurrentView)
   const { user, profile, signOut } = useAuthStore()
-  const [showAuthModal, setShowAuthModal] = useState(false)
 
   return (
     <>
@@ -46,24 +47,26 @@ export function Topbar() {
         {/* Center: Global Cross-Board Search */}
         <div className="flex-1 flex justify-center max-w-lg">
           <GlobalSearch
-            onSelectTask={(boardId, columnId, taskId) =>
+            onSelectTask={(boardId, columnId, taskId) => {
+              setActiveBoardId(boardId)
+              setCurrentView("board")
               setSelectedTask({ boardId, columnId, taskId })
-            }
+            }}
           />
         </div>
 
         {/* Right: Auth Profile Status */}
         <div className="flex items-center gap-3">
-          {user && profile ? (
-            <div className="flex items-center gap-2.5">
-              <div className="flex items-center gap-2 text-left">
-                <div className="size-7 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-xs font-bold text-stone-700">
-                  {profile.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="hidden sm:block leading-tight">
-                  <span className="text-xs font-semibold text-stone-900 block truncate max-w-[130px]">
-                    {profile.name}
-                  </span>
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 text-left">
+              <div className="size-7 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-xs font-bold text-stone-700">
+                {(profile?.name || user?.email || "U").charAt(0).toUpperCase()}
+              </div>
+              <div className="hidden sm:block leading-tight">
+                <span className="text-xs font-semibold text-stone-900 block truncate max-w-[130px]">
+                  {profile?.name || user?.email?.split("@")[0]}
+                </span>
+                {profile?.role && (
                   <span
                     className={`inline-block text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded border ${
                       roleBadgeColor[profile.role] || "bg-stone-100 text-stone-700 border-stone-200"
@@ -71,32 +74,21 @@ export function Topbar() {
                   >
                     {profile.role}
                   </span>
-                </div>
+                )}
               </div>
-
-              <button
-                type="button"
-                onClick={() => signOut()}
-                title="Sign Out"
-                className="rounded-lg p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 transition ml-1"
-              >
-                <LogOut className="size-4" />
-              </button>
             </div>
-          ) : (
+
             <button
               type="button"
-              onClick={() => setShowAuthModal(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-stone-800 transition"
+              onClick={() => signOut()}
+              title="Sign Out"
+              className="rounded-lg p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 transition ml-1 cursor-pointer"
             >
-              <LogIn className="size-3.5" />
-              <span>Staff Login</span>
+              <LogOut className="size-4" />
             </button>
-          )}
+          </div>
         </div>
       </header>
-
-      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
     </>
   )
 }

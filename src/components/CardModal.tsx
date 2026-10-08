@@ -7,15 +7,15 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
-import { useStaffStore } from "../store/staffStore"
+import { useStaffStore, initialStaff } from "../store/staffStore"
 import { useAuthStore } from "../store/authStore"
+import { getUserPermissions } from "../lib/permissions"
 import { ActivitySection } from "./ActivitySection"
-import { CardTripLogistics } from "./card-modal/CardTripLogistics"
 import { CardSubcardsSection } from "./card-modal/CardSubcardsSection"
 import { CardDetailsSidebar } from "./card-modal/CardDetailsSidebar"
-import { CardCommercials } from "./card-modal/CardCommercials"
 import { SubCardModal } from "./card-modal/SubCardModal"
 import { formatDate } from "../lib/date"
+import { markTaskCommentsRead } from "../lib/unreadComments"
 import type { Priority, Task, ChecklistItem, ActivityItem } from "../schemas/board"
 
 interface CardModalProps {
@@ -28,14 +28,16 @@ interface CardModalProps {
 export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps) {
   const { boards, updateTask, deleteTask, moveTask } = useBoardStore()
   const { staff } = useStaffStore()
+  const staffList = staff.length > 0 ? staff : initialStaff
   const { profile } = useAuthStore()
 
-  const userRole = profile?.role || "admin"
-  const canViewCommercials = userRole === "admin" || userRole === "accounts"
-  const canEditCommercials = userRole === "admin" || userRole === "accounts"
-  const canDeleteCard = userRole === "admin"
-
   const currentBoard = boards.find((b) => b.id === boardId)
+  const isArchived = !!currentBoard?.isArchived
+
+  const permissions = getUserPermissions(profile)
+  const canDeleteCard = !isArchived && permissions.canDeleteCards
+  const canEditCard = !isArchived && permissions.canEditCards
+
   const currentColumn = currentBoard?.columns.find((c) => c.id === columnId)
   const currentTask = currentColumn?.tasks.find((t) => t.id === taskId)
 
@@ -46,12 +48,28 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   const [subcardsOpen, setSubcardsOpen] = useState(true)
   const [cardDetailsOpen, setCardDetailsOpen] = useState(true)
 
+  // Local state buffering for text inputs to eliminate keystroke lag
+  const [localTitle, setLocalTitle] = useState(currentTask?.title || "")
+  const [localDescription, setLocalDescription] = useState(currentTask?.description || "")
+
+  useEffect(() => {
+    if (currentTask) {
+      setLocalTitle(currentTask.title)
+      setLocalDescription(currentTask.description || "")
+    }
+  }, [currentTask?.id])
+
   const modules = currentBoard?.modules || {
     clientContact: true,
-    tripLogistics: false,
-    commercials: false,
     subtasks: true,
   }
+
+  // Mark comments read on modal open
+  useEffect(() => {
+    if (taskId) {
+      markTaskCommentsRead(taskId)
+    }
+  }, [taskId])
 
   // Close on Escape key
   useEffect(() => {
@@ -64,11 +82,13 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
 
   if (!currentTask || !currentBoard) return null
 
+  const currentUserName = profile?.name || profile?.email?.split("@")[0] || "Staff"
+
   const logTaskHistory = (content: string, fieldUpdates: Partial<Task> = {}) => {
     const historyEvent: ActivityItem = {
       id: `act-${crypto.randomUUID()}`,
       type: "history",
-      author: "System",
+      author: currentUserName,
       content,
       createdAt: new Date().toISOString(),
     }
@@ -113,7 +133,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
     const historyEvent: ActivityItem = {
       id: `act-${crypto.randomUUID()}`,
       type: "history",
-      author: "System",
+      author: currentUserName,
       content: `Moved card from "${currentColumn?.title}" to "${targetCol?.title || targetColId}"`,
       createdAt: new Date().toISOString(),
     }
@@ -141,7 +161,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
     const historyEvent: ActivityItem = {
       id: `act-${crypto.randomUUID()}`,
       type: "history",
-      author: "System",
+      author: currentUserName,
       content: newDoneState
         ? `Marked "${itemTarget?.text || "sub-card"}" as completed`
         : `Reopened "${itemTarget?.text || "sub-card"}"`,
@@ -169,7 +189,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
       historyEvents.push({
         id: `act-${crypto.randomUUID()}`,
         type: "history",
-        author: "System",
+        author: currentUserName,
         content: updates.assignee
           ? `Sub-card assigned to ${updates.assignee}`
           : `Sub-card unassigned`,
@@ -181,7 +201,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
       historyEvents.push({
         id: `act-${crypto.randomUUID()}`,
         type: "history",
-        author: "System",
+        author: currentUserName,
         content: updates.dueDate
           ? `Sub-card due date set to ${formatDate(updates.dueDate)}`
           : `Sub-card due date removed`,
@@ -193,7 +213,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
       historyEvents.push({
         id: `act-${crypto.randomUUID()}`,
         type: "history",
-        author: "System",
+        author: currentUserName,
         content: `Sub-card priority changed to ${updates.priority}`,
         createdAt: new Date().toISOString(),
       })
@@ -221,7 +241,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
     const createEvent: ActivityItem = {
       id: `act-${crypto.randomUUID()}`,
       type: "history",
-      author: "System",
+      author: currentUserName,
       content: `Sub-card "${text}" created`,
       createdAt: nowIso,
     }
@@ -249,6 +269,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
 
   // Activity & Comment Handlers
   const handleAddTaskComment = (comment: string, author: string) => {
+    markTaskCommentsRead(taskId)
     const newActivity: ActivityItem = {
       id: `act-${crypto.randomUUID()}`,
       type: "comment",
@@ -288,14 +309,23 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
       >
         {/* Fixed Header */}
         <div className="flex items-center justify-between gap-4 border-b border-stone-200 px-6 py-4 bg-stone-50/70 shrink-0">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 flex items-center gap-2">
             <input
               type="text"
-              value={currentTask.title}
-              onChange={(e) => handleFieldChange("title", e.target.value)}
-              className="w-full text-lg sm:text-xl font-bold text-stone-900 bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition"
+              disabled={!canEditCard}
+              value={localTitle}
+              onChange={(e) => {
+                setLocalTitle(e.target.value)
+                handleFieldChange("title", e.target.value)
+              }}
+              className="w-full text-lg sm:text-xl font-bold text-stone-900 bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-85 disabled:cursor-not-allowed"
               placeholder="Card Title"
             />
+            {isArchived && (
+              <span className="shrink-0 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-900 border border-amber-300">
+                Archived (Read-Only)
+              </span>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -326,20 +356,6 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left Primary Section (7/12 width) */}
             <div className="space-y-6 lg:col-span-7">
-              {/* Trip Logistics Box */}
-              {modules.tripLogistics && (
-                <CardTripLogistics
-                  pickupLocation={currentTask.pickupLocation}
-                  destination={currentTask.destination}
-                  travelStartDate={currentTask.travelStartDate}
-                  travelEndDate={currentTask.travelEndDate}
-                  vehicleType={currentTask.vehicleType}
-                  paxAdults={currentTask.paxAdults}
-                  paxKids={currentTask.paxKids}
-                  onChangeField={handleFieldChange}
-                />
-              )}
-
               {/* Notes & Description - Collapsible */}
               <div>
                 <button
@@ -355,19 +371,23 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                     )}
                     <span>Notes & Details</span>
                   </span>
-                  {!notesOpen && currentTask.description && (
+                  {!notesOpen && localDescription && (
                     <span className="text-[11px] font-normal text-stone-400 truncate max-w-[240px]">
-                      {currentTask.description}
+                      {localDescription}
                     </span>
                   )}
                 </button>
                 {notesOpen && (
                   <textarea
                     rows={5}
+                    disabled={!canEditCard}
                     placeholder="Task details, instructions, special requests..."
-                    value={currentTask.description || ""}
-                    onChange={(e) => handleFieldChange("description", e.target.value)}
-                    className="w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    value={localDescription}
+                    onChange={(e) => {
+                      setLocalDescription(e.target.value)
+                      handleFieldChange("description", e.target.value)
+                    }}
+                    className="w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-stone-100 disabled:cursor-not-allowed"
                   />
                 )}
               </div>
@@ -377,6 +397,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                 <CardSubcardsSection
                   checklist={checklist}
                   isOpen={subcardsOpen}
+                  canEdit={canEditCard}
                   onToggleOpen={() => setSubcardsOpen((prev) => !prev)}
                   onToggleItem={handleToggleChecklist}
                   onOpenSubCard={(id) => setActiveSubCardId(id)}
@@ -391,6 +412,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                 placeholder="Write a comment, operational note, status update..."
                 activities={currentTask.activities || []}
                 onAddComment={handleAddTaskComment}
+                readOnly={isArchived}
               />
             </div>
 
@@ -401,23 +423,14 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                 currentTask={currentTask}
                 currentBoard={currentBoard}
                 columnId={columnId}
-                staff={staff}
+                staff={staffList}
                 isOpen={cardDetailsOpen}
+                canEdit={canEditCard}
                 onToggleOpen={() => setCardDetailsOpen((prev) => !prev)}
                 onChangeColumn={handleColumnChange}
                 onChangeField={handleFieldChange}
                 clientContactEnabled={!!modules.clientContact}
               />
-
-              {/* Commercials & Billing Card */}
-              {modules.commercials && canViewCommercials && (
-                <CardCommercials
-                  amount={currentTask.amount}
-                  advancePaid={currentTask.advancePaid}
-                  canEdit={canEditCommercials}
-                  onChangeField={handleFieldChange}
-                />
-              )}
             </div>
           </div>
         </div>
@@ -425,8 +438,16 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
         {/* Fixed Footer */}
         <div className="flex items-center justify-between border-t border-stone-200 px-6 py-3.5 bg-stone-50/80 shrink-0">
           <div className="flex items-center gap-1.5 text-[11px] text-stone-500">
-            <CheckCircle2 className="size-3.5 text-emerald-600" />
-            <span>Changes auto-save instantly</span>
+            {isArchived ? (
+              <span className="font-semibold text-amber-800">
+                Archived board — view only mode
+              </span>
+            ) : (
+              <>
+                <CheckCircle2 className="size-3.5 text-emerald-600" />
+                <span>Changes auto-save instantly</span>
+              </>
+            )}
           </div>
 
           <button
@@ -444,7 +465,9 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
         <SubCardModal
           subCard={activeSubCard}
           parentTitle={currentTask.title}
-          staff={staff}
+          staff={staffList}
+          canEdit={canEditCard}
+          canDelete={canDeleteCard}
           onClose={() => setActiveSubCardId(null)}
           onToggleDone={handleToggleChecklist}
           onUpdateSubCard={handleUpdateSubCard}

@@ -1,3 +1,4 @@
+import { memo, useState, useEffect } from "react"
 import {
   Trash2,
   Phone,
@@ -9,9 +10,12 @@ import {
   UserCheck,
   Clock,
   Layers,
+  MessageSquare,
 } from "lucide-react"
 import { formatDate } from "../../lib/date"
 import { getWhatsAppUrl } from "../../lib/utils"
+import { useAuthStore } from "../../store/authStore"
+import { getTaskCommentsInfo, markTaskCommentsRead } from "../../lib/unreadComments"
 import type { Task, Priority } from "../../schemas/board"
 
 const priorityColors: Record<Priority, { bg: string; text: string; border: string }> = {
@@ -30,6 +34,9 @@ interface KanbanCardProps {
   prevColumnId?: string
   nextColumnTitle?: string
   nextColumnId?: string
+  canDeleteCard?: boolean
+  canViewCommercials?: boolean
+  canEditCard?: boolean
   onTaskDragStart: (e: React.DragEvent, taskId: string, sourceColId: string) => void
   onResetDrag: () => void
   onSelectTask: (taskId: string) => void
@@ -37,7 +44,7 @@ interface KanbanCardProps {
   onMoveTask: (taskId: string, targetColId: string) => void
 }
 
-export function KanbanCard({
+export const KanbanCard = memo(function KanbanCard({
   task,
   columnId,
   colIdx,
@@ -46,6 +53,9 @@ export function KanbanCard({
   prevColumnId,
   nextColumnTitle,
   nextColumnId,
+  canDeleteCard = true,
+  canViewCommercials = true,
+  canEditCard = true,
   onTaskDragStart,
   onResetDrag,
   onSelectTask,
@@ -55,36 +65,86 @@ export function KanbanCard({
   const checklistItems = task.checklist || []
   const doneChecklist = checklistItems.filter((c) => c.done).length
 
+  const { profile, user } = useAuthStore()
+  const currentUserName = profile?.name || user?.email?.split("@")[0] || ""
+  const [, setReadVersion] = useState(0)
+
+  useEffect(() => {
+    const handleRead = (e: any) => {
+      if (e.detail?.taskId === task.id) {
+        setReadVersion((v) => v + 1)
+      }
+    }
+    window.addEventListener("mtt_task_read", handleRead)
+    return () => window.removeEventListener("mtt_task_read", handleRead)
+  }, [task.id])
+
+  const { totalComments, unreadCount } = getTaskCommentsInfo(task, currentUserName)
+
   return (
     <div
-      draggable
-      onDragStart={(e) => onTaskDragStart(e, task.id, columnId)}
+      draggable={canEditCard}
+      onDragStart={(e) => {
+        if (!canEditCard) return
+        onTaskDragStart(e, task.id, columnId)
+      }}
       onDragEnd={onResetDrag}
-      onClick={() => onSelectTask(task.id)}
-      className="group rounded-lg border border-stone-200/90 bg-white p-3 shadow-2xs transition hover:border-amber-400 hover:shadow-xs cursor-pointer active:cursor-grabbing"
+      onClick={() => {
+        markTaskCommentsRead(task.id)
+        onSelectTask(task.id)
+      }}
+      className={`group rounded-lg border border-stone-200/90 bg-white p-3 shadow-2xs transition hover:border-amber-400 hover:shadow-xs cursor-pointer ${
+        canEditCard ? "active:cursor-grabbing" : ""
+      }`}
     >
-      {/* Priority & Delete */}
+      {/* Priority, Comment Notification & Delete */}
       <div className="flex items-center justify-between gap-1 mb-1.5">
-        <span
-          className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
-            priorityColors[task.priority].bg
-          } ${priorityColors[task.priority].text} ${
-            priorityColors[task.priority].border
-          }`}
-        >
-          {task.priority}
-        </span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span
+            className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+              priorityColors[task.priority].bg
+            } ${priorityColors[task.priority].text} ${
+              priorityColors[task.priority].border
+            }`}
+          >
+            {task.priority}
+          </span>
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            onDeleteTask(task.id)
-          }}
-          className="opacity-0 group-hover:opacity-100 rounded p-1 text-stone-400 hover:text-red-600 transition"
-        >
-          <Trash2 className="size-3" />
-        </button>
+          {unreadCount > 0 ? (
+            <span
+              title={`${unreadCount} new comment${unreadCount > 1 ? "s" : ""}`}
+              className="inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-1.5 py-0.2 text-[10px] font-bold text-red-600 shadow-2xs"
+            >
+              <span className="size-1.5 rounded-full bg-red-500 animate-pulse" />
+              <MessageSquare className="size-2.5 text-red-500" />
+              <span>{unreadCount}</span>
+            </span>
+          ) : totalComments > 0 ? (
+            <span
+              title={`${totalComments} comment${totalComments > 1 ? "s" : ""}`}
+              className="inline-flex items-center gap-1 text-[10px] font-medium text-stone-400 group-hover:text-stone-500"
+            >
+              <MessageSquare className="size-2.5" />
+              <span>{totalComments}</span>
+            </span>
+          ) : null}
+        </div>
+
+        {canDeleteCard && (
+          <button
+            type="button"
+            title="Delete card"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (confirm(`Delete card "${task.title}"?`)) {
+                onDeleteTask(task.id)
+              }
+            }}
+            className="opacity-0 group-hover:opacity-100 rounded p-1 text-stone-400 hover:text-red-600 transition"
+          >
+            <Trash2 className="size-3" />
+          </button>
+        )}
       </div>
 
       {/* Title */}
@@ -149,7 +209,7 @@ export function KanbanCard({
               </a>
             </div>
           )}
-          {task.amount !== undefined ? (
+          {canViewCommercials && task.amount !== undefined ? (
             <div className="flex items-center justify-between text-[11px] font-semibold text-stone-800">
               <div className="flex items-center gap-0.5">
                 <IndianRupee className="size-3 text-emerald-600" />
@@ -184,41 +244,43 @@ export function KanbanCard({
       )}
 
       {/* Quick Move controls */}
-      <div className="mt-2.5 flex items-center justify-between pt-1 border-t border-stone-50 text-[10px] text-stone-400">
-        <div>
-          {colIdx > 0 && prevColumnId && prevColumnTitle && (
-            <button
-              type="button"
-              title={`Move to ${prevColumnTitle}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                onMoveTask(task.id, prevColumnId)
-              }}
-              className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
-            >
-              <ArrowLeft className="size-3" />
-              <span>{prevColumnTitle}</span>
-            </button>
-          )}
-        </div>
+      {canEditCard && (
+        <div className="mt-2.5 flex items-center justify-between pt-1 border-t border-stone-50 text-[10px] text-stone-400">
+          <div>
+            {colIdx > 0 && prevColumnId && prevColumnTitle && (
+              <button
+                type="button"
+                title={`Move to ${prevColumnTitle}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onMoveTask(task.id, prevColumnId)
+                }}
+                className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+              >
+                <ArrowLeft className="size-3" />
+                <span>{prevColumnTitle}</span>
+              </button>
+            )}
+          </div>
 
-        <div>
-          {colIdx < totalColumns - 1 && nextColumnId && nextColumnTitle && (
-            <button
-              type="button"
-              title={`Move to ${nextColumnTitle}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                onMoveTask(task.id, nextColumnId)
-              }}
-              className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
-            >
-              <span>{nextColumnTitle}</span>
-              <ArrowRight className="size-3" />
-            </button>
-          )}
+          <div>
+            {colIdx < totalColumns - 1 && nextColumnId && nextColumnTitle && (
+              <button
+                type="button"
+                title={`Move to ${nextColumnTitle}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onMoveTask(task.id, nextColumnId)
+                }}
+                className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+              >
+                <span>{nextColumnTitle}</span>
+                <ArrowRight className="size-3" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
-}
+})

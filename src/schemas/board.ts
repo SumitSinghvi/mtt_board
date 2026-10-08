@@ -59,8 +59,6 @@ export type Column = z.infer<typeof ColumnSchema>
 
 export const BoardModulesSchema = z.object({
   clientContact: z.boolean().default(true),
-  tripLogistics: z.boolean().default(false),
-  commercials: z.boolean().default(false),
   subtasks: z.boolean().default(true),
 })
 export type BoardModules = z.infer<typeof BoardModulesSchema>
@@ -72,6 +70,8 @@ export const BoardSchema = z.object({
   icon: z.string().default("clipboard-list"),
   columns: z.array(ColumnSchema).default([]),
   modules: BoardModulesSchema.optional(),
+  isArchived: z.boolean().default(false).optional(),
+  position: z.number().default(0).optional(),
   createdAt: z.string(),
 })
 export type Board = z.infer<typeof BoardSchema>

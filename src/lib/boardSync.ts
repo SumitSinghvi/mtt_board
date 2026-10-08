@@ -6,6 +6,7 @@ export async function fetchBoardsFromSupabase(): Promise<Board[]> {
     const { data: boardsData, error: boardsErr } = await supabase
       .from("boards")
       .select("*")
+      .order("position", { ascending: true })
       .order("created_at", { ascending: true })
 
     if (boardsErr || !boardsData || boardsData.length === 0) {
@@ -72,17 +73,17 @@ export async function fetchBoardsFromSupabase(): Promise<Board[]> {
       colsMap.set(cRow.board_id, existing)
     })
 
-    return boardsData.map((b) => ({
+    return boardsData.map((b, idx) => ({
       id: b.id,
       title: b.title,
       description: b.description || undefined,
       icon: b.icon || "clipboard-list",
       modules: b.modules || {
         clientContact: true,
-        tripLogistics: false,
-        commercials: false,
         subtasks: true,
       },
+      isArchived: b.is_archived ?? false,
+      position: b.position ?? idx,
       columns: colsMap.get(b.id) || [],
       createdAt: b.created_at || new Date().toISOString(),
     }))
@@ -97,9 +98,11 @@ export async function syncBoardToSupabase(board: Board): Promise<void> {
     await supabase.from("boards").upsert({
       id: board.id,
       title: board.title,
-      description: board.description,
+      description: board.description?.trim() ? board.description.trim() : null,
       icon: board.icon,
       modules: board.modules,
+      is_archived: board.isArchived ?? false,
+      position: board.position ?? 0,
     })
 
     for (let cIdx = 0; cIdx < board.columns.length; cIdx++) {
@@ -121,41 +124,78 @@ export async function syncBoardToSupabase(board: Board): Promise<void> {
   }
 }
 
+export async function archiveBoardInSupabase(boardId: string, isArchived: boolean): Promise<void> {
+  try {
+    await supabase.from("boards").update({ is_archived: isArchived }).eq("id", boardId)
+  } catch (err) {
+    console.warn("archiveBoardInSupabase error:", err)
+  }
+}
+
+export async function reorderBoardsInSupabase(boardOrder: { id: string; position: number }[]): Promise<void> {
+  try {
+    for (const b of boardOrder) {
+      await supabase.from("boards").update({ position: b.position }).eq("id", b.id)
+    }
+  } catch (err) {
+    console.warn("reorderBoardsInSupabase error:", err)
+  }
+}
+
+const taskSyncTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
 export async function syncTaskToSupabase(
   boardId: string,
   columnId: string,
   task: Task,
-  position = 0
+  position = 0,
+  immediate = false
 ): Promise<void> {
-  try {
-    await supabase.from("tasks").upsert({
-      id: task.id,
-      board_id: boardId,
-      column_id: columnId,
-      title: task.title,
-      description: task.description,
-      priority: task.priority,
-      assignee: task.assignee,
-      customer_name: task.customerName,
-      customer_phone: task.customerPhone,
-      customer_email: task.customerEmail,
-      amount: task.amount,
-      advance_paid: task.advancePaid,
-      due_date: task.dueDate,
-      travel_start_date: task.travelStartDate,
-      travel_end_date: task.travelEndDate,
-      pickup_location: task.pickupLocation,
-      destination: task.destination,
-      vehicle_type: task.vehicleType,
-      pax_adults: task.paxAdults,
-      pax_kids: task.paxKids,
-      position,
-      checklist: task.checklist || [],
-      activities: task.activities || [],
-      updated_at: new Date().toISOString(),
-    })
-  } catch (err) {
-    console.warn("syncTaskToSupabase error:", err)
+  const existingTimer = taskSyncTimers.get(task.id)
+  if (existingTimer) {
+    clearTimeout(existingTimer)
+    taskSyncTimers.delete(task.id)
+  }
+
+  const performSync = async () => {
+    try {
+      await supabase.from("tasks").upsert({
+        id: task.id,
+        board_id: boardId,
+        column_id: columnId,
+        title: task.title,
+        description: task.description?.trim() ? task.description.trim() : null,
+        priority: task.priority,
+        assignee: task.assignee || null,
+        customer_name: task.customerName || null,
+        customer_phone: task.customerPhone || null,
+        customer_email: task.customerEmail || null,
+        amount: task.amount ?? null,
+        advance_paid: task.advancePaid ?? null,
+        due_date: task.dueDate || null,
+        travel_start_date: task.travelStartDate || null,
+        travel_end_date: task.travelEndDate || null,
+        pickup_location: task.pickupLocation || null,
+        destination: task.destination || null,
+        vehicle_type: task.vehicleType || null,
+        pax_adults: task.paxAdults ?? null,
+        pax_kids: task.paxKids ?? null,
+        position,
+        checklist: task.checklist || [],
+        activities: task.activities || [],
+        updated_at: new Date().toISOString(),
+      })
+    } catch (err) {
+      console.warn("syncTaskToSupabase error:", err)
+    } finally {
+      taskSyncTimers.delete(task.id)
+    }
+  }
+
+  if (immediate) {
+    await performSync()
+  } else {
+    taskSyncTimers.set(task.id, setTimeout(performSync, 400))
   }
 }
 

@@ -9,13 +9,16 @@ import {
   deleteBoardFromSupabase,
   syncColumnToSupabase,
   deleteColumnFromSupabase,
+  archiveBoardInSupabase,
+  reorderBoardsInSupabase,
 } from "../lib/boardSync"
 import { initialBoards } from "./initialBoards"
+import { useAuthStore } from "./authStore"
 
 interface BoardState {
   boards: Board[]
   activeBoardId: string | null
-  currentView: "board" | "customers" | "staff" | "settings"
+  currentView: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings"
   sidebarOpen: boolean
   loading: boolean
   selectedTask: { boardId: string; columnId: string; taskId: string } | null
@@ -23,7 +26,7 @@ interface BoardState {
   // Actions
   fetchBoardsFromSupabase: () => Promise<void>
   setActiveBoardId: (id: string) => void
-  setCurrentView: (view: "board" | "customers" | "staff" | "settings") => void
+  setCurrentView: (view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings") => void
   setSelectedTask: (task: { boardId: string; columnId: string; taskId: string } | null) => void
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
@@ -33,6 +36,9 @@ interface BoardState {
   updateBoardModules: (boardId: string, modules: Partial<BoardModules>) => void
   permanentlyDeleteComponentGlobally: (key: keyof BoardModules) => void
   deleteBoard: (id: string) => void
+  archiveBoard: (id: string, isArchived?: boolean) => void
+  unarchiveBoard: (id: string) => void
+  reorderBoards: (sourceIndex: number, targetIndex: number) => void
 
   addColumn: (boardId: string, title: string) => void
   deleteColumn: (boardId: string, columnId: string) => void
@@ -56,7 +62,7 @@ export const useBoardStore = create<BoardState>()(
     (set, get) => ({
       boards: initialBoards,
       activeBoardId: initialBoards[0].id,
-      currentView: "board",
+      currentView: "dashboard",
       sidebarOpen: true,
       loading: false,
       selectedTask: null,
@@ -111,8 +117,6 @@ export const useBoardStore = create<BoardState>()(
           createdAt: new Date().toISOString(),
           modules: {
             clientContact: true,
-            tripLogistics: false,
-            commercials: false,
             subtasks: true,
             ...modules,
           },
@@ -134,7 +138,14 @@ export const useBoardStore = create<BoardState>()(
 
       updateBoard: (id, updates) => {
         set((state) => ({
-          boards: state.boards.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+          boards: state.boards.map((b) => {
+            if (b.id !== id) return b
+            const updated = { ...b, ...updates }
+            if ("description" in updates && (!updates.description || !updates.description.trim())) {
+              updated.description = undefined
+            }
+            return updated
+          }),
         }))
 
         const target = get().boards.find((b) => b.id === id)
@@ -149,8 +160,6 @@ export const useBoardStore = create<BoardState>()(
                   ...b,
                   modules: {
                     clientContact: true,
-                    tripLogistics: false,
-                    commercials: false,
                     subtasks: true,
                     ...b.modules,
                     ...moduleUpdates,
@@ -170,8 +179,6 @@ export const useBoardStore = create<BoardState>()(
             ...b,
             modules: {
               clientContact: true,
-              tripLogistics: false,
-              commercials: false,
               subtasks: true,
               ...b.modules,
               [key]: false,
@@ -198,6 +205,47 @@ export const useBoardStore = create<BoardState>()(
         })
 
         deleteBoardFromSupabase(id)
+      },
+
+      archiveBoard: (id, isArchived = true) => {
+        set((state) => {
+          const updated = state.boards.map((b) =>
+            b.id === id ? { ...b, isArchived } : b
+          )
+          let newActiveId = state.activeBoardId
+          if (state.activeBoardId === id && isArchived) {
+            const nextActive = updated.find((b) => !b.isArchived)
+            newActiveId = nextActive ? nextActive.id : null
+          }
+          return { boards: updated, activeBoardId: newActiveId }
+        })
+        archiveBoardInSupabase(id, isArchived)
+      },
+
+      unarchiveBoard: (id) => {
+        set((state) => {
+          const updated = state.boards.map((b) =>
+            b.id === id ? { ...b, isArchived: false } : b
+          )
+          return {
+            boards: updated,
+            activeBoardId: state.activeBoardId || id,
+          }
+        })
+        archiveBoardInSupabase(id, false)
+      },
+
+      reorderBoards: (sourceIndex, targetIndex) => {
+        set((state) => {
+          const newBoards = [...state.boards]
+          const [moved] = newBoards.splice(sourceIndex, 1)
+          newBoards.splice(targetIndex, 0, moved)
+          const withPositions = newBoards.map((b, idx) => ({ ...b, position: idx }))
+
+          reorderBoardsInSupabase(withPositions.map((b) => ({ id: b.id, position: b.position })))
+
+          return { boards: withPositions }
+        })
       },
 
       addColumn: (boardId, title) => {
@@ -270,10 +318,12 @@ export const useBoardStore = create<BoardState>()(
 
       addTask: (boardId, columnId, taskData) => {
         const nowIso = new Date().toISOString()
+        const userProfile = useAuthStore.getState().profile
+        const author = userProfile?.name || userProfile?.email?.split("@")[0] || "System"
         const initialActivity: ActivityItem = {
           id: `act-${Date.now()}`,
           type: "history",
-          author: "System",
+          author,
           content: `Card created`,
           createdAt: nowIso,
         }

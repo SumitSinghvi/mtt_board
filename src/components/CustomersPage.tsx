@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { useCustomerStore } from "../store/customerStore"
 import { useBoardStore } from "../store/boardStore"
+import { PhoneInput } from "./ui/PhoneInput"
 
 export function CustomersPage() {
   const { customers, fetchCustomersFromSupabase, saveCustomer, deleteCustomer } = useCustomerStore()
@@ -245,12 +246,11 @@ export function CustomersPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  placeholder="+91 98290 12345"
+                <PhoneInput
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  onChange={setPhone}
+                  placeholder="98290 12345"
+                  className="w-full"
                 />
               </div>
 

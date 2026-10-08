@@ -2,20 +2,19 @@ import { useState, useEffect } from "react"
 import {
   X,
   Plus,
-  MapPin,
-  Calendar,
-  Car,
-  Users,
-  IndianRupee,
   Clock,
   User,
   Phone,
   Mail,
   UserCheck,
+  UserPlus,
+  Check,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useCustomerStore } from "../store/customerStore"
+import { useStaffStore, initialStaff } from "../store/staffStore"
 import { CustomerCombobox } from "./CustomerCombobox"
+import { PhoneInput } from "./ui/PhoneInput"
 import type { Priority } from "../schemas/board"
 
 interface NewCardModalProps {
@@ -37,8 +36,6 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
 
   const modules = currentBoard?.modules || {
     clientContact: true,
-    tripLogistics: false,
-    commercials: false,
     subtasks: true,
   }
 
@@ -49,23 +46,33 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
   const [assignee, setAssignee] = useState("")
   const [dueDate, setDueDate] = useState("")
 
+  const { staff } = useStaffStore()
+  const activeStaff = (staff.length > 0 ? staff : initialStaff).filter(
+    (m) => m.status !== "inactive"
+  )
+
   // Client info
   const [customerName, setCustomerName] = useState("")
   const [customerPhone, setCustomerPhone] = useState("")
   const [customerEmail, setCustomerEmail] = useState("")
 
-  // Logistics
-  const [pickupLocation, setPickupLocation] = useState("")
-  const [destination, setDestination] = useState("")
-  const [travelStartDate, setTravelStartDate] = useState("")
-  const [travelEndDate, setTravelEndDate] = useState("")
-  const [vehicleType, setVehicleType] = useState("")
-  const [paxAdults, setPaxAdults] = useState<string>("")
-  const [paxKids, setPaxKids] = useState<string>("")
+  const { customers, saveCustomer } = useCustomerStore()
+  const trimmedCustName = customerName.trim()
+  const isCustInDirectory = Boolean(
+    trimmedCustName &&
+    customers.some((c) => c.name.toLowerCase() === trimmedCustName.toLowerCase())
+  )
 
-  // Commercials
-  const [amount, setAmount] = useState<string>("")
-  const [advancePaid, setAdvancePaid] = useState<string>("")
+  const handleAddCustToDirectory = (nameToSave?: string) => {
+    const name = (nameToSave || trimmedCustName).trim()
+    if (!name) return
+    setCustomerName(name)
+    saveCustomer({
+      name,
+      phone: customerPhone.trim() || undefined,
+      email: customerEmail.trim() || undefined,
+    })
+  }
 
   // Close on Escape key
   useEffect(() => {
@@ -98,15 +105,6 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
       customerName: modules.clientContact && customerName.trim() ? customerName.trim() : undefined,
       customerPhone: modules.clientContact && customerPhone.trim() ? customerPhone.trim() : undefined,
       customerEmail: modules.clientContact && customerEmail.trim() ? customerEmail.trim() : undefined,
-      pickupLocation: modules.tripLogistics && pickupLocation.trim() ? pickupLocation.trim() : undefined,
-      destination: modules.tripLogistics && destination.trim() ? destination.trim() : undefined,
-      travelStartDate: modules.tripLogistics && travelStartDate ? travelStartDate : undefined,
-      travelEndDate: modules.tripLogistics && travelEndDate ? travelEndDate : undefined,
-      vehicleType: modules.tripLogistics && vehicleType.trim() ? vehicleType.trim() : undefined,
-      paxAdults: modules.tripLogistics && paxAdults ? Number(paxAdults) : undefined,
-      paxKids: modules.tripLogistics && paxKids ? Number(paxKids) : undefined,
-      amount: modules.commercials && amount ? Number(amount) : undefined,
-      advancePaid: modules.commercials && advancePaid ? Number(advancePaid) : undefined,
       dueDate: dueDate || undefined,
       checklist: [],
     })
@@ -202,118 +200,6 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                 </div>
               </div>
 
-              {/* Trip & Route Logistics - when enabled */}
-              {modules.tripLogistics && (
-                <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 space-y-3 animate-in fade-in-50">
-                  <span className="block text-xs font-bold uppercase tracking-wider text-stone-600">
-                    Trip Logistics & Route
-                  </span>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-stone-600 mb-1 flex items-center gap-1">
-                        <MapPin className="size-3 text-stone-400" />
-                        Pickup Point
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Jaipur Railway Station"
-                        value={pickupLocation}
-                        onChange={(e) => setPickupLocation(e.target.value)}
-                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-stone-600 mb-1 flex items-center gap-1">
-                        <MapPin className="size-3 text-stone-400" />
-                        Destination
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Jodhpur - Jaisalmer"
-                        value={destination}
-                        onChange={(e) => setDestination(e.target.value)}
-                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-stone-600 mb-1 flex items-center gap-1">
-                        <Calendar className="size-3 text-stone-400" />
-                        Start Date
-                      </label>
-                      <input
-                        type="date"
-                        value={travelStartDate}
-                        onChange={(e) => setTravelStartDate(e.target.value)}
-                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-stone-600 mb-1 flex items-center gap-1">
-                        <Calendar className="size-3 text-stone-400" />
-                        End Date
-                      </label>
-                      <input
-                        type="date"
-                        value={travelEndDate}
-                        onChange={(e) => setTravelEndDate(e.target.value)}
-                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-stone-600 mb-1 flex items-center gap-1">
-                        <Car className="size-3 text-stone-400" />
-                        Vehicle
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Innova Crysta"
-                        value={vehicleType}
-                        onChange={(e) => setVehicleType(e.target.value)}
-                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-stone-600 mb-1 flex items-center gap-1">
-                        <Users className="size-3 text-stone-400" />
-                        Adults
-                      </label>
-                      <input
-                        type="number"
-                        min={0}
-                        placeholder="0"
-                        value={paxAdults}
-                        onChange={(e) => setPaxAdults(e.target.value)}
-                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-stone-600 mb-1">
-                        Kids
-                      </label>
-                      <input
-                        type="number"
-                        min={0}
-                        placeholder="0"
-                        value={paxKids}
-                        onChange={(e) => setPaxKids(e.target.value)}
-                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Description / Notes */}
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
@@ -342,13 +228,18 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                     <UserCheck className="size-3.5 text-stone-400" />
                     Assignee
                   </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Ramesh K."
+                  <select
                     value={assignee}
                     onChange={(e) => setAssignee(e.target.value)}
-                    className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:outline-none"
-                  />
+                    className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
+                  >
+                    <option value="">Unassigned</option>
+                    {activeStaff.map((member) => (
+                      <option key={member.id} value={member.name}>
+                        {member.name} ({member.role.charAt(0).toUpperCase() + member.role.slice(1)})
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -378,11 +269,31 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                         <User className="size-3 text-stone-400" />
                         Client Name
                       </span>
-                      <span className="text-[10px] text-amber-600 font-normal">Autofills saved info</span>
+                      {trimmedCustName && !isCustInDirectory && (
+                        <button
+                          type="button"
+                          onClick={() => handleAddCustToDirectory()}
+                          className="inline-flex items-center gap-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-1.5 py-0.5 text-[10px] font-semibold transition cursor-pointer"
+                          title="Save this client to the Customer Directory"
+                        >
+                          <UserPlus className="size-3 text-amber-600" />
+                          <span>+ Add to Directory</span>
+                        </button>
+                      )}
+                      {trimmedCustName && isCustInDirectory && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-medium">
+                          <Check className="size-3 text-emerald-600" />
+                          <span>Saved in Directory</span>
+                        </span>
+                      )}
+                      {!trimmedCustName && (
+                        <span className="text-[10px] text-amber-600 font-normal">Autofills saved info</span>
+                      )}
                     </label>
                     <CustomerCombobox
                       value={customerName}
                       onChange={setCustomerName}
+                      onAddNewCustomer={handleAddCustToDirectory}
                       onSelectCustomer={(c) => {
                         setCustomerName(c.name)
                         if (c.phone) setCustomerPhone(c.phone)
@@ -396,12 +307,11 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                       <Phone className="size-3 text-stone-400" />
                       Phone / WhatsApp
                     </label>
-                    <input
-                      type="text"
-                      placeholder="+91 98290 12345"
+                    <PhoneInput
                       value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                      onChange={setCustomerPhone}
+                      placeholder="98290 12345"
+                      className="w-full"
                     />
                   </div>
 
@@ -416,45 +326,6 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
                       className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Financials & Deadline - when enabled */}
-              {modules.commercials && (
-                <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 space-y-3 animate-in fade-in-50">
-                  <span className="block text-xs font-bold uppercase tracking-wider text-stone-600">
-                    Billing Details
-                  </span>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-1 flex items-center gap-1">
-                      <IndianRupee className="size-3 text-emerald-600" />
-                      Quote Amount (₹)
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="Total package price"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      className="w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-1 flex items-center gap-1">
-                      <IndianRupee className="size-3 text-emerald-600" />
-                      Advance Paid (₹)
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="Advance deposit"
-                      value={advancePaid}
-                      onChange={(e) => setAdvancePaid(e.target.value)}
-                      className="w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
                     />
                   </div>
                 </div>

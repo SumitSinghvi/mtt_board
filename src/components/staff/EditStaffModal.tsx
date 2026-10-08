@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react"
 import { X, LayoutDashboard, Check } from "lucide-react"
-import type { StaffMember, StaffRole, StaffPermissions } from "../../store/staffStore"
+import { useStaffStore, type StaffMember, type StaffRole, type StaffPermissions } from "../../store/staffStore"
 import type { Board } from "../../schemas/board"
+import { PhoneInput } from "../ui/PhoneInput"
 
 interface EditStaffModalProps {
   member: StaffMember | null
@@ -11,9 +12,11 @@ interface EditStaffModalProps {
 }
 
 export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffModalProps) {
+  const { updateStaffPassword } = useStaffStore()
   const [name, setName] = useState("")
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
+  const [newPassword, setNewPassword] = useState("")
   const [role, setRole] = useState<StaffRole>("travel")
   const [permissions, setPermissions] = useState<StaffPermissions>({
     allowedBoardIds: undefined,
@@ -29,6 +32,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
       setPhone(member.phone)
       setEmail(member.email)
       setRole(member.role)
+      setNewPassword("")
       setPermissions(
         member.permissions || {
           allowedBoardIds: undefined,
@@ -43,9 +47,13 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
 
   if (!member) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
+
+    if (newPassword.trim()) {
+      await updateStaffPassword(member.id, newPassword.trim())
+    }
 
     onSave(member.id, {
       name: name.trim(),
@@ -99,12 +107,12 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
 
             <div>
               <label className="block text-xs font-semibold text-stone-700 mb-1">Mobile Phone *</label>
-              <input
-                type="tel"
+              <PhoneInput
                 required
+                placeholder="98290 00000"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                onChange={setPhone}
+                className="w-full"
               />
             </div>
 
@@ -130,6 +138,17 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                 <option value="travel">Travel (Itineraries & Bookings)</option>
                 <option value="accounts">Accounts (Billing & Financials)</option>
               </select>
+            </div>
+
+            <div className="col-span-2">
+              <label className="block text-xs font-semibold text-stone-700 mb-1">Reset Portal Login Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Leave blank to keep existing password"
+                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none placeholder:text-stone-400"
+              />
             </div>
           </div>
 

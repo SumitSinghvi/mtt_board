@@ -9,8 +9,6 @@ export const initialBoards: Board[] = [
     createdAt: new Date().toISOString(),
     modules: {
       clientContact: true,
-      tripLogistics: true,
-      commercials: true,
       subtasks: true,
     },
     columns: [
@@ -101,8 +99,6 @@ export const initialBoards: Board[] = [
     createdAt: new Date().toISOString(),
     modules: {
       clientContact: false,
-      tripLogistics: false,
-      commercials: false,
       subtasks: true,
     },
     columns: [

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { User, Phone, Mail, ChevronDown, Check } from "lucide-react"
+import { User, Phone, Mail, ChevronDown, Check, UserPlus } from "lucide-react"
 import { useCustomerStore } from "../store/customerStore"
 import type { Customer } from "../schemas/customer"
 
@@ -7,14 +7,18 @@ interface CustomerComboboxProps {
   value: string
   onChange: (value: string) => void
   onSelectCustomer: (customer: { name: string; phone?: string; email?: string }) => void
+  onAddNewCustomer?: (name: string) => void
   placeholder?: string
+  disabled?: boolean
 }
 
 export function CustomerCombobox({
   value,
   onChange,
   onSelectCustomer,
+  onAddNewCustomer,
   placeholder = "e.g. Rajesh Sharma",
+  disabled = false,
 }: CustomerComboboxProps) {
   const { customers } = useCustomerStore()
   const [isOpen, setIsOpen] = useState(false)
@@ -55,21 +59,28 @@ export function CustomerCombobox({
       <div className="relative">
         <input
           type="text"
+          disabled={disabled}
           placeholder={placeholder}
           value={value}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => {
+            if (!disabled) setIsOpen(true)
+          }}
           onChange={(e) => {
+            if (disabled) return
             onChange(e.target.value)
             setIsOpen(true)
           }}
-          className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 pr-8 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:outline-none"
+          className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 pr-8 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:outline-none disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
         />
 
         <button
           type="button"
           tabIndex={-1}
-          onClick={() => setIsOpen(!isOpen)}
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-600 focus:outline-none"
+          disabled={disabled}
+          onClick={() => {
+            if (!disabled) setIsOpen(!isOpen)
+          }}
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-600 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ChevronDown className={`size-3.5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
         </button>
@@ -123,8 +134,23 @@ export function CustomerCombobox({
           })}
 
           {value.trim() && !customers.some((c) => c.name.toLowerCase() === value.trim().toLowerCase()) && (
-            <div className="border-t border-stone-100 px-2.5 py-1.5 text-[11px] text-stone-500 italic">
-              New customer will be saved automatically with card
+            <div className="border-t border-stone-100 p-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  const trimmed = value.trim()
+                  if (onAddNewCustomer) {
+                    onAddNewCustomer(trimmed)
+                  } else {
+                    useCustomerStore.getState().saveCustomer({ name: trimmed })
+                  }
+                  setIsOpen(false)
+                }}
+                className="flex items-center gap-1.5 w-full rounded-lg border border-dashed border-amber-300 bg-amber-50/70 px-2.5 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition cursor-pointer"
+              >
+                <UserPlus className="size-3.5 text-amber-600 shrink-0" />
+                <span>+ Add "{value.trim()}" to Customer Directory</span>
+              </button>
             </div>
           )}
         </div>

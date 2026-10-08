@@ -4,6 +4,7 @@ interface KanbanBoardHeaderProps {
   boardTitle: string
   boardDescription?: string
   activeView: "board" | "dashboard" | "calendar"
+  isAdmin?: boolean
   onViewChange: (view: "board" | "dashboard" | "calendar") => void
   onOpenSettings: () => void
 }
@@ -12,6 +13,7 @@ export function KanbanBoardHeader({
   boardTitle,
   boardDescription,
   activeView,
+  isAdmin = true,
   onViewChange,
   onOpenSettings,
 }: KanbanBoardHeaderProps) {
@@ -66,17 +68,19 @@ export function KanbanBoardHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          title="Board Modules & Settings"
-          onClick={onOpenSettings}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-stone-700 shadow-2xs hover:bg-stone-50 transition"
-        >
-          <Sliders className="size-3.5 text-amber-700" />
-          <span>Modules</span>
-        </button>
-      </div>
+      {isAdmin && (
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            title="Board Modules & Settings"
+            onClick={onOpenSettings}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-stone-700 shadow-2xs hover:bg-stone-50 transition cursor-pointer"
+          >
+            <Sliders className="size-3.5 text-amber-700" />
+            <span>Modules</span>
+          </button>
+        </div>
+      )}
     </div>
   )
 }

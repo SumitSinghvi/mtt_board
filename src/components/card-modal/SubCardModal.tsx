@@ -17,6 +17,8 @@ interface SubCardModalProps {
   subCard: ChecklistItem | null
   parentTitle: string
   staff: StaffMember[]
+  canEdit?: boolean
+  canDelete?: boolean
   onClose: () => void
   onToggleDone: (itemId: string) => void
   onUpdateSubCard: (itemId: string, updates: Partial<ChecklistItem>) => void
@@ -28,6 +30,8 @@ export function SubCardModal({
   subCard,
   parentTitle,
   staff,
+  canEdit = true,
+  canDelete = true,
   onClose,
   onToggleDone,
   onUpdateSubCard,
@@ -51,8 +55,9 @@ export function SubCardModal({
             <input
               type="checkbox"
               checked={subCard.done}
+              disabled={!canEdit}
               onChange={() => onToggleDone(subCard.id)}
-              className="size-5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer shrink-0"
+              className="size-5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-60"
               title={subCard.done ? "Mark as incomplete" : "Mark as complete"}
             />
             <div className="flex-1 min-w-0">
@@ -67,10 +72,11 @@ export function SubCardModal({
               </div>
               <input
                 type="text"
+                disabled={!canEdit}
                 value={subCard.text}
                 onChange={(e) => onUpdateSubCard(subCard.id, { text: e.target.value })}
                 placeholder="Sub-card title / task..."
-                className={`w-full text-lg sm:text-xl font-bold bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition ${
+                className={`w-full text-lg sm:text-xl font-bold bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-80 disabled:cursor-not-allowed ${
                   subCard.done ? "line-through text-stone-400" : "text-stone-900"
                 }`}
               />
@@ -79,14 +85,16 @@ export function SubCardModal({
 
           {/* Action Buttons */}
           <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              title="Delete Sub-Card"
-              onClick={() => onDeleteSubCard(subCard.id)}
-              className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600 transition"
-            >
-              <Trash2 className="size-4" />
-            </button>
+            {canDelete && (
+              <button
+                type="button"
+                title="Delete Sub-Card"
+                onClick={() => onDeleteSubCard(subCard.id)}
+                className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600 transition"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            )}
             <button
               type="button"
               title="Close Sub-Card (Esc)"
@@ -111,6 +119,7 @@ export function SubCardModal({
                 </label>
                 <textarea
                   rows={4}
+                  disabled={!canEdit}
                   value={subCard.description || ""}
                   onChange={(e) =>
                     onUpdateSubCard(subCard.id, {
@@ -118,7 +127,7 @@ export function SubCardModal({
                     })
                   }
                   placeholder="Detailed description of what needs to be done for this sub-task..."
-                  className="w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-stone-100 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -130,6 +139,7 @@ export function SubCardModal({
                 </label>
                 <textarea
                   rows={3}
+                  disabled={!canEdit}
                   value={subCard.notes || ""}
                   onChange={(e) =>
                     onUpdateSubCard(subCard.id, {
@@ -137,7 +147,7 @@ export function SubCardModal({
                     })
                   }
                   placeholder="Internal booking IDs, contact references, operational reminders..."
-                  className="w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-stone-100 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -147,6 +157,7 @@ export function SubCardModal({
                 placeholder="Write a comment on this sub-card..."
                 activities={subCard.activities || []}
                 onAddComment={(comment, author) => onAddComment(subCard.id, comment, author)}
+                readOnly={!canEdit}
               />
             </div>
 
@@ -178,12 +189,13 @@ export function SubCardModal({
                     </label>
                     <select
                       value={subCard.priority || "medium"}
+                      disabled={!canEdit}
                       onChange={(e) =>
                         onUpdateSubCard(subCard.id, {
                           priority: e.target.value as Priority,
                         })
                       }
-                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 capitalize focus:border-amber-500 focus:outline-none"
+                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 capitalize focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
                     >
                       <option value="urgent">Urgent</option>
                       <option value="high">High</option>
@@ -200,13 +212,14 @@ export function SubCardModal({
                     </label>
                     <input
                       type="date"
+                      disabled={!canEdit}
                       value={subCard.dueDate || ""}
                       onChange={(e) =>
                         onUpdateSubCard(subCard.id, {
                           dueDate: e.target.value || undefined,
                         })
                       }
-                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
+                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
                     />
                     {subCard.dueDate && (
                       <p className="mt-1 text-[11px] text-stone-500">
@@ -223,14 +236,18 @@ export function SubCardModal({
                     </label>
                     <select
                       value={subCard.assignee || ""}
+                      disabled={!canEdit}
                       onChange={(e) =>
                         onUpdateSubCard(subCard.id, {
                           assignee: e.target.value || undefined,
                         })
                       }
-                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
+                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
                     >
                       <option value="">Unassigned</option>
+                      {subCard.assignee && !staff.some((m) => m.name === subCard.assignee) && (
+                        <option value={subCard.assignee}>{subCard.assignee}</option>
+                      )}
                       {staff.map((member) => (
                         <option key={member.id} value={member.name}>
                           {member.name} ({member.role})
@@ -257,14 +274,20 @@ export function SubCardModal({
         {/* Sub-Card Fixed Footer */}
         <div className="flex items-center justify-between border-t border-stone-200 px-6 py-3.5 bg-stone-50/80 shrink-0">
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onDeleteSubCard(subCard.id)}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition"
-            >
-              <Trash2 className="size-3.5" />
-              <span>Delete Sub-Card</span>
-            </button>
+            {canDelete && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm(`Delete sub-card "${subCard.text}"?`)) {
+                    onDeleteSubCard(subCard.id)
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition"
+              >
+                <Trash2 className="size-3.5" />
+                <span>Delete Sub-Card</span>
+              </button>
+            )}
             <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-stone-500 ml-2">
               <CheckCircle2 className="size-3.5 text-emerald-600" />
               <span>Changes auto-save instantly</span>

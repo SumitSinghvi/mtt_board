@@ -2,14 +2,13 @@ import { useState } from "react"
 import {
   X,
   Sliders,
-  MapPin,
-  IndianRupee,
   User,
   CheckSquare,
   Plus,
   Trash2,
   Save,
   AlertTriangle,
+  Archive,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import type { BoardModules } from "../schemas/board"
@@ -23,28 +22,12 @@ interface ComponentMeta {
   key: keyof BoardModules
   title: string
   description: string
-  icon: typeof MapPin
+  icon: typeof User
   iconBg: string
   iconColor: string
 }
 
 const ALL_SYSTEM_COMPONENTS: ComponentMeta[] = [
-  {
-    key: "tripLogistics",
-    title: "Trip & Route Logistics",
-    description: "Pickup location, destination circuit, travel start/end dates, vehicle, pax count",
-    icon: MapPin,
-    iconBg: "bg-amber-50",
-    iconColor: "text-amber-700",
-  },
-  {
-    key: "commercials",
-    title: "Commercials & Billing",
-    description: "Total quote amount, advance collected, and calculated balance due (₹)",
-    icon: IndianRupee,
-    iconBg: "bg-emerald-50",
-    iconColor: "text-emerald-700",
-  },
   {
     key: "clientContact",
     title: "Client Contact Info",
@@ -64,7 +47,7 @@ const ALL_SYSTEM_COMPONENTS: ComponentMeta[] = [
 ]
 
 export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps) {
-  const { boards, updateBoard, updateBoardModules, permanentlyDeleteComponentGlobally } =
+  const { boards, updateBoard, updateBoardModules, permanentlyDeleteComponentGlobally, archiveBoard } =
     useBoardStore()
   const board = boards.find((b) => b.id === boardId)
 
@@ -86,8 +69,6 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
 
   const modules: BoardModules = board?.modules || {
     clientContact: true,
-    tripLogistics: false,
-    commercials: false,
     subtasks: true,
   }
 
@@ -333,21 +314,39 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100 transition"
-              >
-                Close
-              </button>
-              <button
-                type="submit"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-stone-900 px-4 py-1.5 text-xs font-semibold text-white hover:bg-stone-800 transition shadow-2xs cursor-pointer"
-              >
-                <Save className="size-3.5" />
-                <span>Save Name</span>
-              </button>
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-stone-100">
+              {board && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm(`Archive board "${board.title}"? You can restore it anytime from Archived Boards in the sidebar.`)) {
+                      archiveBoard(board.id, true)
+                      onClose()
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition cursor-pointer"
+                >
+                  <Archive className="size-3.5" />
+                  <span>Archive Board</span>
+                </button>
+              )}
+
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-lg px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100 transition"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-stone-900 px-4 py-1.5 text-xs font-semibold text-white hover:bg-stone-800 transition shadow-2xs cursor-pointer"
+                >
+                  <Save className="size-3.5" />
+                  <span>Save Changes</span>
+                </button>
+              </div>
             </div>
           </form>
         </div>
