@@ -108,5 +108,18 @@ export function canUserEditTask(
     )
   })
 
-  return isAssigned
+  if (isAssigned) return true
+
+  // Sub-card assignees can edit
+  const isSubcardAssigned = task.checklist?.some((item) => {
+    if (!item.assignee) return false
+    const clean = item.assignee.trim().toLowerCase()
+    return (
+      clean === profile.name.trim().toLowerCase() ||
+      clean === profile.id.toLowerCase() ||
+      clean === profile.email.trim().toLowerCase()
+    )
+  })
+
+  return !!isSubcardAssigned
 }

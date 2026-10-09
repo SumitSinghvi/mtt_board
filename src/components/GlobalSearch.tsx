@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react"
 import { Search, MapPin, Calendar, X } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
+import { useAuthStore } from "../store/authStore"
+import { getUserPermissions } from "../lib/permissions"
 import { formatDate } from "../lib/date"
 import { getTaskAssignees } from "../schemas/board"
 
@@ -10,9 +12,29 @@ interface GlobalSearchProps {
 
 export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
   const { boards } = useBoardStore()
+  const { profile } = useAuthStore()
+  const permissions = getUserPermissions(profile)
+  const userRole = profile?.role || "travel"
+
   const [query, setQuery] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Filter boards based on user's permissions & role
+  const allowedBoards = boards.filter((b) => {
+    if (permissions.allowedBoardIds && permissions.allowedBoardIds.length > 0) {
+      return permissions.allowedBoardIds.includes(b.id)
+    }
+    if (userRole === "admin" || userRole === "accounts") return true
+    const titleLower = b.title.toLowerCase()
+    if (userRole === "visa") {
+      return titleLower.includes("visa") || !titleLower.includes("fleet")
+    }
+    if (userRole === "travel") {
+      return !titleLower.includes("accounting") && !titleLower.includes("payroll")
+    }
+    return true
+  })
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -27,7 +49,7 @@ export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
 
   const trimmed = query.trim().toLowerCase()
 
-  // Match tasks across all boards and columns
+  // Match tasks across all authorized boards and columns
   const matchedTasks: {
     boardId: string
     boardTitle: string
@@ -43,7 +65,7 @@ export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
   }[] = []
 
   if (trimmed.length >= 2) {
-    for (const b of boards) {
+    for (const b of allowedBoards) {
       for (const col of b.columns) {
         for (const t of col.tasks) {
           const matchTitle = t.title.toLowerCase().includes(trimmed)
@@ -174,7 +196,7 @@ export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
                           </span>
                         )}
 
-                        {item.amount !== undefined && (
+                        {permissions.canViewCommercials && item.amount !== undefined && (
                           <span className="inline-flex items-center gap-0.5 font-semibold text-emerald-700">
                             ₹{item.amount.toLocaleString("en-IN")}
                           </span>
@@ -273,7 +295,7 @@ export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
                         </span>
                       )}
 
-                      {item.amount !== undefined && (
+                      {permissions.canViewCommercials && item.amount !== undefined && (
                         <span className="inline-flex items-center gap-0.5 font-semibold text-emerald-700">
                           ₹{item.amount.toLocaleString("en-IN")}
                         </span>

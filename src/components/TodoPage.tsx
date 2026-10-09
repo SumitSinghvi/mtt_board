@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import { useTodoStore } from "../store/todoStore"
 import { useAuthStore } from "../store/authStore"
-import { formatDate } from "../lib/date"
+import { formatDate, getLocalDateString } from "../lib/date"
 
 interface AutoResizeTextareaProps {
   value: string
@@ -92,12 +92,12 @@ function DueDatePicker({
     return () => document.removeEventListener("mousedown", handleOutsideClick)
   }, [isOpen])
 
-  // Presets
+  // Presets using local timezone
   const now = new Date()
-  const todayStr = now.toISOString().split("T")[0]
-  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split("T")[0]
-  const in3DaysStr = new Date(Date.now() + 3 * 86400000).toISOString().split("T")[0]
-  const in1WeekStr = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]
+  const todayStr = getLocalDateString(now)
+  const tomorrowStr = getLocalDateString(new Date(Date.now() + 86400000))
+  const in3DaysStr = getLocalDateString(new Date(Date.now() + 3 * 86400000))
+  const in1WeekStr = getLocalDateString(new Date(Date.now() + 7 * 86400000))
 
   const isOverdue = value && value < todayStr
   const isDueToday = value === todayStr

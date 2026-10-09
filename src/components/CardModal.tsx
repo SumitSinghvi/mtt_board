@@ -17,6 +17,7 @@ import { CardDetailsSidebar } from "./card-modal/CardDetailsSidebar"
 import { SubCardModal } from "./card-modal/SubCardModal"
 import { formatDate } from "../lib/date"
 import { markTaskCommentsRead } from "../lib/unreadComments"
+import { generateId } from "../lib/utils"
 import { type Priority, type Task, type ChecklistItem, type ActivityItem } from "../schemas/board"
 
 interface CardModalProps {
@@ -88,7 +89,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
 
   const logTaskHistory = (content: string, fieldUpdates: Partial<Task> = {}) => {
     const historyEvent: ActivityItem = {
-      id: `act-${crypto.randomUUID()}`,
+      id: generateId("act"),
       type: "history",
       author: currentUserName,
       content,
@@ -158,7 +159,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
     if (targetColId === columnId) return
     const targetCol = currentBoard.columns.find((c) => c.id === targetColId)
     const historyEvent: ActivityItem = {
-      id: `act-${crypto.randomUUID()}`,
+      id: generateId("act"),
       type: "history",
       author: currentUserName,
       content: `Moved card from "${currentColumn?.title}" to "${targetCol?.title || targetColId}"`,
@@ -186,7 +187,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
     const itemTarget = checklist.find((item) => item.id === itemId)
     const newDoneState = !itemTarget?.done
     const historyEvent: ActivityItem = {
-      id: `act-${crypto.randomUUID()}`,
+      id: generateId("act"),
       type: "history",
       author: currentUserName,
       content: newDoneState
@@ -214,7 +215,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
 
     if ("assignee" in updates && updates.assignee !== prevItem?.assignee) {
       historyEvents.push({
-        id: `act-${crypto.randomUUID()}`,
+        id: generateId("act"),
         type: "history",
         author: currentUserName,
         content: updates.assignee
@@ -226,7 +227,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
 
     if ("dueDate" in updates && updates.dueDate !== prevItem?.dueDate) {
       historyEvents.push({
-        id: `act-${crypto.randomUUID()}`,
+        id: generateId("act"),
         type: "history",
         author: currentUserName,
         content: updates.dueDate
@@ -238,7 +239,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
 
     if ("priority" in updates && updates.priority !== prevItem?.priority) {
       historyEvents.push({
-        id: `act-${crypto.randomUUID()}`,
+        id: generateId("act"),
         type: "history",
         author: currentUserName,
         content: `Sub-card priority changed to ${updates.priority}`,
@@ -266,14 +267,14 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   const handleAddChecklistItem = (text: string) => {
     const nowIso = new Date().toISOString()
     const createEvent: ActivityItem = {
-      id: `act-${crypto.randomUUID()}`,
+      id: generateId("act"),
       type: "history",
       author: currentUserName,
       content: `Sub-card "${text}" created`,
       createdAt: nowIso,
     }
     const newItem: ChecklistItem = {
-      id: `subcard-${crypto.randomUUID()}`,
+      id: generateId("subcard"),
       text,
       done: false,
       activities: [createEvent],
@@ -298,7 +299,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   const handleAddTaskComment = (comment: string, author: string) => {
     markTaskCommentsRead(taskId)
     const newActivity: ActivityItem = {
-      id: `act-${crypto.randomUUID()}`,
+      id: generateId("act"),
       type: "comment",
       author,
       content: comment,
@@ -310,7 +311,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
 
   const handleAddSubCardComment = (subCardId: string, comment: string, author: string) => {
     const newActivity: ActivityItem = {
-      id: `act-${crypto.randomUUID()}`,
+      id: generateId("act"),
       type: "comment",
       author,
       content: comment,
@@ -321,7 +322,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
       const itemActivities = item.activities || []
       return { ...item, activities: [...itemActivities, newActivity] }
     })
-    handleFieldChange("checklist", updated)
+    updateTask(boardId, columnId, taskId, { checklist: updated })
   }
 
   return (

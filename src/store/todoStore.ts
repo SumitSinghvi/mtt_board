@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { supabase } from "../lib/supabase"
 import { useAuthStore } from "./authStore"
+import { generateId } from "../lib/utils"
 
 export interface StaffTodo {
   id: string
@@ -65,7 +66,7 @@ export const useTodoStore = create<TodoState>()(
       addTodo: async (input) => {
         const user = useAuthStore.getState().user
         const newTodo: StaffTodo = {
-          id: `todo-${crypto.randomUUID()}`,
+          id: generateId("todo"),
           title: input.title,
           description: input.description,
           completed: false,
