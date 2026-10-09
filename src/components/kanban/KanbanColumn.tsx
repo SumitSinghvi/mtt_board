@@ -91,15 +91,9 @@ export const KanbanColumn = memo(function KanbanColumn({
         if (!isAdmin) return
         onColumnDragStart(e, colIdx)
       }}
-      onDragOver={(e) => {
-        if (!isAdmin) return
-        onColumnDragOver(e, colIdx)
-      }}
+      onDragOver={(e) => onColumnDragOver(e, colIdx)}
       onDragLeave={onColumnDragLeave}
-      onDrop={(e) => {
-        if (!isAdmin) return
-        onDropContainer(e, colIdx, column.id)
-      }}
+      onDrop={(e) => onDropContainer(e, colIdx, column.id)}
       onDragEnd={onResetDrag}
       className={`flex w-[82vw] max-w-xs sm:w-80 shrink-0 flex-col rounded-xl border bg-stone-50/90 shadow-2xs max-h-full transition-all duration-150 ${
         isDraggingThisCol

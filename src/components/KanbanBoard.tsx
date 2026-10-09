@@ -90,7 +90,7 @@ export function KanbanBoard() {
     e.preventDefault()
 
     if (dragType === "column" && draggedColIndex !== null) {
-      if (draggedColIndex !== targetColIdx) {
+      if (isAdmin && draggedColIndex !== targetColIdx) {
         moveColumn(activeBoard.id, draggedColIndex, targetColIdx)
       }
     } else if (dragType === "task" && draggedTaskId && draggedSourceColId) {
@@ -98,7 +98,7 @@ export function KanbanBoard() {
     }
 
     handleResetDrag()
-  }, [isArchived, activeBoard, dragType, draggedColIndex, draggedTaskId, draggedSourceColId, moveColumn, moveTask, handleResetDrag])
+  }, [isArchived, activeBoard, dragType, draggedColIndex, draggedTaskId, draggedSourceColId, isAdmin, moveColumn, moveTask, handleResetDrag])
 
   const handleSelectTask = useCallback((taskId: string, columnId: string) => {
     if (!activeBoard) return
