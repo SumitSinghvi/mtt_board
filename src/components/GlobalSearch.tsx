@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react"
 import { Search, MapPin, Calendar, X } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
-import { getUserPermissions } from "../lib/permissions"
+import { getUserPermissions, getAllowedBoards } from "../lib/permissions"
 import { formatDate } from "../lib/date"
 import { getTaskAssignees } from "../schemas/board"
 
@@ -14,27 +14,13 @@ export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
   const { boards } = useBoardStore()
   const { profile } = useAuthStore()
   const permissions = getUserPermissions(profile)
-  const userRole = profile?.role || "travel"
 
   const [query, setQuery] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Filter boards based on user's permissions & role
-  const allowedBoards = boards.filter((b) => {
-    if (permissions.allowedBoardIds && permissions.allowedBoardIds.length > 0) {
-      return permissions.allowedBoardIds.includes(b.id)
-    }
-    if (userRole === "admin" || userRole === "accounts") return true
-    const titleLower = b.title.toLowerCase()
-    if (userRole === "visa") {
-      return titleLower.includes("visa") || !titleLower.includes("fleet")
-    }
-    if (userRole === "travel") {
-      return !titleLower.includes("accounting") && !titleLower.includes("payroll")
-    }
-    return true
-  })
+  const allowedBoards = getAllowedBoards(boards, profile)
 
   // Close dropdown on outside click
   useEffect(() => {

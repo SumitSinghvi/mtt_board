@@ -18,7 +18,7 @@ const SettingsPage = lazy(() => import("./components/SettingsPage").then((m) => 
 
 export default function App() {
   const { currentView, fetchBoardsFromSupabase } = useBoardStore()
-  const { initializeAuth, user, loading } = useAuthStore()
+  const { initializeAuth, user, profile, loading } = useAuthStore()
   const { fetchStaffFromSupabase } = useStaffStore()
   const { fetchCustomersFromSupabase } = useCustomerStore()
 
@@ -72,11 +72,11 @@ export default function App() {
             ) : currentView === "todos" ? (
               <TodoPage />
             ) : currentView === "customers" ? (
-              <CustomersPage />
+              profile?.role === "admin" ? <CustomersPage /> : <MainDashboard />
             ) : currentView === "staff" ? (
-              <StaffPage />
+              profile?.role === "admin" ? <StaffPage /> : <MainDashboard />
             ) : currentView === "settings" ? (
-              <SettingsPage />
+              profile?.role === "admin" ? <SettingsPage /> : <MainDashboard />
             ) : (
               <KanbanBoard />
             )}

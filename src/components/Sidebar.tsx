@@ -16,7 +16,7 @@ import {
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
-import { getUserPermissions } from "../lib/permissions"
+import { isBoardAllowed } from "../lib/permissions"
 
 export function Sidebar() {
   const {
@@ -44,25 +44,9 @@ export function Sidebar() {
   const [showArchived, setShowArchived] = useState(false)
 
   const userRole = profile?.role || "travel"
-  const permissions = getUserPermissions(profile)
 
-  // Filter boards based on user's permissions & role:
-  // 1. Explicit allowedBoardIds if configured by Admin
-  // 2. Otherwise default role-based visibility
-  const roleFilteredBoards = boards.filter((b) => {
-    if (permissions.allowedBoardIds && permissions.allowedBoardIds.length > 0) {
-      return permissions.allowedBoardIds.includes(b.id)
-    }
-    if (userRole === "admin" || userRole === "accounts") return true
-    const titleLower = b.title.toLowerCase()
-    if (userRole === "visa") {
-      return titleLower.includes("visa") || !titleLower.includes("fleet")
-    }
-    if (userRole === "travel") {
-      return !titleLower.includes("accounting") && !titleLower.includes("payroll")
-    }
-    return true
-  })
+  // Filter boards based on user's permissions & role
+  const roleFilteredBoards = boards.filter((b) => isBoardAllowed(b, profile))
 
   const activeRoleBoards = roleFilteredBoards.filter((b) => !b.isArchived)
   const archivedRoleBoards = roleFilteredBoards.filter((b) => b.isArchived)

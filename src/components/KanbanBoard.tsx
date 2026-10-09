@@ -2,7 +2,7 @@ import { useState, useCallback } from "react"
 import { FolderPlus, PlusCircle, Archive, ArchiveRestore } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
-import { getUserPermissions } from "../lib/permissions"
+import { getUserPermissions, getAllowedBoards } from "../lib/permissions"
 import { CardModal } from "./CardModal"
 import { NewCardModal } from "./NewCardModal"
 import { BoardSettingsModal } from "./BoardSettingsModal"
@@ -28,12 +28,13 @@ export function KanbanBoard() {
     setSelectedTask: setGlobalSelectedTask,
   } = useBoardStore()
 
-  const activeBoard = boards.find((b) => b.id === activeBoardId) || boards[0]
-  const isArchived = !!activeBoard?.isArchived
-
   const { profile } = useAuthStore()
   const permissions = getUserPermissions(profile)
   const isAdmin = profile?.role === "admin" || !profile
+
+  const allowedBoards = getAllowedBoards(boards, profile)
+  const activeBoard = allowedBoards.find((b) => b.id === activeBoardId) || allowedBoards[0]
+  const isArchived = !!activeBoard?.isArchived
 
   // Board View Mode
   const [activeView, setActiveView] = useState<"board" | "dashboard" | "calendar">("board")
@@ -123,8 +124,8 @@ export function KanbanBoard() {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8 text-center text-stone-500">
         <FolderPlus className="size-12 text-stone-300 mb-3" />
-        <h3 className="text-base font-semibold text-stone-800">No Board Selected</h3>
-        <p className="text-xs text-stone-500 mt-1">Create or select a board from the sidebar.</p>
+        <h3 className="text-base font-semibold text-stone-800">No Accessible Board</h3>
+        <p className="text-xs text-stone-500 mt-1">You do not have permission to view this board or no boards are assigned to your role.</p>
       </div>
     )
   }

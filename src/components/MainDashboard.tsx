@@ -16,7 +16,7 @@ import {
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
-import { getUserPermissions } from "../lib/permissions"
+import { isBoardAllowed } from "../lib/permissions"
 import { CardModal } from "./CardModal"
 import { formatDate } from "../lib/date"
 import { type Task, type Priority, getTaskAssignees } from "../schemas/board"
@@ -59,28 +59,12 @@ export function MainDashboard() {
     taskId: string
   } | null>(null)
 
-  const permissions = getUserPermissions(profile)
-  const userRole = profile?.role || "travel"
   const todayStr = getTodayStr()
 
   // Filter accessible, active (non-archived) boards
   const activeBoards = useMemo(() => {
-    return boards.filter((b) => {
-      if (b.isArchived) return false
-      if (permissions.allowedBoardIds && permissions.allowedBoardIds.length > 0) {
-        return permissions.allowedBoardIds.includes(b.id)
-      }
-      if (userRole === "admin" || userRole === "accounts") return true
-      const titleLower = b.title.toLowerCase()
-      if (userRole === "visa") {
-        return titleLower.includes("visa") || !titleLower.includes("fleet")
-      }
-      if (userRole === "travel") {
-        return !titleLower.includes("accounting") && !titleLower.includes("payroll")
-      }
-      return true
-    })
-  }, [boards, permissions.allowedBoardIds, userRole])
+    return boards.filter((b) => !b.isArchived && isBoardAllowed(b, profile))
+  }, [boards, profile])
 
   // Flatten all tasks from accessible active boards
   const allFlattenedTasks = useMemo(() => {

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react"
 import { useBoardStore } from "../store/boardStore"
+import { useAuthStore } from "../store/authStore"
+import { getAllowedBoards } from "./permissions"
 
 export function parseHash(hash: string): {
   view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings"
@@ -54,6 +56,7 @@ export function buildHash(
 
 export function useHashRouter() {
   const { currentView, activeBoardId, selectedTask, boards } = useBoardStore()
+  const { profile } = useAuthStore()
   const isHandlingHashChangeRef = useRef(false)
 
   // 1. Listen for browser URL hash changes (mount, reload, back/forward button)
@@ -61,23 +64,50 @@ export function useHashRouter() {
     const applyHashToState = () => {
       const parsed = parseHash(window.location.hash)
       const store = useBoardStore.getState()
+      const currentProfile = useAuthStore.getState().profile
+      const isAdmin = currentProfile?.role === "admin"
 
       isHandlingHashChangeRef.current = true
 
-      if (parsed.view !== store.currentView) {
-        store.setCurrentView(parsed.view)
+      // Guard: non-admins cannot access admin management views
+      const isAdminView = parsed.view === "staff" || parsed.view === "settings" || parsed.view === "customers"
+      if (isAdminView && !isAdmin) {
+        store.setCurrentView("dashboard")
+        window.location.hash = "#dashboard"
+        setTimeout(() => {
+          isHandlingHashChangeRef.current = false
+        }, 50)
+        return
       }
 
       if (parsed.view === "board") {
-        if (parsed.boardId && parsed.boardId !== store.activeBoardId) {
-          if (store.boards.some((b) => b.id === parsed.boardId)) {
-            store.setActiveBoardId(parsed.boardId)
+        const allowedBoards = getAllowedBoards(store.boards, currentProfile)
+        const targetBoard = parsed.boardId
+          ? allowedBoards.find((b) => b.id === parsed.boardId)
+          : allowedBoards.find((b) => b.id === store.activeBoardId) || allowedBoards[0]
+
+        if (parsed.boardId && !targetBoard) {
+          // Attempted access to restricted or invalid board
+          if (allowedBoards.length > 0) {
+            store.setActiveBoardId(allowedBoards[0].id)
+            store.setCurrentView("board")
+          } else {
+            store.setCurrentView("dashboard")
+            window.location.hash = "#dashboard"
           }
+          setTimeout(() => {
+            isHandlingHashChangeRef.current = false
+          }, 50)
+          return
+        }
+
+        if (targetBoard && targetBoard.id !== store.activeBoardId) {
+          store.setActiveBoardId(targetBoard.id)
         }
 
         if (parsed.taskId) {
           let found = false
-          for (const b of store.boards) {
+          for (const b of allowedBoards) {
             for (const col of b.columns) {
               const task = col.tasks.find((t) => t.id === parsed.taskId)
               if (task) {
@@ -95,11 +125,23 @@ export function useHashRouter() {
             }
             if (found) break
           }
+          if (!found && store.selectedTask) {
+            store.setSelectedTask(null)
+          }
         } else if (store.selectedTask) {
           store.setSelectedTask(null)
         }
-      } else if (store.selectedTask) {
-        store.setSelectedTask(null)
+
+        if (store.currentView !== "board") {
+          store.setCurrentView("board")
+        }
+      } else {
+        if (parsed.view !== store.currentView) {
+          store.setCurrentView(parsed.view)
+        }
+        if (store.selectedTask) {
+          store.setSelectedTask(null)
+        }
       }
 
       // Small tick to ensure React state settled before allowing state -> hash sync
@@ -115,18 +157,32 @@ export function useHashRouter() {
     return () => window.removeEventListener("hashchange", applyHashToState)
   }, [])
 
-  // 1b. Also check if boards finished loading from Supabase and we have a board/card in the hash
+  // 1b. Re-verify route when profile or boards finish loading
   useEffect(() => {
-    if (boards.length > 0 && window.location.hash) {
-      const parsed = parseHash(window.location.hash)
-      const store = useBoardStore.getState()
-      if (parsed.view === "board" && parsed.boardId && store.boards.some((b) => b.id === parsed.boardId)) {
-        if (store.activeBoardId !== parsed.boardId) {
-          store.setActiveBoardId(parsed.boardId)
+    if (!profile) return
+    const isAdmin = profile.role === "admin"
+    const store = useBoardStore.getState()
+    const isAdminView = store.currentView === "staff" || store.currentView === "settings" || store.currentView === "customers"
+
+    if (isAdminView && !isAdmin) {
+      store.setCurrentView("dashboard")
+      window.location.hash = "#dashboard"
+      return
+    }
+
+    if (store.currentView === "board" && store.boards.length > 0) {
+      const allowedBoards = getAllowedBoards(store.boards, profile)
+      const currentBoard = allowedBoards.find((b) => b.id === store.activeBoardId)
+      if (!currentBoard) {
+        if (allowedBoards.length > 0) {
+          store.setActiveBoardId(allowedBoards[0].id)
+        } else {
+          store.setCurrentView("dashboard")
+          window.location.hash = "#dashboard"
         }
       }
     }
-  }, [boards])
+  }, [profile, boards])
 
   // 2. Sync React state changes to URL hash (when user clicks in app)
   useEffect(() => {
@@ -134,7 +190,6 @@ export function useHashRouter() {
 
     const targetHash = buildHash(currentView, activeBoardId, selectedTask)
     if (window.location.hash !== targetHash) {
-      // Replace hash so we don't spam history if user stays on same route, or push if changed
       window.location.hash = targetHash
     }
   }, [currentView, activeBoardId, selectedTask])

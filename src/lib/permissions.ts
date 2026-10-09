@@ -1,6 +1,6 @@
 import type { StaffRole, StaffPermissions } from "../store/staffStore"
 import type { UserProfile } from "../store/authStore"
-import type { Task } from "../schemas/board"
+import type { Task, Board } from "../schemas/board"
 import { getTaskAssignees } from "../schemas/board"
 
 export function getDefaultRolePermissions(role: StaffRole): StaffPermissions {
@@ -62,6 +62,28 @@ export function getUserPermissions(profile: UserProfile | null): StaffPermission
     canDeleteCards: profile.permissions?.canDeleteCards ?? roleDefaults.canDeleteCards,
     canViewCommercials: profile.permissions?.canViewCommercials ?? roleDefaults.canViewCommercials,
   }
+}
+
+export function isBoardAllowed(board: Board, profile: UserProfile | null): boolean {
+  if (!profile) return false
+  const perms = getUserPermissions(profile)
+  if (perms.allowedBoardIds && perms.allowedBoardIds.length > 0) {
+    return perms.allowedBoardIds.includes(board.id)
+  }
+  const role = profile.role || "travel"
+  if (role === "admin" || role === "accounts") return true
+  const titleLower = board.title.toLowerCase()
+  if (role === "visa") {
+    return titleLower.includes("visa") || !titleLower.includes("fleet")
+  }
+  if (role === "travel") {
+    return !titleLower.includes("accounting") && !titleLower.includes("payroll")
+  }
+  return true
+}
+
+export function getAllowedBoards(boards: Board[], profile: UserProfile | null): Board[] {
+  return boards.filter((b) => isBoardAllowed(b, profile))
 }
 
 /**
