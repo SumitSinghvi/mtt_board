@@ -30,7 +30,7 @@ export function KanbanBoard() {
 
   const { profile } = useAuthStore()
   const permissions = getUserPermissions(profile)
-  const isAdmin = profile?.role === "admin" || !profile
+  const isAdmin = profile?.role === "admin"
 
   const allowedBoards = getAllowedBoards(boards, profile)
   const activeBoard = allowedBoards.find((b) => b.id === activeBoardId) || allowedBoards[0]

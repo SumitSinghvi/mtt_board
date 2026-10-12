@@ -66,10 +66,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           },
         })
       } else {
-        // Fallback default admin for initial admin / first user
-        const defaultRole: StaffRole =
-          localStaff?.role ||
-          (email.includes("admin") || email.includes("mohit") ? "admin" : "travel")
+        // Fallback default role for initial staff or new account
+        const defaultRole: StaffRole = localStaff?.role || "travel"
         const fallbackProfile: UserProfile = {
           id: userId,
           email,
@@ -158,13 +156,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUpWithPassword: async (email, password, name, role = "travel") => {
     try {
       set({ error: null })
+      const normalizedEmail = email.trim().toLowerCase()
+      const localStaffMatch = useStaffStore.getState().staff.find(
+        (s) => s.email.toLowerCase() === normalizedEmail
+      )
+      const callerRole = get().profile?.role
+      const effectiveRole: StaffRole =
+        callerRole === "admin"
+          ? role
+          : localStaffMatch?.role || "travel"
+
       const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
+        email: normalizedEmail,
         password,
         options: {
           data: {
             name: name.trim(),
-            role,
+            role: effectiveRole,
           },
         },
       })
@@ -180,15 +188,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         try {
           await supabase.from("profiles").upsert({
             id: data.user.id,
-            email: data.user.email || email,
-            name: name.trim() || email.split("@")[0],
-            role,
+            email: data.user.email || normalizedEmail,
+            name: name.trim() || normalizedEmail.split("@")[0],
+            role: effectiveRole,
             status: "active",
           })
         } catch {
           // ignore
         }
-        await get().fetchProfile(data.user.id, data.user.email || email)
+        await get().fetchProfile(data.user.id, data.user.email || normalizedEmail)
       }
 
       return { error: null }

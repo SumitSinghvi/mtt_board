@@ -219,6 +219,12 @@ export const useStaffStore = create<StaffState>()(
       },
 
       updateStaffRole: async (id, role) => {
+        const callerProfile = useAuthStore.getState().profile
+        if (callerProfile?.role !== "admin") {
+          console.warn("Unauthorized: Only admins can change staff roles")
+          return
+        }
+
         const defaultPerms = getDefaultRolePermissions(role)
         set((state) => ({
           staff: state.staff.map((s) =>
@@ -278,6 +284,12 @@ export const useStaffStore = create<StaffState>()(
       },
 
       deleteStaff: async (id) => {
+        const callerProfile = useAuthStore.getState().profile
+        if (callerProfile?.role !== "admin") {
+          console.warn("Unauthorized: Only admins can delete staff members")
+          return
+        }
+
         set((state) => ({
           staff: state.staff.filter((s) => s.id !== id),
         }))

@@ -13,7 +13,7 @@ export function KanbanBoardHeader({
   boardTitle,
   boardDescription,
   activeView,
-  isAdmin = true,
+  isAdmin = false,
   onViewChange,
   onOpenSettings,
 }: KanbanBoardHeaderProps) {
