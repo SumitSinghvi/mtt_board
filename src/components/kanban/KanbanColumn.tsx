@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { KanbanCard } from "./KanbanCard"
 import { useAuthStore } from "../../store/authStore"
-import { canUserEditTask } from "../../lib/permissions"
+import { canUserEditTask, canUserDeleteTask } from "../../lib/permissions"
 import type { Column } from "../../schemas/board"
 
 interface KanbanColumnProps {
@@ -274,7 +274,7 @@ export const KanbanColumn = memo(function KanbanColumn({
               prevColumnId={prevColumnId}
               nextColumnTitle={nextColumnTitle}
               nextColumnId={nextColumnId}
-              canDeleteCard={canDeleteCards && (isAdmin || isTaskEditable)}
+              canDeleteCard={canDeleteCards && canUserDeleteTask(task, profile)}
               canViewCommercials={canViewCommercials}
               canEditCard={isTaskEditable}
               onTaskDragStart={onTaskDragStart}

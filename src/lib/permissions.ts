@@ -18,7 +18,7 @@ export function getDefaultRolePermissions(role: StaffRole): StaffPermissions {
         allowedBoardIds: undefined,
         canCreateCards: true,
         canEditCards: true,
-        canDeleteCards: false,
+        canDeleteCards: true,
         canViewCommercials: true,
       }
     case "travel":
@@ -26,7 +26,7 @@ export function getDefaultRolePermissions(role: StaffRole): StaffPermissions {
         allowedBoardIds: undefined,
         canCreateCards: true,
         canEditCards: true,
-        canDeleteCards: false,
+        canDeleteCards: true,
         canViewCommercials: false,
       }
     case "visa":
@@ -34,7 +34,7 @@ export function getDefaultRolePermissions(role: StaffRole): StaffPermissions {
         allowedBoardIds: undefined,
         canCreateCards: true,
         canEditCards: true,
-        canDeleteCards: false,
+        canDeleteCards: true,
         canViewCommercials: false,
       }
   }
@@ -107,13 +107,15 @@ export function canUserEditTask(
   if (profile.role === "admin") return true
 
   // Card creator can edit
+  const emailPrefix = profile.email.split("@")[0].trim().toLowerCase()
   const creator = task.createdBy || task.activities?.find((a) => a.content === "Card created")?.author
   if (creator) {
     const creatorClean = creator.trim().toLowerCase()
     if (
       creatorClean === profile.name.trim().toLowerCase() ||
       creatorClean === profile.id.toLowerCase() ||
-      creatorClean === profile.email.trim().toLowerCase()
+      creatorClean === profile.email.trim().toLowerCase() ||
+      creatorClean === emailPrefix
     ) {
       return true
     }
@@ -126,7 +128,8 @@ export function canUserEditTask(
     return (
       clean === profile.name.trim().toLowerCase() ||
       clean === profile.id.toLowerCase() ||
-      clean === profile.email.trim().toLowerCase()
+      clean === profile.email.trim().toLowerCase() ||
+      clean === emailPrefix
     )
   })
 
@@ -139,9 +142,27 @@ export function canUserEditTask(
     return (
       clean === profile.name.trim().toLowerCase() ||
       clean === profile.id.toLowerCase() ||
-      clean === profile.email.trim().toLowerCase()
+      clean === profile.email.trim().toLowerCase() ||
+      clean === emailPrefix
     )
   })
 
   return !!isSubcardAssigned
+}
+
+/**
+ * Checks if current user can delete a specific task.
+ * Allowed if:
+ * 1. Board is not archived
+ * 2. User has canDeleteCards permission
+ * 3. User is an admin, OR user created the card, OR user is assigned to the card/sub-card
+ */
+export function canUserDeleteTask(
+  task: Task,
+  profile: UserProfile | null,
+  isArchived = false
+): boolean {
+  if (isArchived || !profile) return false
+  if (profile.role === "admin") return true
+  return canUserEditTask(task, profile, isArchived)
 }

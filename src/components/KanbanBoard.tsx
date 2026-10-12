@@ -223,7 +223,7 @@ export function KanbanBoard() {
                     : undefined
                 }
                 canCreateCards={!isArchived && permissions.canCreateCards}
-                canDeleteCards={!isArchived && permissions.canDeleteCards}
+                canDeleteCards={!isArchived}
                 canViewCommercials={permissions.canViewCommercials}
                 canEditCards={!isArchived && permissions.canEditCards}
                 isAdmin={!isArchived && isAdmin}

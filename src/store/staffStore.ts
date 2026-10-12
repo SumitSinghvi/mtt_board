@@ -229,7 +229,7 @@ export const useStaffStore = create<StaffState>()(
                   permissions: s.permissions
                     ? {
                         ...s.permissions,
-                        canDeleteCards: role === "admin",
+                        canDeleteCards: s.permissions.canDeleteCards ?? defaultPerms.canDeleteCards,
                         canViewCommercials: role === "admin" || role === "accounts",
                       }
                     : defaultPerms,
@@ -248,7 +248,7 @@ export const useStaffStore = create<StaffState>()(
               permissions: currentProfile.permissions
                 ? {
                     ...currentProfile.permissions,
-                    canDeleteCards: role === "admin",
+                    canDeleteCards: currentProfile.permissions.canDeleteCards ?? defaultPerms.canDeleteCards,
                     canViewCommercials: role === "admin" || role === "accounts",
                   }
                 : defaultPerms,

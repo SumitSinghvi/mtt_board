@@ -10,7 +10,7 @@ import {
 import { useBoardStore } from "../store/boardStore"
 import { useStaffStore, initialStaff } from "../store/staffStore"
 import { useAuthStore } from "../store/authStore"
-import { getUserPermissions, canUserEditTask } from "../lib/permissions"
+import { canUserEditTask, canUserDeleteTask } from "../lib/permissions"
 import { ActivitySection } from "./ActivitySection"
 import { CardSubcardsSection } from "./card-modal/CardSubcardsSection"
 import { CardDetailsSidebar } from "./card-modal/CardDetailsSidebar"
@@ -36,13 +36,11 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   const currentBoard = boards.find((b) => b.id === boardId)
   const isArchived = !!currentBoard?.isArchived
 
-  const permissions = getUserPermissions(profile)
-
   const currentColumn = currentBoard?.columns.find((c) => c.id === columnId)
   const currentTask = currentColumn?.tasks.find((t) => t.id === taskId)
 
   const canEditCard = currentTask ? canUserEditTask(currentTask, profile, isArchived) : false
-  const canDeleteCard = !isArchived && permissions.canDeleteCards && (profile?.role === "admin" || canEditCard)
+  const canDeleteCard = currentTask ? canUserDeleteTask(currentTask, profile, isArchived) : false
 
   // Sub-card Modal state
   const [activeSubCardId, setActiveSubCardId] = useState<string | null>(null)

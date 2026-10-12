@@ -22,7 +22,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
     allowedBoardIds: undefined,
     canCreateCards: true,
     canEditCards: true,
-    canDeleteCards: false,
+    canDeleteCards: true,
     canViewCommercials: true,
   })
 
@@ -38,7 +38,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
           allowedBoardIds: undefined,
           canCreateCards: true,
           canEditCards: true,
-          canDeleteCards: member.role === "admin",
+          canDeleteCards: true,
           canViewCommercials: member.role === "admin" || member.role === "accounts",
         }
       )
