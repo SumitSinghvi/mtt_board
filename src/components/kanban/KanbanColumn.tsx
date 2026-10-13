@@ -11,7 +11,7 @@ import {
 import { KanbanCard } from "./KanbanCard"
 import { useAuthStore } from "../../store/authStore"
 import { canUserEditTask, canUserDeleteTask } from "../../lib/permissions"
-import type { Column } from "../../schemas/board"
+import type { Column, Task } from "../../schemas/board"
 
 interface KanbanColumnProps {
   column: Column
@@ -41,6 +41,7 @@ interface KanbanColumnProps {
   onSelectTask: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
   onMoveTask: (taskId: string, targetColId: string) => void
+  onMoveToBoard?: (task: Task, columnId: string) => void
 }
 
 export const KanbanColumn = memo(function KanbanColumn({
@@ -71,6 +72,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   onSelectTask,
   onDeleteTask,
   onMoveTask,
+  onMoveToBoard,
 }: KanbanColumnProps) {
   const { profile } = useAuthStore()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -282,6 +284,7 @@ export const KanbanColumn = memo(function KanbanColumn({
               onSelectTask={onSelectTask}
               onDeleteTask={onDeleteTask}
               onMoveTask={onMoveTask}
+              onMoveToBoard={onMoveToBoard}
             />
           )
         })}

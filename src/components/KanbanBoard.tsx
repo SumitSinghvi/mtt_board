@@ -10,6 +10,8 @@ import { BoardDashboard } from "./BoardDashboard"
 import { BoardCalendar } from "./BoardCalendar"
 import { KanbanBoardHeader } from "./kanban/KanbanBoardHeader"
 import { KanbanColumn } from "./kanban/KanbanColumn"
+import { MoveCardModal } from "./card-modal/MoveCardModal"
+import type { Task } from "../schemas/board"
 
 type DragType = "task" | "column" | null
 
@@ -46,6 +48,7 @@ export function KanbanBoard() {
   // Modals state
   const [newCardColumnId, setNewCardColumnId] = useState<string | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [movingCardTask, setMovingCardTask] = useState<{ task: Task; columnId: string } | null>(null)
 
   // Drag & drop state
   const [dragType, setDragType] = useState<DragType>(null)
@@ -248,6 +251,7 @@ export function KanbanBoard() {
                 onSelectTask={(taskId) => handleSelectTask(taskId, column.id)}
                 onDeleteTask={(taskId) => handleDeleteTask(column.id, taskId)}
                 onMoveTask={(taskId, targetColId) => handleMoveTaskDirect(column.id, taskId, targetColId)}
+                onMoveToBoard={(task) => setMovingCardTask({ task, columnId: column.id })}
               />
             ))}
 
@@ -311,6 +315,17 @@ export function KanbanBoard() {
           boardId={activeBoard.id}
           defaultColumnId={newCardColumnId}
           onClose={() => setNewCardColumnId(null)}
+        />
+      )}
+
+      {/* Move Card to Another Board Modal */}
+      {movingCardTask && (
+        <MoveCardModal
+          isOpen={!!movingCardTask}
+          onClose={() => setMovingCardTask(null)}
+          task={movingCardTask.task}
+          sourceBoard={activeBoard}
+          sourceColumnId={movingCardTask.columnId}
         />
       )}
 

@@ -55,6 +55,14 @@ interface BoardState {
     taskId: string,
     targetIndex?: number
   ) => void
+  moveTaskToBoard: (
+    sourceBoardId: string,
+    sourceColumnId: string,
+    targetBoardId: string,
+    targetColumnId: string,
+    taskId: string,
+    targetIndex?: number
+  ) => void
 }
 
 export const useBoardStore = create<BoardState>()(
@@ -456,6 +464,75 @@ export const useBoardStore = create<BoardState>()(
         if (movedTask) {
           syncTaskToSupabase(boardId, targetColumnId, movedTask, targetIndex ?? 0)
         }
+      },
+
+      moveTaskToBoard: (sourceBoardId, sourceColumnId, targetBoardId, targetColumnId, taskId, targetIndex) => {
+        const { boards } = get()
+        const sourceBoard = boards.find((b) => b.id === sourceBoardId)
+        const targetBoard = boards.find((b) => b.id === targetBoardId)
+        if (!sourceBoard || !targetBoard) return
+
+        const sourceCol = sourceBoard.columns.find((c) => c.id === sourceColumnId)
+        if (!sourceCol) return
+
+        const task = sourceCol.tasks.find((t) => t.id === taskId)
+        if (!task) return
+
+        const targetCol = targetBoard.columns.find((c) => c.id === targetColumnId) || targetBoard.columns[0]
+        if (!targetCol) return
+
+        if (sourceBoardId === targetBoardId) {
+          get().moveTask(sourceBoardId, sourceColumnId, targetCol.id, taskId, targetIndex)
+          return
+        }
+
+        const userProfile = useAuthStore.getState().profile
+        const author = userProfile?.name || userProfile?.email?.split("@")[0] || "Staff"
+        const historyEvent: ActivityItem = {
+          id: `act-${Date.now()}`,
+          type: "history",
+          author,
+          content: `Moved card from "${sourceBoard.title}" (${sourceCol.title}) to "${targetBoard.title}" (${targetCol.title})`,
+          createdAt: new Date().toISOString(),
+        }
+
+        const updatedTask: Task = {
+          ...task,
+          activities: [...(task.activities || []), historyEvent],
+        }
+
+        set((state) => ({
+          boards: state.boards.map((b) => {
+            if (b.id === sourceBoardId) {
+              return {
+                ...b,
+                columns: b.columns.map((col) =>
+                  col.id === sourceColumnId
+                    ? { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) }
+                    : col
+                ),
+              }
+            }
+            if (b.id === targetBoardId) {
+              return {
+                ...b,
+                columns: b.columns.map((col) => {
+                  if (col.id === targetCol.id) {
+                    const newTasks = [...col.tasks]
+                    const insertAt = targetIndex !== undefined ? targetIndex : 0
+                    newTasks.splice(insertAt, 0, updatedTask)
+                    return { ...col, tasks: newTasks }
+                  }
+                  return col
+                }),
+              }
+            }
+            return b
+          }),
+        }))
+
+        // Cloud sync moved task with new board_id and column_id
+        syncTaskToSupabase(targetBoardId, targetCol.id, updatedTask, targetIndex ?? 0, true)
       },
     }),
     {

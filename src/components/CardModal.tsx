@@ -10,7 +10,7 @@ import {
 import { useBoardStore } from "../store/boardStore"
 import { useStaffStore, initialStaff } from "../store/staffStore"
 import { useAuthStore } from "../store/authStore"
-import { canUserEditTask, canUserDeleteTask } from "../lib/permissions"
+import { canUserEditTask, canUserDeleteTask, getAllowedBoards } from "../lib/permissions"
 import { ActivitySection } from "./ActivitySection"
 import { CardSubcardsSection } from "./card-modal/CardSubcardsSection"
 import { CardDetailsSidebar } from "./card-modal/CardDetailsSidebar"
@@ -28,13 +28,15 @@ interface CardModalProps {
 }
 
 export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps) {
-  const { boards, updateTask, deleteTask, moveTask } = useBoardStore()
+  const { boards, updateTask, deleteTask, moveTask, moveTaskToBoard, setActiveBoardId, setSelectedTask } = useBoardStore()
   const { staff } = useStaffStore()
   const staffList = staff.length > 0 ? staff : initialStaff
   const { profile } = useAuthStore()
 
   const currentBoard = boards.find((b) => b.id === boardId)
   const isArchived = !!currentBoard?.isArchived
+
+  const otherBoards = getAllowedBoards(boards, profile).filter((b) => b.id !== boardId && !b.isArchived)
 
   const currentColumn = currentBoard?.columns.find((c) => c.id === columnId)
   const currentTask = currentColumn?.tasks.find((t) => t.id === taskId)
@@ -168,7 +170,33 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
       activities: [...currentActivities, historyEvent],
     })
     moveTask(boardId, columnId, targetColId, taskId)
-    onClose()
+    setSelectedTask({
+      boardId,
+      columnId: targetColId,
+      taskId,
+    })
+  }
+
+  const handleBoardChange = (targetBoardId: string) => {
+    if (!canEditCard) return
+    if (targetBoardId === boardId) return
+
+    const targetBoard = boards.find((b) => b.id === targetBoardId)
+    if (!targetBoard || targetBoard.columns.length === 0) return
+
+    // Smart match column by title if present on target board, else default to first column
+    const matchingCol = targetBoard.columns.find(
+      (c) => c.title.toLowerCase().trim() === currentColumn?.title.toLowerCase().trim()
+    )
+    const targetCol = matchingCol || targetBoard.columns[0]
+
+    moveTaskToBoard(boardId, columnId, targetBoardId, targetCol.id, taskId, 0)
+    setActiveBoardId(targetBoardId)
+    setSelectedTask({
+      boardId: targetBoardId,
+      columnId: targetCol.id,
+      taskId,
+    })
   }
 
   const handleDelete = () => {
@@ -354,14 +382,59 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
             )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          {/* Header Controls: Board & Stage Selectors + Action Buttons */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {/* Board Selector */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold text-stone-500 hidden sm:inline">
+                Board:
+              </span>
+              <select
+                aria-label="Board"
+                value={boardId}
+                disabled={!canEditCard || otherBoards.length === 0}
+                onChange={(e) => handleBoardChange(e.target.value)}
+                title={canEditCard ? "Change board" : "Current board"}
+                className="h-8 sm:h-8.5 rounded-lg border border-stone-200 bg-white px-2 sm:px-2.5 text-xs font-semibold text-stone-800 shadow-2xs hover:border-stone-300 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:text-stone-600 disabled:cursor-not-allowed max-w-[125px] sm:max-w-[170px] truncate"
+              >
+                <option value={currentBoard.id}>{currentBoard.title}</option>
+                {otherBoards.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Stage Selector */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold text-stone-500 hidden sm:inline">
+                Stage:
+              </span>
+              <select
+                aria-label="Stage"
+                value={columnId}
+                disabled={!canEditCard}
+                onChange={(e) => handleColumnChange(e.target.value)}
+                title={canEditCard ? "Change stage / column" : "Current stage"}
+                className="h-8 sm:h-8.5 rounded-lg border border-stone-200 bg-white px-2 sm:px-2.5 text-xs font-semibold text-stone-800 shadow-2xs hover:border-stone-300 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:text-stone-600 disabled:cursor-not-allowed max-w-[115px] sm:max-w-[150px] truncate"
+              >
+                {currentBoard.columns.map((col) => (
+                  <option key={col.id} value={col.id}>
+                    {col.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="h-4 w-px bg-stone-200 hidden sm:block" />
+
             {canDeleteCard && (
               <button
                 type="button"
                 title="Delete Card"
                 onClick={handleDelete}
-                className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600 transition"
+                className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600 transition cursor-pointer"
               >
                 <Trash2 className="size-4" />
               </button>
@@ -370,7 +443,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
               type="button"
               title="Close (Esc)"
               onClick={onClose}
-              className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
+              className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition cursor-pointer"
             >
               <X className="size-5" />
             </button>
@@ -456,12 +529,10 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
               <CardDetailsSidebar
                 currentTask={currentTask}
                 currentBoard={currentBoard}
-                columnId={columnId}
                 staff={staffList}
                 isOpen={cardDetailsOpen}
                 canEdit={canEditCard}
                 onToggleOpen={() => setCardDetailsOpen((prev) => !prev)}
-                onChangeColumn={handleColumnChange}
                 onChangeField={handleFieldChange}
                 clientContactEnabled={!!modules.clientContact}
               />

@@ -22,12 +22,10 @@ import { PhoneInput } from "../ui/PhoneInput"
 interface CardDetailsSidebarProps {
   currentTask: Task
   currentBoard: Board
-  columnId: string
   staff: StaffMember[]
   isOpen: boolean
   canEdit?: boolean
   onToggleOpen: () => void
-  onChangeColumn: (colId: string) => void
   onChangeField: (field: keyof Task, value: unknown) => void
   clientContactEnabled: boolean
 }
@@ -35,12 +33,10 @@ interface CardDetailsSidebarProps {
 export function CardDetailsSidebar({
   currentTask,
   currentBoard,
-  columnId,
   staff,
   isOpen,
   canEdit = true,
   onToggleOpen,
-  onChangeColumn,
   onChangeField,
   clientContactEnabled,
 }: CardDetailsSidebarProps) {
@@ -93,25 +89,6 @@ export function CardDetailsSidebar({
         <>
           {/* Status Fields */}
           <div className="space-y-3 text-xs">
-            {/* Stage / Column */}
-            <div>
-              <label className="block text-[11px] font-semibold text-stone-500 mb-1">
-                Stage / Column
-              </label>
-              <select
-                value={columnId}
-                disabled={!canEdit}
-                onChange={(e) => onChangeColumn(e.target.value)}
-                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-stone-800 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
-              >
-                {currentBoard.columns.map((col) => (
-                  <option key={col.id} value={col.id}>
-                    {col.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {/* Priority */}
             <div>
               <label className="block text-[11px] font-semibold text-stone-500 mb-1">

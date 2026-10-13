@@ -12,6 +12,7 @@ import {
   Layers,
   MessageSquare,
   Crown,
+  ArrowRightLeft,
 } from "lucide-react"
 import { formatDate } from "../../lib/date"
 import { getWhatsAppUrl } from "../../lib/utils"
@@ -43,6 +44,7 @@ interface KanbanCardProps {
   onSelectTask: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
   onMoveTask: (taskId: string, targetColId: string) => void
+  onMoveToBoard?: (task: Task, columnId: string) => void
 }
 
 export const KanbanCard = memo(function KanbanCard({
@@ -62,6 +64,7 @@ export const KanbanCard = memo(function KanbanCard({
   onSelectTask,
   onDeleteTask,
   onMoveTask,
+  onMoveToBoard,
 }: KanbanCardProps) {
   const checklistItems = task.checklist || []
   const doneChecklist = checklistItems.filter((c) => c.done).length
@@ -131,21 +134,37 @@ export const KanbanCard = memo(function KanbanCard({
           ) : null}
         </div>
 
-        {canDeleteCard && (
-          <button
-            type="button"
-            title="Delete card"
-            onClick={(e) => {
-              e.stopPropagation()
-              if (confirm(`Delete card "${task.title}"?`)) {
-                onDeleteTask(task.id)
-              }
-            }}
-            className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 rounded p-1 text-stone-400 hover:text-red-600 transition"
-          >
-            <Trash2 className="size-3" />
-          </button>
-        )}
+        <div className="flex items-center gap-0.5">
+          {canEditCard && onMoveToBoard && (
+            <button
+              type="button"
+              title="Move to another board"
+              onClick={(e) => {
+                e.stopPropagation()
+                onMoveToBoard(task, columnId)
+              }}
+              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 rounded p-1 text-stone-400 hover:text-amber-700 hover:bg-stone-100 transition cursor-pointer"
+            >
+              <ArrowRightLeft className="size-3" />
+            </button>
+          )}
+
+          {canDeleteCard && (
+            <button
+              type="button"
+              title="Delete card"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (confirm(`Delete card "${task.title}"?`)) {
+                  onDeleteTask(task.id)
+                }
+              }}
+              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 rounded p-1 text-stone-400 hover:text-red-600 transition cursor-pointer"
+            >
+              <Trash2 className="size-3" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Title */}
