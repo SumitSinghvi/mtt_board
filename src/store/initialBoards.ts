@@ -11,6 +11,7 @@ export const initialBoards: Board[] = [
       clientContact: true,
       subtasks: true,
       hotelBooking: true,
+      paymentTracking: true,
     },
     columns: [
       {
@@ -102,6 +103,7 @@ export const initialBoards: Board[] = [
       clientContact: false,
       subtasks: true,
       hotelBooking: false,
+      paymentTracking: false,
     },
     columns: [
       {

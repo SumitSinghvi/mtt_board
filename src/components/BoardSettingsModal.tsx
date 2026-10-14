@@ -5,6 +5,7 @@ import {
   User,
   CheckSquare,
   Hotel,
+  IndianRupee,
   Plus,
   Trash2,
   Save,
@@ -53,6 +54,14 @@ const ALL_SYSTEM_COMPONENTS: ComponentMeta[] = [
     iconBg: "bg-amber-50",
     iconColor: "text-amber-700",
   },
+  {
+    key: "paymentTracking",
+    title: "Payment & Installment Tracker",
+    description: "3-Phase payment tracking (Advance, Second, Final) with received amounts, dates, and balance calculation",
+    icon: IndianRupee,
+    iconBg: "bg-emerald-50",
+    iconColor: "text-emerald-700",
+  },
 ]
 
 export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps) {
@@ -80,6 +89,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
     clientContact: true,
     subtasks: true,
     hotelBooking: false,
+    paymentTracking: false,
   }
 
   if (!board) return null

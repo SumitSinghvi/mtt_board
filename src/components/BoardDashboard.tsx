@@ -6,9 +6,10 @@ import {
   ArrowRight,
   ShieldAlert,
   Hotel,
+  IndianRupee,
 } from "lucide-react"
 import { formatDate } from "../lib/date"
-import type { Board, Priority } from "../schemas/board"
+import { type Board, type Priority, getPaymentSummary } from "../schemas/board"
 
 interface BoardDashboardProps {
   board: Board
@@ -31,6 +32,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
     clientContact: true,
     subtasks: true,
     hotelBooking: false,
+    paymentTracking: false,
   }
 
   // Aggregate all tasks with their respective column info
@@ -70,6 +72,21 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
       const bDate = b.hotelBooking?.holdUntil || "9999"
       return aDate.localeCompare(bDate)
     })
+
+  // Payment aggregates
+  const paymentTasks = allTasksWithCol.filter(
+    (t) => t.paymentTracking || t.amount !== undefined
+  )
+  const paymentSummaries = paymentTasks.map((t) => ({
+    task: t,
+    summary: getPaymentSummary(t.paymentTracking, t.amount),
+  }))
+  const totalReceived = paymentSummaries.reduce((acc, curr) => acc + curr.summary.received, 0)
+  const totalPending = paymentSummaries.reduce((acc, curr) => acc + curr.summary.pending, 0)
+  const fullyPaidCount = paymentSummaries.filter((p) => p.summary.isFullyPaid).length
+  const pendingCollectionTasks = paymentSummaries
+    .filter((p) => p.summary.pending > 0)
+    .sort((a, b) => b.summary.pending - a.summary.pending)
 
   // Attention Needed List: Urgent / High priority or past due / due soon
   const [todayStr] = useState(getTodayDateStr)
@@ -185,10 +202,115 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
             </div>
           </div>
         )}
+
+        {/* Payment Tracking KPI (when module enabled) */}
+        {modules.paymentTracking && (
+          <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs">
+            <div className="flex items-center justify-between text-stone-500">
+              <span className="text-xs font-semibold uppercase tracking-wider">Payment Collections</span>
+              <IndianRupee className="size-4 text-emerald-600" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-stone-900">
+                ₹{totalReceived.toLocaleString("en-IN")}
+              </span>
+              <span className="text-xs text-stone-500">received</span>
+            </div>
+            <div className="mt-3 flex items-center gap-1.5 text-[10px] font-semibold flex-wrap">
+              <span className="inline-flex items-center gap-1 rounded bg-amber-50 text-amber-900 border border-amber-200 px-1.5 py-0.5">
+                <span>₹{totalPending.toLocaleString("en-IN")} Pending</span>
+              </span>
+              <span className="inline-flex items-center gap-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                {fullyPaidCount} Paid Full
+              </span>
+              {pendingCollectionTasks.length > 0 && (
+                <span className="inline-flex items-center gap-1 rounded bg-stone-100 text-stone-600 border border-stone-200 px-1.5 py-0.5">
+                  {pendingCollectionTasks.length} Pending
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 2. Operational Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Payment & Installment Tracking (when module enabled) */}
+        {modules.paymentTracking && (
+          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-2xs lg:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <IndianRupee className="size-4 text-emerald-600" />
+                <h2 className="text-sm font-bold text-stone-900">Payment & Installment Collections</h2>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  Total Collected: ₹{totalReceived.toLocaleString("en-IN")}
+                </span>
+                <span className="inline-flex items-center gap-1 font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                  Pending: ₹{totalPending.toLocaleString("en-IN")}
+                </span>
+              </div>
+            </div>
+
+            {pendingCollectionTasks.length === 0 ? (
+              <div className="py-6 text-center text-stone-400">
+                <CheckCircle2 className="size-7 mx-auto text-emerald-500 mb-1.5 opacity-80" />
+                <p className="text-xs">All card payments are fully settled. No pending balances.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-stone-100">
+                {pendingCollectionTasks.slice(0, 6).map(({ task, summary }) => (
+                  <div
+                    key={task.id}
+                    onClick={() => onOpenTask(task.columnId, task.id)}
+                    className="py-2.5 flex items-center justify-between gap-3 cursor-pointer hover:bg-stone-50/80 rounded px-2 -mx-2 transition"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-stone-900 truncate">
+                          {task.title}
+                        </span>
+                        <span
+                          className={`text-[10px] font-bold px-1.5 py-0.2 rounded border uppercase tracking-wider ${
+                            summary.isPartiallyPaid
+                              ? "bg-amber-100 text-amber-900 border-amber-300"
+                              : "bg-stone-100 text-stone-600 border-stone-200"
+                          }`}
+                        >
+                          {summary.paidCount}/3 Received
+                        </span>
+                        {task.customerName && (
+                          <span className="text-xs text-stone-500 truncate">
+                            • {task.customerName}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3 mt-1 text-[11px] text-stone-500">
+                        <span>
+                          In <strong className="text-stone-700">{task.columnTitle}</strong>
+                        </span>
+                        <span>
+                          Package: <strong className="text-stone-800">₹{summary.total.toLocaleString("en-IN")}</strong>
+                        </span>
+                        <span>
+                          Received: <strong className="text-emerald-700">₹{summary.received.toLocaleString("en-IN")}</strong>
+                        </span>
+                        <span>
+                          Pending: <strong className="text-amber-700">₹{summary.pending.toLocaleString("en-IN")}</strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    <ArrowRight className="size-4 text-stone-400 shrink-0" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {/* Hotel Follow-ups & Room Holds (when module enabled) */}
         {modules.hotelBooking && (
           <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-2xs lg:col-span-2">

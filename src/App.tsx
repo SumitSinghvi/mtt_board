@@ -3,6 +3,7 @@ import { Toaster } from "sonner"
 import { Topbar } from "./components/Topbar"
 import { Sidebar } from "./components/Sidebar"
 import { AuthModal } from "./components/AuthModal"
+import { QuickActionFab } from "./components/QuickActionFab"
 import { useBoardStore } from "./store/boardStore"
 import { useAuthStore } from "./store/authStore"
 import { useStaffStore } from "./store/staffStore"
@@ -32,13 +33,15 @@ export default function App() {
     }
   }, [initializeAuth])
 
+  const userId = user?.id
+
   useEffect(() => {
-    if (user) {
+    if (userId) {
       fetchStaffFromSupabase()
       fetchCustomersFromSupabase()
       fetchBoardsFromSupabase()
     }
-  }, [user, fetchStaffFromSupabase, fetchCustomersFromSupabase, fetchBoardsFromSupabase])
+  }, [userId, fetchStaffFromSupabase, fetchCustomersFromSupabase, fetchBoardsFromSupabase])
 
   if (loading) {
     return (
@@ -85,6 +88,7 @@ export default function App() {
           </Suspense>
         </main>
       </div>
+      <QuickActionFab />
     </div>
   )
 }

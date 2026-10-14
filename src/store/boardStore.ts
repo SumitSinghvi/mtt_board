@@ -4,6 +4,9 @@ import { type Board, type Task, type BoardModules, type ActivityItem, type TaskR
 import {
   fetchBoardsFromSupabase as loadSupabaseBoards,
   syncBoardToSupabase,
+  syncBoardModulesToSupabase,
+  seedInitialBoardToSupabase,
+  flushTaskSync,
   syncTaskToSupabase,
   deleteTaskFromSupabase,
   deleteBoardFromSupabase,
@@ -50,7 +53,8 @@ interface BoardState {
   moveColumn: (boardId: string, sourceIndex: number, targetIndex: number) => void
 
   addTask: (boardId: string, columnId: string, task: Omit<Task, "id" | "createdAt">) => void
-  updateTask: (boardId: string, columnId: string, taskId: string, updates: Partial<Task>) => void
+  updateTask: (boardId: string, columnId: string, taskId: string, updates: Partial<Task>, immediate?: boolean) => void
+  flushTask: (taskId: string) => Promise<void>
   deleteTask: (boardId: string, columnId: string, taskId: string) => void
   moveTask: (
     boardId: string,
@@ -137,7 +141,7 @@ export const useBoardStore = create<BoardState>()(
           } else {
             // Seed initial boards to Supabase if database empty
             for (const b of initialBoards) {
-              await syncBoardToSupabase(b)
+              await seedInitialBoardToSupabase(b)
             }
           }
         } catch (err) {
@@ -229,7 +233,7 @@ export const useBoardStore = create<BoardState>()(
         }))
 
         const target = get().boards.find((b) => b.id === boardId)
-        if (target) syncBoardToSupabase(target)
+        if (target) syncBoardModulesToSupabase(boardId, target.modules)
       },
 
       permanentlyDeleteComponentGlobally: (key) => {
@@ -250,7 +254,7 @@ export const useBoardStore = create<BoardState>()(
         // Sync all updated boards to Supabase
         const updatedBoards = get().boards
         for (const b of updatedBoards) {
-          syncBoardToSupabase(b)
+          syncBoardModulesToSupabase(b.id, b.modules)
         }
       },
 
@@ -424,7 +428,7 @@ export const useBoardStore = create<BoardState>()(
         syncTaskToSupabase(boardId, columnId, newTask, 0)
       },
 
-      updateTask: (boardId, columnId, taskId, updates) => {
+      updateTask: (boardId, columnId, taskId, updates, immediate = false) => {
         set((state) => ({
           boards: state.boards.map((b) =>
             b.id === boardId
@@ -447,8 +451,12 @@ export const useBoardStore = create<BoardState>()(
         const col = board?.columns.find((c) => c.id === columnId)
         const task = col?.tasks.find((t) => t.id === taskId)
         if (task) {
-          syncTaskToSupabase(boardId, columnId, task)
+          syncTaskToSupabase(boardId, columnId, task, 0, immediate)
         }
+      },
+
+      flushTask: async (taskId: string) => {
+        await flushTaskSync(taskId)
       },
 
       deleteTask: (boardId, columnId, taskId) => {

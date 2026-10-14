@@ -11,6 +11,7 @@ import {
   Check,
   Crown,
   Hotel,
+  IndianRupee,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useCustomerStore } from "../store/customerStore"
@@ -18,11 +19,13 @@ import { useStaffStore, initialStaff } from "../store/staffStore"
 import { CustomerCombobox } from "./CustomerCombobox"
 import { PhoneInput } from "./ui/PhoneInput"
 import type { Priority, HotelBookingStatus } from "../schemas/board"
+import { useAuthStore } from "../store/authStore"
+import { isBoardAllowed } from "../lib/permissions"
 import { toast } from "sonner"
 
 interface NewCardModalProps {
-  boardId: string
-  defaultColumnId: string
+  boardId?: string
+  defaultColumnId?: string
   onClose: () => void
 }
 
@@ -34,16 +37,39 @@ const priorityColors: Record<Priority, { bg: string; text: string; border: strin
 }
 
 export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModalProps) {
-  const { boards, addTask } = useBoardStore()
-  const currentBoard = boards.find((b) => b.id === boardId)
+  const { boards, addTask, activeBoardId } = useBoardStore()
+  const { profile } = useAuthStore()
+
+  const allowedBoards = boards.filter((b) => !b.isArchived && isBoardAllowed(b, profile))
+  const [selectedBoardId, setSelectedBoardId] = useState<string>(() => {
+    if (boardId && boards.some((b) => b.id === boardId)) return boardId
+    if (activeBoardId && boards.some((b) => b.id === activeBoardId)) return activeBoardId
+    return allowedBoards[0]?.id || boards[0]?.id || ""
+  })
+
+  const currentBoard = boards.find((b) => b.id === selectedBoardId) || boards[0]
 
   const modules = currentBoard?.modules || {
     clientContact: true,
     subtasks: true,
     hotelBooking: false,
+    paymentTracking: false,
   }
 
-  const [selectedColumnId, setSelectedColumnId] = useState(defaultColumnId)
+  const [selectedColumnId, setSelectedColumnId] = useState(() => {
+    if (defaultColumnId && currentBoard?.columns.some((c) => c.id === defaultColumnId)) {
+      return defaultColumnId
+    }
+    return currentBoard?.columns[0]?.id || ""
+  })
+
+  const handleBoardChange = (newBoardId: string) => {
+    setSelectedBoardId(newBoardId)
+    const targetBoard = boards.find((b) => b.id === newBoardId)
+    if (targetBoard && targetBoard.columns.length > 0) {
+      setSelectedColumnId(targetBoard.columns[0].id)
+    }
+  }
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [priority, setPriority] = useState<Priority>("medium")
@@ -57,6 +83,12 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
   const [hotelHoldUntil, setHotelHoldUntil] = useState("")
   const [hotelConfirmationNo, setHotelConfirmationNo] = useState("")
   const [hotelNotes, setHotelNotes] = useState("")
+
+  // Payment tracking state
+  const [totalBookingAmount, setTotalBookingAmount] = useState<string>("")
+  const [advanceAmount, setAdvanceAmount] = useState<string>("")
+  const [advanceDate, setAdvanceDate] = useState<string>("")
+  const [advanceMode, setAdvanceMode] = useState<string>("UPI")
 
   const { staff } = useStaffStore()
   const activeStaff = (staff.length > 0 ? staff : initialStaff).filter(
@@ -120,7 +152,29 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
           }
         : undefined
 
-    addTask(boardId, selectedColumnId, {
+    const totalAmountNum = totalBookingAmount ? Number(totalBookingAmount) : undefined
+    const advanceAmountNum = advanceAmount ? Number(advanceAmount) : undefined
+
+    const paymentTracking =
+      modules.paymentTracking && (totalAmountNum !== undefined || advanceAmountNum !== undefined)
+        ? {
+            totalAmount: totalAmountNum,
+            installments:
+              advanceAmountNum !== undefined
+                ? [
+                    {
+                      id: `inst-${Date.now()}`,
+                      name: "Advance Payment",
+                      amount: advanceAmountNum,
+                      receivedDate: advanceDate || undefined,
+                      paymentMode: advanceMode || undefined,
+                    },
+                  ]
+                : [],
+          }
+        : undefined
+
+    addTask(selectedBoardId, selectedColumnId, {
       title: title.trim(),
       description: description.trim() || undefined,
       priority,
@@ -130,8 +184,11 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
       customerName: modules.clientContact && customerName.trim() ? customerName.trim() : undefined,
       customerPhone: modules.clientContact && customerPhone.trim() ? customerPhone.trim() : undefined,
       customerEmail: modules.clientContact && customerEmail.trim() ? customerEmail.trim() : undefined,
+      amount: totalAmountNum,
+      advancePaid: advanceAmountNum,
       dueDate: dueDate || undefined,
       hotelBooking,
+      paymentTracking,
       checklist: [],
     })
 
@@ -190,7 +247,26 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
             {/* Left 7 Columns */}
             <div className="space-y-5 lg:col-span-7">
               {/* Stage & Priority */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className={`grid gap-3 ${allowedBoards.length > 1 ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2"}`}>
+                {allowedBoards.length > 1 && (
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      Board / Pipeline
+                    </label>
+                    <select
+                      value={selectedBoardId}
+                      onChange={(e) => handleBoardChange(e.target.value)}
+                      className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-800 focus:border-amber-500 focus:outline-none"
+                    >
+                      {allowedBoards.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 mb-1">
                     Stage / Column
@@ -537,6 +613,88 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                         onChange={(e) => setHotelNotes(e.target.value)}
                         className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none resize-none"
                       />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Payment Tracking Section - when enabled */}
+              {modules.paymentTracking && (
+                <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 space-y-3 animate-in fade-in-50">
+                  <div className="flex items-center justify-between">
+                    <span className="block text-xs font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
+                      <IndianRupee className="size-3.5 text-emerald-600" />
+                      Payment & Advance
+                    </span>
+                    <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      Installment Tracking
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                        Total Package Value (₹)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs">₹</span>
+                        <input
+                          type="number"
+                          placeholder="e.g. 45000"
+                          value={totalBookingAmount}
+                          onChange={(e) => setTotalBookingAmount(e.target.value)}
+                          className="w-full rounded-md border border-stone-200 bg-white pl-6 pr-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                        Advance Payment (₹)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs">₹</span>
+                        <input
+                          type="number"
+                          placeholder="e.g. 15000"
+                          value={advanceAmount}
+                          onChange={(e) => setAdvanceAmount(e.target.value)}
+                          className="w-full rounded-md border border-stone-200 bg-white pl-6 pr-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {advanceAmount && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                          Advance Received Date
+                        </label>
+                        <input
+                          type="date"
+                          value={advanceDate}
+                          onChange={(e) => setAdvanceDate(e.target.value)}
+                          className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                          Payment Mode
+                        </label>
+                        <select
+                          value={advanceMode}
+                          onChange={(e) => setAdvanceMode(e.target.value)}
+                          className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                        >
+                          <option value="UPI">UPI / GPay / PhonePe</option>
+                          <option value="Bank Transfer">Bank Transfer (NEFT/RTGS/IMPS)</option>
+                          <option value="Cash">Cash</option>
+                          <option value="Card">Credit / Debit Card</option>
+                          <option value="Cheque">Cheque</option>
+                        </select>
+                      </div>
                     </div>
                   )}
                 </div>

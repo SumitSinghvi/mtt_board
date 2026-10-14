@@ -58,26 +58,75 @@ export const PaymentPhaseSchema = z.object({
 })
 export type PaymentPhase = z.infer<typeof PaymentPhaseSchema>
 
+export const PaymentInstallmentSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  amount: z.number().optional(),
+  receivedDate: z.string().optional(), // YYYY-MM-DD
+  paymentMode: z.string().optional(), // UPI, Bank Transfer, Cash, Card, etc.
+  notes: z.string().optional(),
+})
+export type PaymentInstallment = z.infer<typeof PaymentInstallmentSchema>
+
 export const PaymentTrackingSchema = z.object({
   totalAmount: z.number().optional(),
-  phase1: PaymentPhaseSchema.optional(), // Advance Payment
-  phase2: PaymentPhaseSchema.optional(), // Second Payment
-  phase3: PaymentPhaseSchema.optional(), // Final Payment
+  installments: z.array(PaymentInstallmentSchema).optional(),
+  // legacy backward-compat fields:
+  phase1: PaymentPhaseSchema.optional(),
+  phase2: PaymentPhaseSchema.optional(),
+  phase3: PaymentPhaseSchema.optional(),
 })
 export type PaymentTracking = z.infer<typeof PaymentTrackingSchema>
 
+export function normalizeInstallments(payment?: PaymentTracking): PaymentInstallment[] {
+  if (!payment) return []
+  if (Array.isArray(payment.installments) && payment.installments.length > 0) {
+    return payment.installments
+  }
+  const legacy: PaymentInstallment[] = []
+  if (payment.phase1 && (payment.phase1.amount !== undefined || payment.phase1.receivedDate || payment.phase1.notes)) {
+    legacy.push({
+      id: "phase1",
+      amount: payment.phase1.amount,
+      receivedDate: payment.phase1.receivedDate,
+      paymentMode: payment.phase1.paymentMode,
+      notes: payment.phase1.notes,
+    })
+  }
+  if (payment.phase2 && (payment.phase2.amount !== undefined || payment.phase2.receivedDate || payment.phase2.notes)) {
+    legacy.push({
+      id: "phase2",
+      amount: payment.phase2.amount,
+      receivedDate: payment.phase2.receivedDate,
+      paymentMode: payment.phase2.paymentMode,
+      notes: payment.phase2.notes,
+    })
+  }
+  if (payment.phase3 && (payment.phase3.amount !== undefined || payment.phase3.receivedDate || payment.phase3.notes)) {
+    legacy.push({
+      id: "phase3",
+      amount: payment.phase3.amount,
+      receivedDate: payment.phase3.receivedDate,
+      paymentMode: payment.phase3.paymentMode,
+      notes: payment.phase3.notes,
+    })
+  }
+  return legacy
+}
+
 export function getPaymentSummary(payment?: PaymentTracking, fallbackTotal?: number) {
   const total = payment?.totalAmount ?? fallbackTotal ?? 0
-  const p1 = payment?.phase1?.amount || 0
-  const p2 = payment?.phase2?.amount || 0
-  const p3 = payment?.phase3?.amount || 0
-  const received = p1 + p2 + p3
+  const installments = normalizeInstallments(payment)
+
+  const received = installments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
   const pending = Math.max(0, total - received)
 
   let paidCount = 0
-  if (payment?.phase1?.receivedDate || p1 > 0) paidCount++
-  if (payment?.phase2?.receivedDate || p2 > 0) paidCount++
-  if (payment?.phase3?.receivedDate || p3 > 0) paidCount++
+  for (const item of installments) {
+    if (item.receivedDate || (item.amount !== undefined && item.amount > 0)) {
+      paidCount++
+    }
+  }
 
   const isFullyPaid = total > 0 && received >= total
   const isPartiallyPaid = received > 0 && !isFullyPaid
@@ -87,6 +136,7 @@ export function getPaymentSummary(payment?: PaymentTracking, fallbackTotal?: num
     received,
     pending,
     paidCount,
+    totalInstallments: installments.length,
     isFullyPaid,
     isPartiallyPaid,
   }

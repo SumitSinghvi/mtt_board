@@ -19,7 +19,7 @@ import { formatDate } from "../../lib/date"
 import { getWhatsAppUrl } from "../../lib/utils"
 import { useAuthStore } from "../../store/authStore"
 import { getTaskCommentsInfo, markTaskCommentsRead } from "../../lib/unreadComments"
-import { type Task, type Priority, getTaskAssignees } from "../../schemas/board"
+import { type Task, type Priority, getTaskAssignees, getPaymentSummary } from "../../schemas/board"
 
 const priorityColors: Record<Priority, { bg: string; text: string; border: string }> = {
   urgent: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
@@ -296,16 +296,43 @@ export const KanbanCard = memo(function KanbanCard({
               </a>
             </div>
           )}
-          {canViewCommercials && task.amount !== undefined ? (
+          {(task.paymentTracking || (canViewCommercials && task.amount !== undefined)) ? (
             <div className="flex items-center justify-between text-[11px] font-semibold text-stone-800">
-              <div className="flex items-center gap-0.5">
-                <IndianRupee className="size-3 text-emerald-600" />
-                <span>{task.amount.toLocaleString("en-IN")}</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center gap-0.5">
+                  <IndianRupee className="size-3 text-emerald-600" />
+                  <span>
+                    {(task.paymentTracking?.totalAmount ?? task.amount ?? 0).toLocaleString("en-IN")}
+                  </span>
+                </div>
+
+                {task.paymentTracking && (() => {
+                  const paySummary = getPaymentSummary(task.paymentTracking, task.amount)
+                  return (
+                    <span
+                      title={`Received: ₹${paySummary.received.toLocaleString("en-IN")} | Pending: ₹${paySummary.pending.toLocaleString("en-IN")}`}
+                      className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.2 text-[9px] font-bold border ${
+                        paySummary.isFullyPaid
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : paySummary.isPartiallyPaid
+                          ? "bg-amber-50 text-amber-800 border-amber-200"
+                          : "bg-stone-100 text-stone-500 border-stone-200"
+                      }`}
+                    >
+                      {paySummary.isFullyPaid
+                        ? "Paid Full"
+                        : paySummary.received > 0
+                        ? `₹${paySummary.received.toLocaleString("en-IN")} Recv`
+                        : "Unpaid"}
+                    </span>
+                  )
+                })()}
               </div>
+
               {checklistItems.length > 0 && (
                 <div
                   title={`${doneChecklist} of ${checklistItems.length} sub-cards done`}
-                  className="flex items-center gap-1 text-[10px] text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded font-medium"
+                  className="flex items-center gap-1 text-[10px] text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded font-medium shrink-0"
                 >
                   <Layers className="size-3 text-amber-600" />
                   <span>

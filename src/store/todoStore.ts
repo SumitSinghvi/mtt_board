@@ -156,7 +156,8 @@ export const useTodoStore = create<TodoState>()(
         const user = useAuthStore.getState().user
         if (user) {
           try {
-            await supabase.from("staff_todos").delete().eq("id", id).eq("user_id", user.id)
+            const { error } = await supabase.from("staff_todos").delete().eq("id", id).eq("user_id", user.id)
+            if (error) console.error("Error deleting todo from Supabase:", error.message)
           } catch (err) {
             console.error("Error deleting todo from Supabase:", err)
           }

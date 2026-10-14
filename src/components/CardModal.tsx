@@ -16,6 +16,7 @@ import { CardSubcardsSection } from "./card-modal/CardSubcardsSection"
 import { CardRemindersSection } from "./card-modal/CardRemindersSection"
 import { CardDetailsSidebar } from "./card-modal/CardDetailsSidebar"
 import { CardHotelBookingSection } from "./card-modal/CardHotelBookingSection"
+import { CardPaymentSection } from "./card-modal/CardPaymentSection"
 import { SubCardModal } from "./card-modal/SubCardModal"
 import { formatDate } from "../lib/date"
 import { markTaskCommentsRead } from "../lib/unreadComments"
@@ -34,6 +35,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   const {
     boards,
     updateTask,
+    flushTask,
     deleteTask,
     moveTask,
     moveTaskToBoard,
@@ -80,7 +82,17 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
     clientContact: true,
     subtasks: true,
     hotelBooking: false,
+    paymentTracking: false,
   }
+
+  // Flush pending changes to Supabase when modal unmounts
+  useEffect(() => {
+    return () => {
+      if (taskId) {
+        flushTask(taskId)
+      }
+    }
+  }, [taskId, flushTask])
 
   // Mark comments read on modal open
   useEffect(() => {
@@ -556,6 +568,17 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                   hotelBooking={currentTask.hotelBooking}
                   canEdit={canEditCard}
                   onChange={(updatedBooking) => handleFieldChange("hotelBooking", updatedBooking)}
+                />
+              )}
+
+              {/* Payment & Installment Tracking Section (when module enabled) */}
+              {modules.paymentTracking && (
+                <CardPaymentSection
+                  paymentTracking={currentTask.paymentTracking}
+                  fallbackTotal={currentTask.amount}
+                  canEdit={canEditCard}
+                  onChange={(updatedPayment) => handleFieldChange("paymentTracking", updatedPayment)}
+                  onSyncTotalAmount={(newTotal) => handleFieldChange("amount", newTotal)}
                 />
               )}
 

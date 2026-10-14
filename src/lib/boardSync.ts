@@ -108,6 +108,43 @@ export async function fetchBoardsFromSupabase(): Promise<Board[]> {
 
 export async function syncBoardToSupabase(board: Board): Promise<void> {
   try {
+    const { error } = await supabase.from("boards").upsert({
+      id: board.id,
+      title: board.title,
+      description: board.description?.trim() ? board.description.trim() : null,
+      icon: board.icon,
+      modules: board.modules,
+      is_archived: board.isArchived ?? false,
+      position: board.position ?? 0,
+      updated_at: new Date().toISOString(),
+    })
+    if (error) {
+      console.error("syncBoardToSupabase error:", error.message)
+    }
+  } catch (err) {
+    console.warn("syncBoardToSupabase error:", err)
+  }
+}
+
+export async function syncBoardModulesToSupabase(boardId: string, modules: any): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("boards")
+      .update({
+        modules,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", boardId)
+    if (error) {
+      console.error("syncBoardModulesToSupabase error:", error.message)
+    }
+  } catch (err) {
+    console.warn("syncBoardModulesToSupabase error:", err)
+  }
+}
+
+export async function seedInitialBoardToSupabase(board: Board): Promise<void> {
+  try {
     await supabase.from("boards").upsert({
       id: board.id,
       title: board.title,
@@ -129,17 +166,18 @@ export async function syncBoardToSupabase(board: Board): Promise<void> {
 
       for (let tIdx = 0; tIdx < col.tasks.length; tIdx++) {
         const t = col.tasks[tIdx]
-        await syncTaskToSupabase(board.id, col.id, t, tIdx)
+        await syncTaskToSupabase(board.id, col.id, t, tIdx, true)
       }
     }
   } catch (err) {
-    console.warn("syncBoardToSupabase error:", err)
+    console.warn("seedInitialBoardToSupabase error:", err)
   }
 }
 
 export async function archiveBoardInSupabase(boardId: string, isArchived: boolean): Promise<void> {
   try {
-    await supabase.from("boards").update({ is_archived: isArchived }).eq("id", boardId)
+    const { error } = await supabase.from("boards").update({ is_archived: isArchived }).eq("id", boardId)
+    if (error) console.error("archiveBoardInSupabase error:", error.message)
   } catch (err) {
     console.warn("archiveBoardInSupabase error:", err)
   }
@@ -148,7 +186,8 @@ export async function archiveBoardInSupabase(boardId: string, isArchived: boolea
 export async function reorderBoardsInSupabase(boardOrder: { id: string; position: number }[]): Promise<void> {
   try {
     for (const b of boardOrder) {
-      await supabase.from("boards").update({ position: b.position }).eq("id", b.id)
+      const { error } = await supabase.from("boards").update({ position: b.position }).eq("id", b.id)
+      if (error) console.error("reorderBoardsInSupabase error:", error.message)
     }
   } catch (err) {
     console.warn("reorderBoardsInSupabase error:", err)
@@ -156,6 +195,20 @@ export async function reorderBoardsInSupabase(boardOrder: { id: string; position
 }
 
 const taskSyncTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const pendingSyncActions = new Map<string, () => Promise<void>>()
+
+export async function flushTaskSync(taskId: string): Promise<void> {
+  const timer = taskSyncTimers.get(taskId)
+  if (timer) {
+    clearTimeout(timer)
+    taskSyncTimers.delete(taskId)
+  }
+  const action = pendingSyncActions.get(taskId)
+  if (action) {
+    pendingSyncActions.delete(taskId)
+    await action()
+  }
+}
 
 export async function syncTaskToSupabase(
   boardId: string,
@@ -179,7 +232,7 @@ export async function syncTaskToSupabase(
           ? [task.assignee]
           : []
 
-      await supabase.from("tasks").upsert({
+      const { error } = await supabase.from("tasks").upsert({
         id: task.id,
         board_id: boardId,
         column_id: columnId,
@@ -211,31 +264,57 @@ export async function syncTaskToSupabase(
         payment_tracking: task.paymentTracking || null,
         updated_at: new Date().toISOString(),
       })
+
+      if (error) {
+        console.error("syncTaskToSupabase error:", error.message, error.details)
+      }
     } catch (err) {
       console.warn("syncTaskToSupabase error:", err)
     } finally {
       taskSyncTimers.delete(task.id)
+      pendingSyncActions.delete(task.id)
     }
   }
+
+  pendingSyncActions.set(task.id, performSync)
 
   if (immediate) {
     await performSync()
   } else {
-    taskSyncTimers.set(task.id, setTimeout(performSync, 400))
+    taskSyncTimers.set(
+      task.id,
+      setTimeout(() => {
+        performSync()
+      }, 400)
+    )
   }
 }
 
-export async function deleteTaskFromSupabase(taskId: string): Promise<void> {
+export async function deleteTaskFromSupabase(taskId: string): Promise<boolean> {
+  const timer = taskSyncTimers.get(taskId)
+  if (timer) {
+    clearTimeout(timer)
+    taskSyncTimers.delete(taskId)
+  }
+  pendingSyncActions.delete(taskId)
+
   try {
-    await supabase.from("tasks").delete().eq("id", taskId)
+    const { error } = await supabase.from("tasks").delete().eq("id", taskId)
+    if (error) {
+      console.error("deleteTaskFromSupabase error:", error.message)
+      return false
+    }
+    return true
   } catch (err) {
     console.warn("deleteTaskFromSupabase error:", err)
+    return false
   }
 }
 
 export async function deleteBoardFromSupabase(boardId: string): Promise<void> {
   try {
-    await supabase.from("boards").delete().eq("id", boardId)
+    const { error } = await supabase.from("boards").delete().eq("id", boardId)
+    if (error) console.error("deleteBoardFromSupabase error:", error.message)
   } catch (err) {
     console.warn("deleteBoardFromSupabase error:", err)
   }
@@ -248,12 +327,13 @@ export async function syncColumnToSupabase(
   position = 0
 ): Promise<void> {
   try {
-    await supabase.from("columns").upsert({
+    const { error } = await supabase.from("columns").upsert({
       id: columnId,
       board_id: boardId,
       title,
       position,
     })
+    if (error) console.error("syncColumnToSupabase error:", error.message)
   } catch (err) {
     console.warn("syncColumnToSupabase error:", err)
   }
@@ -261,7 +341,8 @@ export async function syncColumnToSupabase(
 
 export async function deleteColumnFromSupabase(columnId: string): Promise<void> {
   try {
-    await supabase.from("columns").delete().eq("id", columnId)
+    const { error } = await supabase.from("columns").delete().eq("id", columnId)
+    if (error) console.error("deleteColumnFromSupabase error:", error.message)
   } catch (err) {
     console.warn("deleteColumnFromSupabase error:", err)
   }
@@ -295,7 +376,7 @@ export async function fetchGeneralRemindersFromSupabase(): Promise<TaskReminder[
 
 export async function syncGeneralReminderToSupabase(reminder: TaskReminder): Promise<void> {
   try {
-    await supabase.from("general_reminders").upsert({
+    const { error } = await supabase.from("general_reminders").upsert({
       id: reminder.id,
       text: reminder.text,
       due_date: reminder.dueDate,
@@ -305,6 +386,7 @@ export async function syncGeneralReminderToSupabase(reminder: TaskReminder): Pro
       completed_at: reminder.completedAt || null,
       created_by: reminder.createdBy || null,
     })
+    if (error) console.error("syncGeneralReminderToSupabase error:", error.message)
   } catch (err) {
     console.warn("syncGeneralReminderToSupabase error:", err)
   }
@@ -312,7 +394,8 @@ export async function syncGeneralReminderToSupabase(reminder: TaskReminder): Pro
 
 export async function deleteGeneralReminderFromSupabase(reminderId: string): Promise<void> {
   try {
-    await supabase.from("general_reminders").delete().eq("id", reminderId)
+    const { error } = await supabase.from("general_reminders").delete().eq("id", reminderId)
+    if (error) console.error("deleteGeneralReminderFromSupabase error:", error.message)
   } catch (err) {
     console.warn("deleteGeneralReminderFromSupabase error:", err)
   }
