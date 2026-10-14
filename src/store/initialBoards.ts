@@ -10,6 +10,7 @@ export const initialBoards: Board[] = [
     modules: {
       clientContact: true,
       subtasks: true,
+      hotelBooking: true,
     },
     columns: [
       {
@@ -100,6 +101,7 @@ export const initialBoards: Board[] = [
     modules: {
       clientContact: false,
       subtasks: true,
+      hotelBooking: false,
     },
     columns: [
       {

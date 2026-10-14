@@ -1,8 +1,10 @@
-import { PanelLeftClose, PanelLeft, LogOut } from "lucide-react"
+import { useState, useMemo } from "react"
+import { PanelLeftClose, PanelLeft, LogOut, Bell } from "lucide-react"
 import logoImg from "../assets/logo.png"
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
 import { GlobalSearch } from "./GlobalSearch"
+import { NotificationPopover } from "./NotificationPopover"
 
 const roleBadgeColor: Record<string, string> = {
   admin: "bg-red-50 text-red-700 border-red-200",
@@ -12,12 +14,40 @@ const roleBadgeColor: Record<string, string> = {
 }
 
 export function Topbar() {
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  const boards = useBoardStore((s) => s.boards)
+  const generalReminders = useBoardStore((s) => s.generalReminders)
   const sidebarOpen = useBoardStore((s) => s.sidebarOpen)
   const toggleSidebar = useBoardStore((s) => s.toggleSidebar)
   const setSelectedTask = useBoardStore((s) => s.setSelectedTask)
   const setActiveBoardId = useBoardStore((s) => s.setActiveBoardId)
   const setCurrentView = useBoardStore((s) => s.setCurrentView)
   const { user, profile, signOut } = useAuthStore()
+
+  const todayStr = new Date().toISOString().split("T")[0]
+  const alertCount = useMemo(() => {
+    let count = 0
+    for (const b of boards) {
+      if (b.isArchived) continue
+      for (const col of b.columns) {
+        for (const task of col.tasks) {
+          if (task.reminders) {
+            for (const rem of task.reminders) {
+              if (!rem.completed && rem.dueDate <= todayStr) {
+                count++
+              }
+            }
+          }
+        }
+      }
+    }
+    for (const rem of generalReminders) {
+      if (!rem.completed && rem.dueDate <= todayStr) {
+        count++
+      }
+    }
+    return count
+  }, [boards, generalReminders, todayStr])
 
   return (
     <>
@@ -55,8 +85,42 @@ export function Topbar() {
           />
         </div>
 
-        {/* Right: Auth Profile Status */}
-        <div className="flex items-center gap-3">
+        {/* Right: Notifications & Auth Profile Status */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Notification Bell Button */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsNotificationOpen((prev) => !prev)}
+              title="Scheduled Task Reminders & Alerts"
+              className={`relative rounded-xl p-2 transition cursor-pointer ${
+                isNotificationOpen
+                  ? "bg-amber-100 text-amber-900 shadow-2xs"
+                  : alertCount > 0
+                  ? "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200/80"
+                  : "text-stone-600 hover:bg-stone-100 hover:text-stone-900 border border-transparent"
+              }`}
+            >
+              <Bell className="size-4.5" />
+              {alertCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex size-4.5 items-center justify-center rounded-full bg-red-600 text-[10px] font-extrabold text-white shadow-2xs animate-pulse ring-2 ring-white">
+                  {alertCount > 9 ? "9+" : alertCount}
+                </span>
+              )}
+            </button>
+
+            <NotificationPopover
+              isOpen={isNotificationOpen}
+              onClose={() => setIsNotificationOpen(false)}
+              onSelectTask={(boardId, columnId, taskId) => {
+                setActiveBoardId(boardId)
+                setCurrentView("board")
+                setSelectedTask({ boardId, columnId, taskId })
+              }}
+            />
+          </div>
+
+          <div className="h-5 w-px bg-stone-200" />
           <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-2 text-left">
               <div className="size-7 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-xs font-bold text-stone-700">

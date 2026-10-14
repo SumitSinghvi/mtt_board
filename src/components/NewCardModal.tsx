@@ -10,13 +10,15 @@ import {
   UserPlus,
   Check,
   Crown,
+  Hotel,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useCustomerStore } from "../store/customerStore"
 import { useStaffStore, initialStaff } from "../store/staffStore"
 import { CustomerCombobox } from "./CustomerCombobox"
 import { PhoneInput } from "./ui/PhoneInput"
-import type { Priority } from "../schemas/board"
+import type { Priority, HotelBookingStatus } from "../schemas/board"
+import { toast } from "sonner"
 
 interface NewCardModalProps {
   boardId: string
@@ -38,6 +40,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
   const modules = currentBoard?.modules || {
     clientContact: true,
     subtasks: true,
+    hotelBooking: false,
   }
 
   const [selectedColumnId, setSelectedColumnId] = useState(defaultColumnId)
@@ -47,6 +50,13 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
   const [assignees, setAssignees] = useState<string[]>([])
   const [leader, setLeader] = useState<string>("")
   const [dueDate, setDueDate] = useState("")
+
+  // Hotel booking state
+  const [hotelStatus, setHotelStatus] = useState<HotelBookingStatus>("none")
+  const [hotelName, setHotelName] = useState("")
+  const [hotelHoldUntil, setHotelHoldUntil] = useState("")
+  const [hotelConfirmationNo, setHotelConfirmationNo] = useState("")
+  const [hotelNotes, setHotelNotes] = useState("")
 
   const { staff } = useStaffStore()
   const activeStaff = (staff.length > 0 ? staff : initialStaff).filter(
@@ -99,6 +109,17 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
       })
     }
 
+    const hotelBooking =
+      modules.hotelBooking && hotelStatus !== "none"
+        ? {
+            status: hotelStatus,
+            hotelName: hotelName.trim() || undefined,
+            holdUntil: hotelHoldUntil || undefined,
+            confirmationNo: hotelConfirmationNo.trim() || undefined,
+            notes: hotelNotes.trim() || undefined,
+          }
+        : undefined
+
     addTask(boardId, selectedColumnId, {
       title: title.trim(),
       description: description.trim() || undefined,
@@ -110,9 +131,11 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
       customerPhone: modules.clientContact && customerPhone.trim() ? customerPhone.trim() : undefined,
       customerEmail: modules.clientContact && customerEmail.trim() ? customerEmail.trim() : undefined,
       dueDate: dueDate || undefined,
+      hotelBooking,
       checklist: [],
     })
 
+    toast.success("Card created")
     onClose()
   }
 
@@ -399,6 +422,123 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                       className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
                     />
                   </div>
+                </div>
+              )}
+
+              {/* Hotel Booking Section - when enabled */}
+              {modules.hotelBooking && (
+                <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 space-y-3 animate-in fade-in-50">
+                  <div className="flex items-center justify-between">
+                    <span className="block text-xs font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
+                      <Hotel className="size-3.5 text-amber-600" />
+                      Hotel Booking
+                    </span>
+                    <span
+                      className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${
+                        hotelStatus === "hold"
+                          ? "bg-amber-100/80 text-amber-900 border-amber-300"
+                          : hotelStatus === "blocked"
+                          ? "bg-purple-100/80 text-purple-900 border-purple-300"
+                          : hotelStatus === "confirmed"
+                          ? "bg-emerald-100/80 text-emerald-900 border-emerald-300"
+                          : "bg-white text-stone-500 border-stone-200"
+                      }`}
+                    >
+                      {hotelStatus === "none" ? "Unbooked" : hotelStatus}
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                      Status
+                    </label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {(
+                        [
+                          { value: "none", label: "None" },
+                          { value: "hold", label: "Hold" },
+                          { value: "blocked", label: "Blocked" },
+                          { value: "confirmed", label: "Confirmed" },
+                        ] as const
+                      ).map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setHotelStatus(opt.value)}
+                          className={`py-1.5 px-2 rounded-lg text-[11px] font-semibold text-center transition cursor-pointer border ${
+                            hotelStatus === opt.value
+                              ? opt.value === "hold"
+                                ? "bg-amber-500 text-white border-amber-600 shadow-2xs"
+                                : opt.value === "blocked"
+                                ? "bg-purple-600 text-white border-purple-700 shadow-2xs"
+                                : opt.value === "confirmed"
+                                ? "bg-emerald-600 text-white border-emerald-700 shadow-2xs"
+                                : "bg-stone-700 text-white border-stone-800 shadow-2xs"
+                              : "bg-white text-stone-700 border-stone-200 hover:bg-stone-100"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                      Hotel / Property Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Taj Jai Mahal, Oberoi"
+                      value={hotelName}
+                      onChange={(e) => setHotelName(e.target.value)}
+                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {hotelStatus === "hold" && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-2.5 space-y-1">
+                      <label className="block text-[11px] font-bold text-amber-900">
+                        Hold Cutoff / Follow-up Date
+                      </label>
+                      <input
+                        type="date"
+                        value={hotelHoldUntil}
+                        onChange={(e) => setHotelHoldUntil(e.target.value)}
+                        className="w-full rounded-md border border-amber-300 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                      />
+                    </div>
+                  )}
+
+                  {(hotelStatus === "confirmed" || hotelStatus === "blocked") && (
+                    <div>
+                      <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                        Confirmation / Voucher No
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. VCH-8821"
+                        value={hotelConfirmationNo}
+                        onChange={(e) => setHotelConfirmationNo(e.target.value)}
+                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-mono focus:border-amber-500 focus:outline-none"
+                      />
+                    </div>
+                  )}
+
+                  {hotelStatus !== "none" && (
+                    <div>
+                      <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                        Hotel & Room Notes
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="e.g. 2 Deluxe Rooms, MAPAI meal plan"
+                        value={hotelNotes}
+                        onChange={(e) => setHotelNotes(e.target.value)}
+                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none resize-none"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>

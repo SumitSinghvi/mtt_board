@@ -4,6 +4,7 @@ import {
   Sliders,
   User,
   CheckSquare,
+  Hotel,
   Plus,
   Trash2,
   Save,
@@ -44,6 +45,14 @@ const ALL_SYSTEM_COMPONENTS: ComponentMeta[] = [
     iconBg: "bg-indigo-50",
     iconColor: "text-indigo-700",
   },
+  {
+    key: "hotelBooking",
+    title: "Hotel Booking & Room Status",
+    description: "Track hotel reservations across Hold, Blocked, and Confirmed with follow-up deadlines",
+    icon: Hotel,
+    iconBg: "bg-amber-50",
+    iconColor: "text-amber-700",
+  },
 ]
 
 export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps) {
@@ -70,6 +79,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
   const modules: BoardModules = board?.modules || {
     clientContact: true,
     subtasks: true,
+    hotelBooking: false,
   }
 
   if (!board) return null

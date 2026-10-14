@@ -7,8 +7,9 @@ import {
   Car,
   MapPin,
   Calendar as CalendarIcon,
+  Bell,
 } from "lucide-react"
-import type { Board, Priority } from "../schemas/board"
+import type { Board, Priority, TaskReminder } from "../schemas/board"
 
 interface BoardCalendarProps {
   board: Board
@@ -94,6 +95,21 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
       }
     })
 
+    return map
+  }, [allCards])
+
+  // Map reminders to dates
+  const remindersByDate = useMemo(() => {
+    const map = new Map<string, Array<{ card: (typeof allCards)[0]; reminder: TaskReminder }>>()
+    allCards.forEach((card) => {
+      if (card.reminders && card.reminders.length > 0) {
+        card.reminders.forEach((reminder) => {
+          const existing = map.get(reminder.dueDate) || []
+          existing.push({ card, reminder })
+          map.set(reminder.dueDate, existing)
+        })
+      }
+    })
     return map
   }, [allCards])
 
@@ -237,6 +253,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
       <div className="flex-1 grid grid-cols-7 grid-rows-5 border border-stone-200 bg-stone-200 gap-px rounded-b-xl overflow-hidden shadow-2xs">
         {calendarDays.map((cell) => {
           const cardsForThisDay = cardsByDate.get(cell.dateStr) || []
+          const remindersForThisDay = remindersByDate.get(cell.dateStr) || []
 
           return (
             <div
@@ -247,17 +264,29 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
             >
               {/* Day Number Row */}
               <div className="flex items-center justify-between mb-0.5 sm:mb-1">
-                <span
-                  className={`inline-flex items-center justify-center text-[11px] sm:text-xs font-semibold rounded-full size-5 sm:size-6 ${
-                    cell.isToday
-                      ? "bg-amber-600 text-white font-bold"
-                      : cell.isCurrentMonth
-                      ? "text-stone-800"
-                      : "text-stone-400"
-                  }`}
-                >
-                  {cell.dayNum}
-                </span>
+                <div className="flex items-center gap-1">
+                  <span
+                    className={`inline-flex items-center justify-center text-[11px] sm:text-xs font-semibold rounded-full size-5 sm:size-6 ${
+                      cell.isToday
+                        ? "bg-amber-600 text-white font-bold"
+                        : cell.isCurrentMonth
+                        ? "text-stone-800"
+                        : "text-stone-400"
+                    }`}
+                  >
+                    {cell.dayNum}
+                  </span>
+
+                  {remindersForThisDay.length > 0 && (
+                    <span
+                      title={`${remindersForThisDay.length} scheduled reminder(s)`}
+                      className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 px-1 py-0.2 text-[9px] font-bold"
+                    >
+                      <Bell className="size-2 text-amber-700" />
+                      <span>{remindersForThisDay.length}</span>
+                    </span>
+                  )}
+                </div>
 
                 {onQuickAddForDate && cell.isCurrentMonth && (
                   <button
@@ -273,6 +302,22 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
 
               {/* Day Tasks List */}
               <div className="flex-1 overflow-y-auto space-y-1 pr-0.5">
+                {/* Reminders First */}
+                {remindersForThisDay.map(({ card, reminder }) => (
+                  <div
+                    key={`rem-${reminder.id}`}
+                    onClick={() => onOpenTask(card.columnId, card.id)}
+                    title={`Reminder: ${reminder.text} • ${card.title}`}
+                    className={`flex items-center gap-1 p-1 rounded border text-[10px] leading-tight cursor-pointer shadow-2xs transition ${
+                      reminder.completed
+                        ? "bg-stone-50 border-stone-200 text-stone-400 opacity-60 line-through"
+                        : "bg-amber-50 border-amber-300/80 text-amber-950 hover:bg-amber-100"
+                    }`}
+                  >
+                    <Bell className="size-2.5 text-amber-600 shrink-0" />
+                    <span className="font-bold truncate">{reminder.text}</span>
+                  </div>
+                ))}
                 {cardsForThisDay.map((card) => {
                   const isTripStart = card.travelStartDate === cell.dateStr
                   const isDueDate = card.dueDate === cell.dateStr

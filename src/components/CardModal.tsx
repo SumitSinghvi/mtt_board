@@ -13,12 +13,15 @@ import { useAuthStore } from "../store/authStore"
 import { canUserEditTask, canUserDeleteTask, getAllowedBoards } from "../lib/permissions"
 import { ActivitySection } from "./ActivitySection"
 import { CardSubcardsSection } from "./card-modal/CardSubcardsSection"
+import { CardRemindersSection } from "./card-modal/CardRemindersSection"
 import { CardDetailsSidebar } from "./card-modal/CardDetailsSidebar"
+import { CardHotelBookingSection } from "./card-modal/CardHotelBookingSection"
 import { SubCardModal } from "./card-modal/SubCardModal"
 import { formatDate } from "../lib/date"
 import { markTaskCommentsRead } from "../lib/unreadComments"
 import { generateId } from "../lib/utils"
 import { type Priority, type Task, type ChecklistItem, type ActivityItem } from "../schemas/board"
+import { toast } from "sonner"
 
 interface CardModalProps {
   boardId: string
@@ -28,7 +31,18 @@ interface CardModalProps {
 }
 
 export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps) {
-  const { boards, updateTask, deleteTask, moveTask, moveTaskToBoard, setActiveBoardId, setSelectedTask } = useBoardStore()
+  const {
+    boards,
+    updateTask,
+    deleteTask,
+    moveTask,
+    moveTaskToBoard,
+    setActiveBoardId,
+    setSelectedTask,
+    addReminderToTask,
+    toggleTaskReminder,
+    deleteTaskReminder,
+  } = useBoardStore()
   const { staff } = useStaffStore()
   const staffList = staff.length > 0 ? staff : initialStaff
   const { profile } = useAuthStore()
@@ -65,6 +79,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   const modules = currentBoard?.modules || {
     clientContact: true,
     subtasks: true,
+    hotelBooking: false,
   }
 
   // Mark comments read on modal open
@@ -202,6 +217,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   const handleDelete = () => {
     if (confirm(`Delete card "${currentTask.title}"?`)) {
       deleteTask(boardId, columnId, taskId)
+      toast.success("Card deleted")
       onClose()
     }
   }
@@ -513,6 +529,15 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                 />
               )}
 
+              {/* Scheduled Reminders & Alerts */}
+              <CardRemindersSection
+                reminders={currentTask.reminders || []}
+                canEdit={canEditCard}
+                onAddReminder={(rem) => addReminderToTask(boardId, columnId, taskId, rem)}
+                onToggleReminder={(remId) => toggleTaskReminder(boardId, columnId, taskId, remId)}
+                onDeleteReminder={(remId) => deleteTaskReminder(boardId, columnId, taskId, remId)}
+              />
+
               {/* Main Task Activity Column */}
               <ActivitySection
                 title="Task Activity & Comments"
@@ -524,7 +549,16 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
             </div>
 
             {/* Right Meta Section (5/12 width) */}
-            <div className="space-y-5 lg:col-span-5">
+            <div className="space-y-4 lg:col-span-5">
+              {/* Hotel Booking & Room Status Section (when module enabled) */}
+              {modules.hotelBooking && (
+                <CardHotelBookingSection
+                  hotelBooking={currentTask.hotelBooking}
+                  canEdit={canEditCard}
+                  onChange={(updatedBooking) => handleFieldChange("hotelBooking", updatedBooking)}
+                />
+              )}
+
               {/* Card Details & Customer Box */}
               <CardDetailsSidebar
                 currentTask={currentTask}

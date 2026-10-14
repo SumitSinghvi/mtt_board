@@ -106,6 +106,7 @@ export function Sidebar() {
     const modules = {
       clientContact: true,
       subtasks: true,
+      hotelBooking: false,
     }
 
     const newId = createBoard(newTitle.trim(), newDescription.trim() || undefined, modules)

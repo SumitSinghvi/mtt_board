@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase"
-import type { Board, Column, Task } from "../schemas/board"
+import type { Board, Column, Task, TaskReminder } from "../schemas/board"
 
 export async function fetchBoardsFromSupabase(): Promise<Board[]> {
   try {
@@ -61,6 +61,9 @@ export async function fetchBoardsFromSupabase(): Promise<Board[]> {
         paxKids: row.pax_kids !== null ? Number(row.pax_kids) : undefined,
         checklist: Array.isArray(row.checklist) ? row.checklist : [],
         activities: Array.isArray(row.activities) ? row.activities : [],
+        reminders: Array.isArray(row.reminders) ? row.reminders : [],
+        hotelBooking: row.hotel_booking || undefined,
+        paymentTracking: row.payment_tracking || undefined,
         createdAt: row.created_at || new Date().toISOString(),
       }
       const existing = tasksMap.get(row.column_id) || []
@@ -85,9 +88,12 @@ export async function fetchBoardsFromSupabase(): Promise<Board[]> {
       title: b.title,
       description: b.description || undefined,
       icon: b.icon || "clipboard-list",
-      modules: b.modules || {
+      modules: {
         clientContact: true,
         subtasks: true,
+        hotelBooking: false,
+        paymentTracking: false,
+        ...(b.modules || {}),
       },
       isArchived: b.is_archived ?? false,
       position: b.position ?? idx,
@@ -200,6 +206,9 @@ export async function syncTaskToSupabase(
         position,
         checklist: task.checklist || [],
         activities: task.activities || [],
+        reminders: task.reminders || [],
+        hotel_booking: task.hotelBooking || null,
+        payment_tracking: task.paymentTracking || null,
         updated_at: new Date().toISOString(),
       })
     } catch (err) {
@@ -257,3 +266,55 @@ export async function deleteColumnFromSupabase(columnId: string): Promise<void> 
     console.warn("deleteColumnFromSupabase error:", err)
   }
 }
+
+export async function fetchGeneralRemindersFromSupabase(): Promise<TaskReminder[]> {
+  try {
+    const { data, error } = await supabase
+      .from("general_reminders")
+      .select("*")
+      .order("created_at", { ascending: false })
+
+    if (error || !data) return []
+
+    return data.map((row) => ({
+      id: row.id,
+      text: row.text,
+      dueDate: row.due_date,
+      dueTime: row.due_time || undefined,
+      priority: row.priority || "medium",
+      completed: !!row.completed,
+      completedAt: row.completed_at || undefined,
+      createdBy: row.created_by || undefined,
+      createdAt: row.created_at || new Date().toISOString(),
+    }))
+  } catch (err) {
+    console.warn("fetchGeneralRemindersFromSupabase error:", err)
+    return []
+  }
+}
+
+export async function syncGeneralReminderToSupabase(reminder: TaskReminder): Promise<void> {
+  try {
+    await supabase.from("general_reminders").upsert({
+      id: reminder.id,
+      text: reminder.text,
+      due_date: reminder.dueDate,
+      due_time: reminder.dueTime || null,
+      priority: reminder.priority || "medium",
+      completed: !!reminder.completed,
+      completed_at: reminder.completedAt || null,
+      created_by: reminder.createdBy || null,
+    })
+  } catch (err) {
+    console.warn("syncGeneralReminderToSupabase error:", err)
+  }
+}
+
+export async function deleteGeneralReminderFromSupabase(reminderId: string): Promise<void> {
+  try {
+    await supabase.from("general_reminders").delete().eq("id", reminderId)
+  } catch (err) {
+    console.warn("deleteGeneralReminderFromSupabase error:", err)
+  }
+}
+

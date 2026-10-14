@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { type Board, type Task, type BoardModules, type ActivityItem, BoardSchema } from "../schemas/board"
+import { type Board, type Task, type BoardModules, type ActivityItem, type TaskReminder, BoardSchema } from "../schemas/board"
 import {
   fetchBoardsFromSupabase as loadSupabaseBoards,
   syncBoardToSupabase,
@@ -11,9 +11,13 @@ import {
   deleteColumnFromSupabase,
   archiveBoardInSupabase,
   reorderBoardsInSupabase,
+  fetchGeneralRemindersFromSupabase,
+  syncGeneralReminderToSupabase,
+  deleteGeneralReminderFromSupabase,
 } from "../lib/boardSync"
 import { initialBoards } from "./initialBoards"
 import { useAuthStore } from "./authStore"
+import { generateId } from "../lib/utils"
 
 interface BoardState {
   boards: Board[]
@@ -63,12 +67,49 @@ interface BoardState {
     taskId: string,
     targetIndex?: number
   ) => void
+
+  // Task Reminders
+  addReminderToTask: (
+    boardId: string,
+    columnId: string,
+    taskId: string,
+    reminder: Omit<TaskReminder, "id" | "createdAt" | "completed"> & { completed?: boolean }
+  ) => void
+  updateTaskReminder: (
+    boardId: string,
+    columnId: string,
+    taskId: string,
+    reminderId: string,
+    updates: Partial<TaskReminder>
+  ) => void
+  deleteTaskReminder: (
+    boardId: string,
+    columnId: string,
+    taskId: string,
+    reminderId: string
+  ) => void
+  toggleTaskReminder: (
+    boardId: string,
+    columnId: string,
+    taskId: string,
+    reminderId: string
+  ) => void
+
+  // General Reminders (Not associated with any staff / task)
+  generalReminders: TaskReminder[]
+  addGeneralReminder: (
+    reminder: Omit<TaskReminder, "id" | "createdAt" | "completed"> & { completed?: boolean }
+  ) => void
+  updateGeneralReminder: (id: string, updates: Partial<TaskReminder>) => void
+  deleteGeneralReminder: (id: string) => void
+  toggleGeneralReminder: (id: string) => void
 }
 
 export const useBoardStore = create<BoardState>()(
   persist(
     (set, get) => ({
       boards: initialBoards,
+      generalReminders: [],
       activeBoardId: initialBoards[0].id,
       currentView: "dashboard",
       sidebarOpen: true,
@@ -78,7 +119,13 @@ export const useBoardStore = create<BoardState>()(
       fetchBoardsFromSupabase: async () => {
         try {
           set({ loading: true })
-          const remoteBoards = await loadSupabaseBoards()
+          const [remoteBoards, remoteGeneralReminders] = await Promise.all([
+            loadSupabaseBoards(),
+            fetchGeneralRemindersFromSupabase(),
+          ])
+          if (remoteGeneralReminders && remoteGeneralReminders.length > 0) {
+            set({ generalReminders: remoteGeneralReminders })
+          }
           if (remoteBoards && remoteBoards.length > 0) {
             set((state) => ({
               boards: remoteBoards,
@@ -126,6 +173,8 @@ export const useBoardStore = create<BoardState>()(
           modules: {
             clientContact: true,
             subtasks: true,
+            hotelBooking: false,
+            paymentTracking: false,
             ...modules,
           },
           columns: [
@@ -169,6 +218,8 @@ export const useBoardStore = create<BoardState>()(
                   modules: {
                     clientContact: true,
                     subtasks: true,
+                    hotelBooking: false,
+                    paymentTracking: false,
                     ...b.modules,
                     ...moduleUpdates,
                   },
@@ -188,6 +239,8 @@ export const useBoardStore = create<BoardState>()(
             modules: {
               clientContact: true,
               subtasks: true,
+              hotelBooking: false,
+              paymentTracking: false,
               ...b.modules,
               [key]: false,
             },
@@ -534,12 +587,113 @@ export const useBoardStore = create<BoardState>()(
         // Cloud sync moved task with new board_id and column_id
         syncTaskToSupabase(targetBoardId, targetCol.id, updatedTask, targetIndex ?? 0, true)
       },
+
+      addReminderToTask: (boardId, columnId, taskId, reminder) => {
+        const newReminder: TaskReminder = {
+          completed: false,
+          ...reminder,
+          id: generateId("rem"),
+          createdAt: new Date().toISOString(),
+        }
+        const board = get().boards.find((b) => b.id === boardId)
+        const col = board?.columns.find((c) => c.id === columnId)
+        const task = col?.tasks.find((t) => t.id === taskId)
+        if (!task) return
+        const currentReminders = task.reminders || []
+        get().updateTask(boardId, columnId, taskId, {
+          reminders: [...currentReminders, newReminder],
+        })
+      },
+
+      updateTaskReminder: (boardId, columnId, taskId, reminderId, updates) => {
+        const board = get().boards.find((b) => b.id === boardId)
+        const col = board?.columns.find((c) => c.id === columnId)
+        const task = col?.tasks.find((t) => t.id === taskId)
+        if (!task) return
+        const nextReminders = (task.reminders || []).map((r) =>
+          r.id === reminderId ? { ...r, ...updates } : r
+        )
+        get().updateTask(boardId, columnId, taskId, { reminders: nextReminders })
+      },
+
+      deleteTaskReminder: (boardId, columnId, taskId, reminderId) => {
+        const board = get().boards.find((b) => b.id === boardId)
+        const col = board?.columns.find((c) => c.id === columnId)
+        const task = col?.tasks.find((t) => t.id === taskId)
+        if (!task) return
+        const nextReminders = (task.reminders || []).filter((r) => r.id !== reminderId)
+        get().updateTask(boardId, columnId, taskId, { reminders: nextReminders })
+      },
+
+      toggleTaskReminder: (boardId, columnId, taskId, reminderId) => {
+        const board = get().boards.find((b) => b.id === boardId)
+        const col = board?.columns.find((c) => c.id === columnId)
+        const task = col?.tasks.find((t) => t.id === taskId)
+        if (!task) return
+        const nextReminders = (task.reminders || []).map((r) =>
+          r.id === reminderId
+            ? {
+                ...r,
+                completed: !r.completed,
+                completedAt: !r.completed ? new Date().toISOString() : undefined,
+              }
+            : r
+        )
+        get().updateTask(boardId, columnId, taskId, { reminders: nextReminders })
+      },
+
+      addGeneralReminder: (reminder) => {
+        const newReminder: TaskReminder = {
+          completed: false,
+          ...reminder,
+          id: generateId("rem-gen"),
+          createdAt: new Date().toISOString(),
+        }
+        set((state) => ({
+          generalReminders: [newReminder, ...state.generalReminders],
+        }))
+        syncGeneralReminderToSupabase(newReminder)
+      },
+
+      updateGeneralReminder: (id, updates) => {
+        set((state) => ({
+          generalReminders: state.generalReminders.map((r) =>
+            r.id === id ? { ...r, ...updates } : r
+          ),
+        }))
+        const updated = get().generalReminders.find((r) => r.id === id)
+        if (updated) syncGeneralReminderToSupabase(updated)
+      },
+
+      deleteGeneralReminder: (id) => {
+        set((state) => ({
+          generalReminders: state.generalReminders.filter((r) => r.id !== id),
+        }))
+        deleteGeneralReminderFromSupabase(id)
+      },
+
+      toggleGeneralReminder: (id) => {
+        set((state) => ({
+          generalReminders: state.generalReminders.map((r) =>
+            r.id === id
+              ? {
+                  ...r,
+                  completed: !r.completed,
+                  completedAt: !r.completed ? new Date().toISOString() : undefined,
+                }
+              : r
+          ),
+        }))
+        const updated = get().generalReminders.find((r) => r.id === id)
+        if (updated) syncGeneralReminderToSupabase(updated)
+      },
     }),
     {
       name: "mtt-boards-storage",
       partialize: (state) => ({
         boards: state.boards,
         activeBoardId: state.activeBoardId,
+        generalReminders: state.generalReminders,
       }),
     }
   )

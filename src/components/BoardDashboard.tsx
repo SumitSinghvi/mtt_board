@@ -5,6 +5,7 @@ import {
   Clock,
   ArrowRight,
   ShieldAlert,
+  Hotel,
 } from "lucide-react"
 import { formatDate } from "../lib/date"
 import type { Board, Priority } from "../schemas/board"
@@ -29,6 +30,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
   const modules = board.modules || {
     clientContact: true,
     subtasks: true,
+    hotelBooking: false,
   }
 
   // Aggregate all tasks with their respective column info
@@ -52,6 +54,23 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
   const doneSubtasks = allChecklistItems.filter((i) => i.done).length
   const subtaskPct = totalSubtasks > 0 ? Math.round((doneSubtasks / totalSubtasks) * 100) : 0
 
+  // Hotel Booking aggregates
+  const hotelTasks = allTasksWithCol.filter(
+    (t) => t.hotelBooking && t.hotelBooking.status && t.hotelBooking.status !== "none"
+  )
+  const hotelCounts = {
+    hold: hotelTasks.filter((t) => t.hotelBooking?.status === "hold").length,
+    blocked: hotelTasks.filter((t) => t.hotelBooking?.status === "blocked").length,
+    confirmed: hotelTasks.filter((t) => t.hotelBooking?.status === "confirmed").length,
+  }
+  const pendingHotelFollowups = hotelTasks
+    .filter((t) => t.hotelBooking?.status === "hold" || t.hotelBooking?.status === "blocked")
+    .sort((a, b) => {
+      const aDate = a.hotelBooking?.holdUntil || "9999"
+      const bDate = b.hotelBooking?.holdUntil || "9999"
+      return aDate.localeCompare(bDate)
+    })
+
   // Attention Needed List: Urgent / High priority or past due / due soon
   const [todayStr] = useState(getTodayDateStr)
   const attentionTasks = allTasksWithCol.filter((t) => {
@@ -63,7 +82,11 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
   return (
     <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* 1. Adaptive KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div
+        className={`grid grid-cols-1 ${
+          modules.hotelBooking ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"
+        } gap-3 sm:gap-4`}
+      >
         {/* Core KPI: Total Cards */}
         <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs">
           <div className="flex items-center justify-between text-stone-500">
@@ -132,10 +155,151 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
             </div>
           </div>
         )}
+
+        {/* Hotel Booking KPI (when module enabled) */}
+        {modules.hotelBooking && (
+          <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs">
+            <div className="flex items-center justify-between text-stone-500">
+              <span className="text-xs font-semibold uppercase tracking-wider">Hotel Bookings</span>
+              <Hotel className="size-4 text-amber-600" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-stone-900">
+                {hotelCounts.hold + hotelCounts.blocked + hotelCounts.confirmed}
+              </span>
+              <span className="text-xs text-stone-500">reservations</span>
+            </div>
+            <div className="mt-3 flex items-center gap-1.5 text-[10px] font-semibold flex-wrap">
+              <span className="inline-flex items-center gap-1 rounded bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5">
+                <span className="size-1.5 rounded-full bg-amber-500" />
+                {hotelCounts.hold} Hold
+              </span>
+              <span className="inline-flex items-center gap-1 rounded bg-purple-50 text-purple-800 border border-purple-200 px-1.5 py-0.5">
+                <span className="size-1.5 rounded-full bg-purple-500" />
+                {hotelCounts.blocked} Blocked
+              </span>
+              <span className="inline-flex items-center gap-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                {hotelCounts.confirmed} Confirmed
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 2. Operational Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Hotel Follow-ups & Room Holds (when module enabled) */}
+        {modules.hotelBooking && (
+          <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-2xs lg:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <Hotel className="size-4 text-amber-600" />
+                <h2 className="text-sm font-bold text-stone-900">Hotel Follow-ups & Room Holds</h2>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                  {hotelCounts.hold} on Hold
+                </span>
+                <span className="inline-flex items-center gap-1 font-semibold text-purple-800 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                  {hotelCounts.blocked} Blocked
+                </span>
+                <span className="inline-flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  {hotelCounts.confirmed} Confirmed
+                </span>
+              </div>
+            </div>
+
+            {pendingHotelFollowups.length === 0 ? (
+              <div className="py-6 text-center text-stone-400">
+                <CheckCircle2 className="size-7 mx-auto text-emerald-500 mb-1.5 opacity-80" />
+                <p className="text-xs">No active hotel holds or blocked bookings pending follow-up.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-stone-100">
+                {pendingHotelFollowups.map((task) => {
+                  const bkg = task.hotelBooking!
+                  const isExpired = bkg.status === "hold" && bkg.holdUntil && bkg.holdUntil < todayStr
+                  const isToday = bkg.holdUntil === todayStr
+                  return (
+                    <div
+                      key={task.id}
+                      onClick={() => onOpenTask(task.columnId, task.id)}
+                      className="py-2.5 flex items-center justify-between gap-3 cursor-pointer hover:bg-stone-50/80 rounded px-2 -mx-2 transition"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-stone-900 truncate">
+                            {task.title}
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded border uppercase tracking-wider ${
+                              bkg.status === "hold"
+                                ? isExpired
+                                  ? "bg-red-50 text-red-700 border-red-300"
+                                  : "bg-amber-100/90 text-amber-900 border-amber-300"
+                                : "bg-purple-100/90 text-purple-900 border-purple-300"
+                            }`}
+                          >
+                            {bkg.status}
+                          </span>
+                          {bkg.hotelName && (
+                            <span className="text-xs text-stone-600 font-medium truncate">
+                              • {bkg.hotelName}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-stone-500">
+                          <span>
+                            In <strong className="text-stone-700">{task.columnTitle}</strong>
+                          </span>
+                          {task.customerName && (
+                            <>
+                              <span className="text-stone-300">•</span>
+                              <span className="truncate">{task.customerName}</span>
+                            </>
+                          )}
+                          {bkg.holdUntil && (
+                            <>
+                              <span className="text-stone-300">•</span>
+                              <span
+                                className={`inline-flex items-center gap-1 ${
+                                  isExpired
+                                    ? "text-red-600 font-bold"
+                                    : isToday
+                                    ? "text-amber-700 font-semibold"
+                                    : "text-stone-500"
+                                }`}
+                              >
+                                <Clock className="size-3" />
+                                {isExpired
+                                  ? `Cutoff Passed (${formatDate(bkg.holdUntil)})`
+                                  : isToday
+                                  ? "Cutoff Today!"
+                                  : `Cutoff ${formatDate(bkg.holdUntil)}`}
+                              </span>
+                            </>
+                          )}
+                          {bkg.confirmationNo && (
+                            <>
+                              <span className="text-stone-300">•</span>
+                              <span className="font-mono text-[10px] text-stone-400">
+                                Ref: {bkg.confirmationNo}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <ArrowRight className="size-4 text-stone-400 shrink-0" />
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
         {/* Needs Attention Column */}
         <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-2xs">
           <div className="flex items-center justify-between mb-4">

@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Crown,
   ArrowRightLeft,
+  Hotel,
 } from "lucide-react"
 import { formatDate } from "../../lib/date"
 import { getWhatsAppUrl } from "../../lib/utils"
@@ -103,7 +104,7 @@ export const KanbanCard = memo(function KanbanCard({
     >
       {/* Priority, Comment Notification & Delete */}
       <div className="flex items-center justify-between gap-1 mb-1.5">
-        <div className="flex items-center gap-1.5 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
           <span
             className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
               priorityColors[task.priority].bg
@@ -113,6 +114,30 @@ export const KanbanCard = memo(function KanbanCard({
           >
             {task.priority}
           </span>
+
+          {task.hotelBooking && task.hotelBooking.status && task.hotelBooking.status !== "none" && (
+            <span
+              title={`Hotel: ${task.hotelBooking.hotelName || "Not specified"}${
+                task.hotelBooking.holdUntil ? ` | Hold Cutoff: ${formatDate(task.hotelBooking.holdUntil)}` : ""
+              }`}
+              className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                task.hotelBooking.status === "hold"
+                  ? "bg-amber-100/80 text-amber-900 border-amber-300"
+                  : task.hotelBooking.status === "blocked"
+                  ? "bg-purple-100/80 text-purple-900 border-purple-300"
+                  : "bg-emerald-100/80 text-emerald-900 border-emerald-300"
+              }`}
+            >
+              <Hotel className="size-2.5" />
+              <span>
+                {task.hotelBooking.status === "hold"
+                  ? `HOLD${task.hotelBooking.holdUntil ? ` · ${formatDate(task.hotelBooking.holdUntil)}` : ""}`
+                  : task.hotelBooking.status === "blocked"
+                  ? "BLOCKED"
+                  : "CONFIRMED"}
+              </span>
+            </span>
+          )}
 
           {unreadCount > 0 ? (
             <span
@@ -177,6 +202,17 @@ export const KanbanCard = memo(function KanbanCard({
         <p className="mt-1 text-[11px] text-stone-600 line-clamp-2 leading-relaxed">
           {task.description}
         </p>
+      )}
+
+      {/* Hotel summary tag (if set) */}
+      {task.hotelBooking && task.hotelBooking.status && task.hotelBooking.status !== "none" && task.hotelBooking.hotelName && (
+        <div className="mt-1.5 flex items-center gap-1 text-[10px] font-medium text-stone-700 truncate">
+          <Hotel className="size-3 text-amber-700 shrink-0" />
+          <span className="truncate">{task.hotelBooking.hotelName}</span>
+          {task.hotelBooking.confirmationNo && (
+            <span className="text-[9px] text-stone-400 font-mono">({task.hotelBooking.confirmationNo})</span>
+          )}
+        </div>
       )}
 
       {/* Destination tag (if set) */}

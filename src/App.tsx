@@ -1,4 +1,5 @@
 import { useEffect, lazy, Suspense } from "react"
+import { Toaster } from "sonner"
 import { Topbar } from "./components/Topbar"
 import { Sidebar } from "./components/Sidebar"
 import { AuthModal } from "./components/AuthModal"
@@ -56,6 +57,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-stone-100 font-sans antialiased">
+      <Toaster position="top-right" richColors closeButton />
       <Topbar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
