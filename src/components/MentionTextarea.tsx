@@ -1,35 +1,18 @@
 import { useState, useRef, useMemo } from "react"
-import { AtSign, Eye, Edit3 } from "lucide-react"
-import { useAuthStore } from "../store/authStore"
-import { useStaffStore, initialStaff, type StaffMember } from "../store/staffStore"
+import { Eye, Edit3 } from "lucide-react"
+import type { MentionOption } from "./MentionDropdown"
+import {
+  SPECIAL_MENTIONS,
+  useMentionStaff,
+  getMatchingMentions,
+  MentionDropdown,
+  renderFormattedMentions,
+} from "./MentionDropdown"
 
-export interface MentionOption {
-  id: string
-  name: string
-  tag: string
-  role?: string
-  subtitle?: string
-  isBroadcast?: boolean
-}
+export type { MentionOption }
+export { SPECIAL_MENTIONS, renderFormattedMentions }
 
-export const SPECIAL_MENTIONS: MentionOption[] = [
-  {
-    id: "mention-all",
-    name: "All Team Members",
-    tag: "all",
-    role: "BROADCAST",
-    subtitle: "Notify everyone on team",
-    isBroadcast: true,
-  },
-  {
-    id: "mention-admin",
-    name: "All Admins",
-    tag: "admin",
-    role: "ADMINS",
-    subtitle: "Notify all administrators",
-    isBroadcast: true,
-  },
-]
+const HAS_MENTIONS_REGEX = /@all\b|@admins?\b|@[A-Za-z0-9_]+/i
 
 interface MentionTextareaProps {
   value: string
@@ -56,78 +39,12 @@ export function MentionTextarea({
   const [dropdownPlacement, setDropdownPlacement] = useState<"top" | "bottom">("bottom")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const { profile } = useAuthStore()
-  const { staff } = useStaffStore()
-  const baseStaffList = staff.length > 0 ? staff : initialStaff
+  const { staffList, activeStaff, profile } = useMentionStaff()
 
-  // Merge profile into staff list if missing and deduplicate
-  const staffList = useMemo(() => {
-    const list = [...baseStaffList]
-    if (
-      profile?.name &&
-      !list.some((s) => s.name.toLowerCase() === profile.name.toLowerCase())
-    ) {
-      list.unshift({
-        id: profile.id || "current-user",
-        name: profile.name,
-        email: profile.email || "",
-        phone: profile.phone || "",
-        role: profile.role || "travel",
-        status: "active",
-        joinedDate: "",
-      })
-    }
-    const seen = new Set<string>()
-    return list.filter((s) => {
-      const key = s.name.toLowerCase().trim()
-      if (seen.has(key)) return false
-      seen.add(key)
-      return true
-    })
-  }, [baseStaffList, profile])
-
-  const activeStaff = useMemo(
-    () => staffList.filter((s) => s.status !== "inactive"),
-    [staffList]
+  const matchingMentions = useMemo(
+    () => getMatchingMentions(mentionQuery, activeStaff),
+    [mentionQuery, activeStaff]
   )
-
-  const matchingMentions = useMemo(() => {
-    if (mentionQuery === null) return []
-    const q = mentionQuery.toLowerCase().trim()
-
-    // 1. Broadcast tags (@all, @admin)
-    const specials = SPECIAL_MENTIONS.filter(
-      (m) =>
-        m.tag.toLowerCase().includes(q) ||
-        m.name.toLowerCase().includes(q) ||
-        m.role?.toLowerCase().includes(q)
-    )
-
-    // 2. Staff members sorted: Admins first, then alphabetical
-    const staffMatches = activeStaff
-      .filter(
-        (s) =>
-          s.name.toLowerCase().includes(q) ||
-          s.role.toLowerCase().includes(q) ||
-          s.email.toLowerCase().includes(q)
-      )
-      .sort((a, b) => {
-        const aIsAdmin = a.role === "admin" ? 1 : 0
-        const bIsAdmin = b.role === "admin" ? 1 : 0
-        if (aIsAdmin !== bIsAdmin) return bIsAdmin - aIsAdmin
-        return a.name.localeCompare(b.name)
-      })
-      .map((s) => ({
-        id: s.id,
-        name: s.name,
-        tag: s.name,
-        role: s.role,
-        subtitle: s.email,
-        isBroadcast: false,
-      }))
-
-    return [...specials, ...staffMatches]
-  }, [mentionQuery, activeStaff])
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value
@@ -202,7 +119,7 @@ export function MentionTextarea({
     }
   }
 
-  const hasMentions = /@all\b|@admins?\b|@[A-Za-z0-9_]+/i.test(value)
+  const hasMentions = HAS_MENTIONS_REGEX.test(value)
 
   return (
     <div className="relative space-y-1">
@@ -237,99 +154,14 @@ export function MentionTextarea({
       )}
 
       {/* Autocomplete Dropdown */}
-      {mentionQuery !== null && matchingMentions.length > 0 && !previewMode && (
-        <div
-          className={`${
-            dropdownPlacement === "top"
-              ? "bottom-full mb-1.5"
-              : "top-full mt-1.5"
-          } absolute left-0 z-50 w-80 rounded-xl border border-stone-200 bg-white p-1.5 shadow-2xl animate-in fade-in-50 zoom-in-95`}
-        >
-          <div className="flex items-center justify-between px-2 py-1 border-b border-stone-100 text-[10px] font-bold uppercase tracking-wider text-stone-400">
-            <span className="flex items-center gap-1 text-amber-700">
-              <AtSign className="size-3" />
-              <span>Tag Staff or Team</span>
-            </span>
-            <span>Tab / Enter</span>
-          </div>
-
-          <div className="mt-1 space-y-0.5 max-h-56 overflow-y-auto">
-            {matchingMentions.map((m, idx) => {
-              const isSelected = idx === mentionIndex
-              const isAll = m.tag === "all"
-              const isAdminBroadcast = m.tag === "admin"
-              const isStaffAdmin = m.role?.toLowerCase() === "admin"
-
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault()
-                    insertMention(m)
-                  }}
-                  onMouseEnter={() => setMentionIndex(idx)}
-                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left transition cursor-pointer ${
-                    isSelected
-                      ? isAll
-                        ? "bg-purple-50 text-purple-950 font-semibold"
-                        : isAdminBroadcast
-                        ? "bg-rose-50 text-rose-950 font-semibold"
-                        : "bg-amber-50 text-amber-950 font-semibold"
-                      : "text-stone-700 hover:bg-stone-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    {isAll ? (
-                      <div className="size-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center text-xs shrink-0">
-                        📢
-                      </div>
-                    ) : isAdminBroadcast ? (
-                      <div className="size-6 rounded-full bg-rose-100 text-rose-800 flex items-center justify-center text-xs shrink-0">
-                        🛡️
-                      </div>
-                    ) : (
-                      <div
-                        className={`size-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                          isStaffAdmin
-                            ? "bg-amber-200 text-amber-900 border border-amber-300"
-                            : "bg-amber-100 text-amber-800"
-                        }`}
-                      >
-                        {m.name.slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
-
-                    <div className="min-w-0">
-                      <span className="text-xs truncate block font-medium">
-                        {m.name}
-                      </span>
-                      {m.subtitle && (
-                        <span className="text-[10px] text-stone-400 truncate block">
-                          {m.subtitle}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <span
-                    className={`text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0 ${
-                      isAll
-                        ? "bg-purple-100 text-purple-800 border border-purple-200"
-                        : isAdminBroadcast
-                        ? "bg-rose-100 text-rose-800 border border-rose-200"
-                        : isStaffAdmin
-                        ? "bg-amber-100 text-amber-900 border border-amber-300"
-                        : "bg-stone-100 text-stone-600"
-                    }`}
-                  >
-                    {m.role}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
+      {mentionQuery !== null && !previewMode && (
+        <MentionDropdown
+          placement={dropdownPlacement}
+          options={matchingMentions}
+          selectedIndex={mentionIndex}
+          onSelect={insertMention}
+          onHoverIndex={setMentionIndex}
+        />
       )}
 
       {/* Editor or Formatted Display */}
@@ -339,7 +171,7 @@ export function MentionTextarea({
           className={`w-full rounded-xl border border-stone-200 bg-stone-50/50 p-3 text-xs text-stone-800 leading-relaxed whitespace-pre-wrap cursor-text min-h-[5.5rem] ${className}`}
         >
           {value ? (
-            renderFormattedMentions(value, activeStaff, profile?.name)
+            renderFormattedMentions(value, staffList, profile?.name)
           ) : (
             <span className="text-stone-400 italic">No notes added.</span>
           )}
@@ -358,86 +190,4 @@ export function MentionTextarea({
       )}
     </div>
   )
-}
-
-export function renderFormattedMentions(
-  content: string,
-  staffList: StaffMember[],
-  currentUserName?: string
-) {
-  const mentionRegex = /(@all\b|@admins?\b|@[A-Za-z0-9_]+(?:\s+[A-Za-z0-9_]+)?)/gi
-  const parts = content.split(mentionRegex)
-
-  return parts.map((part, i) => {
-    if (!part.startsWith("@")) return <span key={i}>{part}</span>
-
-    const lower = part.toLowerCase().trim()
-
-    // 1. Special Broadcast @all
-    if (lower === "@all") {
-      return (
-        <span
-          key={i}
-          className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded-md font-bold text-[11px] bg-purple-100 text-purple-900 border border-purple-300 shadow-2xs"
-          title="Broadcast to all team members"
-        >
-          <span>📢</span>
-          <span>@all</span>
-        </span>
-      )
-    }
-
-    // 2. Special Broadcast @admin
-    if (lower === "@admin" || lower === "@admins") {
-      return (
-        <span
-          key={i}
-          className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded-md font-bold text-[11px] bg-rose-100 text-rose-900 border border-rose-300 shadow-2xs"
-          title="Broadcast to all administrators"
-        >
-          <span>🛡️</span>
-          <span>@admin</span>
-        </span>
-      )
-    }
-
-    // 3. User Mention
-    const mentionText = part.slice(1).trim().toLowerCase()
-    const matchedStaff = staffList.find(
-      (s) =>
-        s.name.toLowerCase() === mentionText ||
-        s.name.toLowerCase().startsWith(mentionText) ||
-        mentionText.startsWith(s.name.toLowerCase())
-    )
-
-    if (matchedStaff) {
-      const isSelf =
-        currentUserName &&
-        matchedStaff.name.toLowerCase() === currentUserName.toLowerCase()
-      const isStaffAdmin = matchedStaff.role === "admin"
-
-      return (
-        <span
-          key={i}
-          className={`inline-flex items-center gap-1 px-1.5 py-0.2 mx-0.5 rounded-md text-[11px] shadow-2xs ${
-            isSelf
-              ? "bg-amber-200/90 text-amber-950 border border-amber-400 font-bold"
-              : isStaffAdmin
-              ? "bg-amber-100 text-amber-950 border border-amber-300 font-semibold"
-              : "bg-amber-100/90 text-amber-900 border border-amber-300/80 font-medium"
-          }`}
-        >
-          <AtSign className="size-2.5 text-amber-700" />
-          <span>{matchedStaff.name}</span>
-          {isStaffAdmin && (
-            <span className="text-[9px] font-extrabold uppercase px-1 rounded bg-amber-200 text-amber-900">
-              Admin
-            </span>
-          )}
-        </span>
-      )
-    }
-
-    return <span key={i}>{part}</span>
-  })
 }

@@ -169,6 +169,12 @@ export const useStaffStore = create<StaffState>()(
                   : new Date().toISOString().split("T")[0],
               }
             })
+            mapped.sort((a, b) => {
+              const aIsAdmin = a.role === "admin" ? 1 : 0
+              const bIsAdmin = b.role === "admin" ? 1 : 0
+              if (aIsAdmin !== bIsAdmin) return bIsAdmin - aIsAdmin
+              return a.name.localeCompare(b.name)
+            })
             set({ staff: mapped })
           }
         } catch (err) {

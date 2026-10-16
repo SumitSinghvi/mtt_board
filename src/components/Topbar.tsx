@@ -48,9 +48,16 @@ export function Topbar() {
     }
 
     // 3. Unread @mentions
-    if (profile?.name) {
-      const myName = profile.name.toLowerCase().trim()
+    if (profile?.name || user?.email) {
+      const myName = profile?.name?.toLowerCase().trim()
+      const userIdentifiers = [
+        profile?.name?.toLowerCase().trim(),
+        user?.email?.toLowerCase().trim(),
+        user?.id,
+        profile?.id,
+      ].filter(Boolean) as string[]
       const isAdmin = profile?.role === "admin"
+
       for (const b of boards) {
         if (b.isArchived) continue
         for (const col of b.columns) {
@@ -63,12 +70,14 @@ export function Topbar() {
             ]
             for (const c of allComments) {
               if (c.isDeleted) continue
-              if (c.author && c.author.toLowerCase() === myName) continue
+              if (c.author && myName && c.author.toLowerCase() === myName) continue
               const contentLower = c.content.toLowerCase()
               const isAllMention = /\b@all\b/i.test(contentLower)
               const isAdminMention =
                 isAdmin && (/\b@admin\b/i.test(contentLower) || /\b@admins\b/i.test(contentLower))
-              const isDirectMention = contentLower.includes(`@${myName}`)
+              const isDirectMention = userIdentifiers.some((id) =>
+                contentLower.includes(`@${id.toLowerCase()}`)
+              )
 
               if (isAllMention || isAdminMention || isDirectMention) {
                 try {
@@ -96,7 +105,9 @@ export function Topbar() {
               const isAllMention = /\b@all\b/i.test(contentLower)
               const isAdminMention =
                 isAdmin && (/\b@admin\b/i.test(contentLower) || /\b@admins\b/i.test(contentLower))
-              const isDirectMention = contentLower.includes(`@${myName}`)
+              const isDirectMention = userIdentifiers.some((id) =>
+                contentLower.includes(`@${id.toLowerCase()}`)
+              )
 
               if (isAllMention || isAdminMention || isDirectMention) {
                 try {
@@ -114,7 +125,7 @@ export function Topbar() {
     }
 
     return count
-  }, [boards, generalReminders, todayStr, profile?.name, profile?.role])
+  }, [boards, generalReminders, todayStr, profile?.name, profile?.role, profile?.id, user?.id, user?.email])
 
   return (
     <>
