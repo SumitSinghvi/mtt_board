@@ -595,11 +595,18 @@ export function DashboardCalendar({
                         <span className="truncate max-w-[110px] font-semibold">
                           {boardId === "general" ? "📌 General" : `• ${task.title}`}
                         </span>
-                        {reminder.dueTime && (
-                          <span className="shrink-0 text-stone-400 font-normal ml-1">
-                            {reminder.dueTime}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                          {reminder.createdBy && (
+                            <span className="text-[9px] text-stone-400 font-medium">
+                              by {reminder.createdBy}
+                            </span>
+                          )}
+                          {reminder.dueTime && (
+                            <span className="text-stone-400 font-normal">
+                              {reminder.dueTime}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )

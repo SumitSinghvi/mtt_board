@@ -33,6 +33,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
     subtasks: true,
     hotelBooking: false,
     paymentTracking: false,
+    outgoingPayment: false,
   }
 
   // Aggregate all tasks with their respective column info

@@ -64,6 +64,7 @@ export async function fetchBoardsFromSupabase(): Promise<Board[]> {
         reminders: Array.isArray(row.reminders) ? row.reminders : [],
         hotelBooking: row.hotel_booking || undefined,
         paymentTracking: row.payment_tracking || undefined,
+        outgoingPayment: row.outgoing_payment || undefined,
         createdAt: row.created_at || new Date().toISOString(),
       }
       const existing = tasksMap.get(row.column_id) || []
@@ -262,6 +263,7 @@ export async function syncTaskToSupabase(
         reminders: task.reminders || [],
         hotel_booking: task.hotelBooking || null,
         payment_tracking: task.paymentTracking || null,
+        outgoing_payment: task.outgoingPayment || null,
         updated_at: new Date().toISOString(),
       })
 

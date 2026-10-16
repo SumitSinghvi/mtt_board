@@ -10,6 +10,7 @@ import {
 import type { Priority, Task, Board } from "../schemas/board"
 import { formatDate } from "../lib/date"
 import { toast } from "sonner"
+import { useAuthStore } from "../store/authStore"
 
 export interface FlattenedTaskItem {
   boardId: string
@@ -37,6 +38,7 @@ interface ScheduleReminderModalProps {
       dueDate: string
       dueTime?: string
       priority: Priority
+      createdBy?: string
     }
   ) => void
 }
@@ -51,6 +53,7 @@ export function ScheduleReminderModal({
   tasks,
   onSaveReminder,
 }: ScheduleReminderModalProps) {
+  const { profile, user } = useAuthStore()
   const todayStr = new Date().toISOString().split("T")[0]
 
   const [selectedTaskKey, setSelectedTaskKey] = useState<string>(() => {
@@ -100,12 +103,15 @@ export function ScheduleReminderModal({
       return
     }
 
+    const creator = profile?.name || user?.email?.split("@")[0] || "Staff"
+
     if (selectedTaskKey === "general" || !selectedTaskKey) {
       onSaveReminder(undefined, undefined, undefined, {
         text: reminderText.trim(),
         dueDate,
         dueTime: dueTime.trim() || undefined,
         priority,
+        createdBy: creator,
       })
     } else {
       const [boardId, columnId, taskId] = selectedTaskKey.split(":::")
@@ -114,6 +120,7 @@ export function ScheduleReminderModal({
         dueDate,
         dueTime: dueTime.trim() || undefined,
         priority,
+        createdBy: creator,
       })
     }
 

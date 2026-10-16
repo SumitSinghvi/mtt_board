@@ -12,11 +12,13 @@ import { useStaffStore, initialStaff } from "../store/staffStore"
 import { useAuthStore } from "../store/authStore"
 import { canUserEditTask, canUserDeleteTask, getAllowedBoards } from "../lib/permissions"
 import { ActivitySection } from "./ActivitySection"
+import { MentionTextarea } from "./MentionTextarea"
 import { CardSubcardsSection } from "./card-modal/CardSubcardsSection"
 import { CardRemindersSection } from "./card-modal/CardRemindersSection"
 import { CardDetailsSidebar } from "./card-modal/CardDetailsSidebar"
 import { CardHotelBookingSection } from "./card-modal/CardHotelBookingSection"
 import { CardPaymentSection } from "./card-modal/CardPaymentSection"
+import { CardOutgoingPaymentSection } from "./card-modal/CardOutgoingPaymentSection"
 import { SubCardModal } from "./card-modal/SubCardModal"
 import { formatDate } from "../lib/date"
 import { markTaskCommentsRead } from "../lib/unreadComments"
@@ -83,6 +85,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
     subtasks: true,
     hotelBooking: false,
     paymentTracking: false,
+    outgoingPayment: false,
   }
 
   // Flush pending changes to Supabase when modal unmounts
@@ -363,6 +366,34 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
     handleFieldChange("activities", [...currentActivities, newActivity])
   }
 
+  const handleEditTaskComment = (commentId: string, newContent: string) => {
+    const currentActivities = currentTask.activities || []
+    const updated = currentActivities.map((act) => {
+      if (act.id !== commentId) return act
+      return {
+        ...act,
+        content: newContent,
+        updatedAt: new Date().toISOString(),
+      }
+    })
+    handleFieldChange("activities", updated)
+  }
+
+  const handleDeleteTaskComment = (commentId: string) => {
+    const currentActivities = currentTask.activities || []
+    const nowIso = new Date().toISOString()
+    const updated = currentActivities.map((act) => {
+      if (act.id !== commentId) return act
+      return {
+        ...act,
+        isDeleted: true,
+        deletedAt: nowIso,
+        deletedBy: currentUserName,
+      }
+    })
+    handleFieldChange("activities", updated)
+  }
+
   const handleAddSubCardComment = (subCardId: string, comment: string, author: string) => {
     const newActivity: ActivityItem = {
       id: generateId("act"),
@@ -375,6 +406,40 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
       if (item.id !== subCardId) return item
       const itemActivities = item.activities || []
       return { ...item, activities: [...itemActivities, newActivity] }
+    })
+    updateTask(boardId, columnId, taskId, { checklist: updated })
+  }
+
+  const handleEditSubCardComment = (subCardId: string, commentId: string, newContent: string) => {
+    const updated = checklist.map((item) => {
+      if (item.id !== subCardId) return item
+      const itemActivities = (item.activities || []).map((act) => {
+        if (act.id !== commentId) return act
+        return {
+          ...act,
+          content: newContent,
+          updatedAt: new Date().toISOString(),
+        }
+      })
+      return { ...item, activities: itemActivities }
+    })
+    updateTask(boardId, columnId, taskId, { checklist: updated })
+  }
+
+  const handleDeleteSubCardComment = (subCardId: string, commentId: string) => {
+    const nowIso = new Date().toISOString()
+    const updated = checklist.map((item) => {
+      if (item.id !== subCardId) return item
+      const itemActivities = (item.activities || []).map((act) => {
+        if (act.id !== commentId) return act
+        return {
+          ...act,
+          isDeleted: true,
+          deletedAt: nowIso,
+          deletedBy: currentUserName,
+        }
+      })
+      return { ...item, activities: itemActivities }
     })
     updateTask(boardId, columnId, taskId, { checklist: updated })
   }
@@ -513,16 +578,15 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                   )}
                 </button>
                 {notesOpen && (
-                  <textarea
+                  <MentionTextarea
                     rows={5}
                     disabled={!canEditCard}
-                    placeholder="Task details, instructions, special requests..."
+                    placeholder="Task details, instructions, special requests... Type @ to tag staff or @all"
                     value={localDescription}
-                    onChange={(e) => {
-                      setLocalDescription(e.target.value)
-                      handleFieldChange("description", e.target.value)
+                    onChange={(val) => {
+                      setLocalDescription(val)
+                      handleFieldChange("description", val)
                     }}
-                    className="w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-stone-100 disabled:cursor-not-allowed"
                   />
                 )}
               </div>
@@ -553,9 +617,11 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
               {/* Main Task Activity Column */}
               <ActivitySection
                 title="Task Activity & Comments"
-                placeholder="Write a comment, operational note, status update..."
+                placeholder="Write a comment, operational note, status update... Type @ to mention staff or @all"
                 activities={currentTask.activities || []}
                 onAddComment={handleAddTaskComment}
+                onEditComment={handleEditTaskComment}
+                onDeleteComment={handleDeleteTaskComment}
                 readOnly={isArchived}
               />
             </div>
@@ -579,6 +645,15 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                   canEdit={canEditCard}
                   onChange={(updatedPayment) => handleFieldChange("paymentTracking", updatedPayment)}
                   onSyncTotalAmount={(newTotal) => handleFieldChange("amount", newTotal)}
+                />
+              )}
+
+              {/* Outgoing Payment Section (when module enabled) */}
+              {modules.outgoingPayment && (
+                <CardOutgoingPaymentSection
+                  outgoingPayment={currentTask.outgoingPayment}
+                  canEdit={canEditCard}
+                  onChange={(updatedOutgoing) => handleFieldChange("outgoingPayment", updatedOutgoing)}
                 />
               )}
 
@@ -635,6 +710,8 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
           onUpdateSubCard={handleUpdateSubCard}
           onDeleteSubCard={handleDeleteChecklistItem}
           onAddComment={handleAddSubCardComment}
+          onEditComment={handleEditSubCardComment}
+          onDeleteComment={handleDeleteSubCardComment}
         />
       )}
     </div>

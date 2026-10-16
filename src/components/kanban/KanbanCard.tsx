@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Crown,
   ArrowRightLeft,
+  ArrowUpRight,
   Hotel,
 } from "lucide-react"
 import { formatDate } from "../../lib/date"
@@ -296,15 +297,17 @@ export const KanbanCard = memo(function KanbanCard({
               </a>
             </div>
           )}
-          {(task.paymentTracking || (canViewCommercials && task.amount !== undefined)) ? (
+          {(task.paymentTracking || (canViewCommercials && task.amount !== undefined) || task.outgoingPayment) ? (
             <div className="flex items-center justify-between text-[11px] font-semibold text-stone-800">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <div className="flex items-center gap-0.5">
-                  <IndianRupee className="size-3 text-emerald-600" />
-                  <span>
-                    {(task.paymentTracking?.totalAmount ?? task.amount ?? 0).toLocaleString("en-IN")}
-                  </span>
-                </div>
+                {(task.paymentTracking || (canViewCommercials && task.amount !== undefined)) && (
+                  <div className="flex items-center gap-0.5">
+                    <IndianRupee className="size-3 text-emerald-600" />
+                    <span>
+                      {(task.paymentTracking?.totalAmount ?? task.amount ?? 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                )}
 
                 {task.paymentTracking && (() => {
                   const paySummary = getPaymentSummary(task.paymentTracking, task.amount)
@@ -327,6 +330,28 @@ export const KanbanCard = memo(function KanbanCard({
                     </span>
                   )
                 })()}
+
+                {task.outgoingPayment && task.outgoingPayment.status && task.outgoingPayment.status !== "none" && (
+                  <span
+                    title={
+                      task.outgoingPayment.status === "done"
+                        ? `Outgoing Payment: Done ${task.outgoingPayment.amount ? `(₹${task.outgoingPayment.amount.toLocaleString("en-IN")})` : ""}`
+                        : `Outgoing Payment: Pending (₹${(task.outgoingPayment.amount ?? 0).toLocaleString("en-IN")})`
+                    }
+                    className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.2 text-[9px] font-bold border ${
+                      task.outgoingPayment.status === "done"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : "bg-rose-50 text-rose-800 border-rose-200"
+                    }`}
+                  >
+                    <ArrowUpRight className="size-2.5" />
+                    <span>
+                      {task.outgoingPayment.status === "done"
+                        ? "Pay: Done"
+                        : `Pay: ₹${(task.outgoingPayment.amount ?? 0).toLocaleString("en-IN")}`}
+                    </span>
+                  </span>
+                )}
               </div>
 
               {checklistItems.length > 0 && (

@@ -4,7 +4,7 @@ import { useAuthStore } from "../store/authStore"
 import { getAllowedBoards } from "./permissions"
 
 export function parseHash(hash: string): {
-  view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings"
+  view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks"
   boardId?: string
   taskId?: string
 } {
@@ -15,6 +15,7 @@ export function parseHash(hash: string): {
   const section = parts[0]?.toLowerCase()
 
   if (section === "dashboard") return { view: "dashboard" }
+  if (section === "my-tasks" || section === "mytasks") return { view: "my-tasks" }
   if (section === "todos" || section === "todo") return { view: "todos" }
   if (section === "customers") return { view: "customers" }
   if (section === "staff") return { view: "staff" }
@@ -31,11 +32,12 @@ export function parseHash(hash: string): {
 }
 
 export function buildHash(
-  view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings",
+  view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks",
   activeBoardId: string | null,
   selectedTask: { boardId: string; taskId: string } | null
 ): string {
   if (view === "dashboard") return "#dashboard"
+  if (view === "my-tasks") return "#my-tasks"
   if (view === "todos") return "#todos"
   if (view === "customers") return "#customers"
   if (view === "staff") return "#staff"

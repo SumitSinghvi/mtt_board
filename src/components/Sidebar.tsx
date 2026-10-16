@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
   LayoutDashboard,
   CheckSquare,
+  UserCheck,
   Plus,
   Trash2,
   X,
@@ -17,6 +18,7 @@ import {
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
 import { isBoardAllowed } from "../lib/permissions"
+import { getTaskAssignees } from "../schemas/board"
 
 export function Sidebar() {
   const {
@@ -33,7 +35,7 @@ export function Sidebar() {
     sidebarOpen,
     setSidebarOpen,
   } = useBoardStore()
-  const { profile } = useAuthStore()
+  const { profile, user } = useAuthStore()
 
   const [isCreating, setIsCreating] = useState(false)
   const [newTitle, setNewTitle] = useState("")
@@ -50,6 +52,30 @@ export function Sidebar() {
 
   const activeRoleBoards = roleFilteredBoards.filter((b) => !b.isArchived)
   const archivedRoleBoards = roleFilteredBoards.filter((b) => b.isArchived)
+
+  // Calculate assigned tasks count for badge
+  const myTasksCount = useMemo(() => {
+    const userIdentifiers = [
+      profile?.name?.toLowerCase().trim(),
+      user?.email?.toLowerCase().trim(),
+      user?.id,
+      profile?.id,
+    ].filter(Boolean) as string[]
+
+    if (userIdentifiers.length === 0) return 0
+    let count = 0
+    for (const b of activeRoleBoards) {
+      for (const col of b.columns) {
+        for (const t of col.tasks) {
+          const assignees = getTaskAssignees(t).map((a) => a.toLowerCase().trim())
+          if (userIdentifiers.some((id) => assignees.includes(id) || t.leader?.toLowerCase().trim() === id)) {
+            count++
+          }
+        }
+      }
+    }
+    return count
+  }, [activeRoleBoards, profile, user])
 
   // Keep active board in sync with authorized boards (active or archived)
   useEffect(() => {
@@ -200,6 +226,39 @@ export function Sidebar() {
               <span>Dashboard</span>
             </div>
             {currentView === "dashboard" ? (
+              <span className="size-1.5 rounded-full bg-white animate-pulse" />
+            ) : (
+              <ChevronRight className="size-3.5 text-stone-400" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentView("my-tasks")
+              if (window.innerWidth < 768) setSidebarOpen(false)
+            }}
+            className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+              currentView === "my-tasks"
+                ? "bg-amber-600 text-white shadow-sm shadow-amber-600/20"
+                : "text-stone-700 hover:bg-stone-100 hover:text-stone-900"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <UserCheck className={`size-4 ${currentView === "my-tasks" ? "text-white" : "text-amber-600"}`} />
+              <span>My Tasks</span>
+            </div>
+            {myTasksCount > 0 ? (
+              <span
+                className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                  currentView === "my-tasks"
+                    ? "bg-white text-amber-700 font-extrabold"
+                    : "bg-amber-100 text-amber-800"
+                }`}
+              >
+                {myTasksCount}
+              </span>
+            ) : currentView === "my-tasks" ? (
               <span className="size-1.5 rounded-full bg-white animate-pulse" />
             ) : (
               <ChevronRight className="size-3.5 text-stone-400" />

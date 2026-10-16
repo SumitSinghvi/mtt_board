@@ -25,7 +25,7 @@ import { generateId } from "../lib/utils"
 interface BoardState {
   boards: Board[]
   activeBoardId: string | null
-  currentView: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings"
+  currentView: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks"
   sidebarOpen: boolean
   loading: boolean
   selectedTask: { boardId: string; columnId: string; taskId: string } | null
@@ -33,7 +33,7 @@ interface BoardState {
   // Actions
   fetchBoardsFromSupabase: () => Promise<void>
   setActiveBoardId: (id: string) => void
-  setCurrentView: (view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings") => void
+  setCurrentView: (view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks") => void
   setSelectedTask: (task: { boardId: string; columnId: string; taskId: string } | null) => void
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
@@ -179,6 +179,7 @@ export const useBoardStore = create<BoardState>()(
             subtasks: true,
             hotelBooking: false,
             paymentTracking: false,
+            outgoingPayment: false,
             ...modules,
           },
           columns: [
@@ -224,6 +225,7 @@ export const useBoardStore = create<BoardState>()(
                     subtasks: true,
                     hotelBooking: false,
                     paymentTracking: false,
+                    outgoingPayment: false,
                     ...b.modules,
                     ...moduleUpdates,
                   },
@@ -245,6 +247,7 @@ export const useBoardStore = create<BoardState>()(
               subtasks: true,
               hotelBooking: false,
               paymentTracking: false,
+              outgoingPayment: false,
               ...b.modules,
               [key]: false,
             },
@@ -597,8 +600,10 @@ export const useBoardStore = create<BoardState>()(
       },
 
       addReminderToTask: (boardId, columnId, taskId, reminder) => {
+        const currentUser = useAuthStore.getState().profile?.name || useAuthStore.getState().user?.email?.split("@")[0] || "Staff"
         const newReminder: TaskReminder = {
           completed: false,
+          createdBy: reminder.createdBy || currentUser,
           ...reminder,
           id: generateId("rem"),
           createdAt: new Date().toISOString(),
@@ -651,8 +656,10 @@ export const useBoardStore = create<BoardState>()(
       },
 
       addGeneralReminder: (reminder) => {
+        const currentUser = useAuthStore.getState().profile?.name || useAuthStore.getState().user?.email?.split("@")[0] || "Staff"
         const newReminder: TaskReminder = {
           completed: false,
+          createdBy: reminder.createdBy || currentUser,
           ...reminder,
           id: generateId("rem-gen"),
           createdAt: new Date().toISOString(),

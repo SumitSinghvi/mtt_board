@@ -9,6 +9,10 @@ export const ActivityItemSchema = z.object({
   author: z.string().default("Staff"),
   content: z.string(),
   createdAt: z.string(),
+  updatedAt: z.string().optional(),
+  isDeleted: z.boolean().optional(),
+  deletedAt: z.string().optional(),
+  deletedBy: z.string().optional(),
 })
 export type ActivityItem = z.infer<typeof ActivityItemSchema>
 
@@ -49,6 +53,16 @@ export const HotelBookingSchema = z.object({
   notes: z.string().optional(),
 })
 export type HotelBooking = z.infer<typeof HotelBookingSchema>
+
+export const OutgoingPaymentStatusSchema = z.enum(["none", "pending", "done"])
+export type OutgoingPaymentStatus = z.infer<typeof OutgoingPaymentStatusSchema>
+
+export const OutgoingPaymentSchema = z.object({
+  amount: z.number().optional(),
+  status: OutgoingPaymentStatusSchema.default("none"),
+  notes: z.string().optional(),
+})
+export type OutgoingPayment = z.infer<typeof OutgoingPaymentSchema>
 
 export const PaymentPhaseSchema = z.object({
   amount: z.number().optional(),
@@ -169,6 +183,7 @@ export const TaskSchema = z.object({
   reminders: z.array(TaskReminderSchema).optional(),
   hotelBooking: HotelBookingSchema.optional(),
   paymentTracking: PaymentTrackingSchema.optional(),
+  outgoingPayment: OutgoingPaymentSchema.optional(),
   createdAt: z.string(),
 })
 export type Task = z.infer<typeof TaskSchema>
@@ -193,6 +208,7 @@ export const BoardModulesSchema = z.object({
   subtasks: z.boolean().default(true),
   hotelBooking: z.boolean().default(false),
   paymentTracking: z.boolean().default(false),
+  outgoingPayment: z.boolean().default(false),
 })
 export type BoardModules = z.infer<typeof BoardModulesSchema>
 

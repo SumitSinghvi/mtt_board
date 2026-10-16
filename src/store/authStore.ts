@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import * as Sentry from "@sentry/react"
 import { supabase } from "../lib/supabase"
 import type { User, Session } from "@supabase/supabase-js"
 import type { StaffRole, StaffPermissions } from "./staffStore"
@@ -106,18 +107,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (session?.user) {
         set({ user: session.user, session })
+        Sentry.setUser({ id: session.user.id, email: session.user.email })
         await get().fetchProfile(session.user.id, session.user.email || "")
       } else {
         set({ user: null, session: null, profile: null })
+        Sentry.setUser(null)
       }
 
       // Listen for auth changes
       supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
           set({ user: session.user, session })
+          Sentry.setUser({ id: session.user.id, email: session.user.email })
           await get().fetchProfile(session.user.id, session.user.email || "")
         } else {
           set({ user: null, session: null, profile: null })
+          Sentry.setUser(null)
         }
       })
     } catch (err: unknown) {
@@ -213,6 +218,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch {
       // ignore
     } finally {
+      Sentry.setUser(null)
       set({ user: null, session: null, profile: null, error: null })
     }
   },

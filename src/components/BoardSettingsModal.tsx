@@ -6,6 +6,7 @@ import {
   CheckSquare,
   Hotel,
   IndianRupee,
+  ArrowUpRight,
   Plus,
   Trash2,
   Save,
@@ -62,6 +63,14 @@ const ALL_SYSTEM_COMPONENTS: ComponentMeta[] = [
     iconBg: "bg-emerald-50",
     iconColor: "text-emerald-700",
   },
+  {
+    key: "outgoingPayment",
+    title: "Outgoing Payment",
+    description: "Track payment to pay with amount value and pending or done status",
+    icon: ArrowUpRight,
+    iconBg: "bg-rose-50",
+    iconColor: "text-rose-700",
+  },
 ]
 
 export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps) {
@@ -90,6 +99,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
     subtasks: true,
     hotelBooking: false,
     paymentTracking: false,
+    outgoingPayment: false,
   }
 
   if (!board) return null

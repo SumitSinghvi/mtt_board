@@ -9,9 +9,11 @@ import { useAuthStore } from "./store/authStore"
 import { useStaffStore } from "./store/staffStore"
 import { useCustomerStore } from "./store/customerStore"
 import { useHashRouter } from "./lib/useHashRouter"
+import { useAssignedTaskReminders } from "./lib/useAssignedTaskReminders"
 import logoImg from "./assets/logo.png"
 
 const MainDashboard = lazy(() => import("./components/MainDashboard").then((m) => ({ default: m.MainDashboard })))
+const MyTasksPage = lazy(() => import("./components/MyTasksPage").then((m) => ({ default: m.MyTasksPage })))
 const TodoPage = lazy(() => import("./components/TodoPage").then((m) => ({ default: m.TodoPage })))
 const KanbanBoard = lazy(() => import("./components/KanbanBoard").then((m) => ({ default: m.KanbanBoard })))
 const CustomersPage = lazy(() => import("./components/CustomersPage").then((m) => ({ default: m.CustomersPage })))
@@ -25,6 +27,7 @@ export default function App() {
   const { fetchCustomersFromSupabase } = useCustomerStore()
 
   useHashRouter()
+  useAssignedTaskReminders()
 
   useEffect(() => {
     initializeAuth()
@@ -74,6 +77,8 @@ export default function App() {
           >
             {currentView === "dashboard" ? (
               <MainDashboard />
+            ) : currentView === "my-tasks" ? (
+              <MyTasksPage />
             ) : currentView === "todos" ? (
               <TodoPage />
             ) : currentView === "customers" ? (

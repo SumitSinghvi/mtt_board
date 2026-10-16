@@ -15,6 +15,7 @@ import {
 import type { TaskReminder, Priority } from "../../schemas/board"
 import { formatDate } from "../../lib/date"
 import { toast } from "sonner"
+import { useAuthStore } from "../../store/authStore"
 
 interface CardRemindersSectionProps {
   reminders: TaskReminder[]
@@ -31,6 +32,7 @@ export function CardRemindersSection({
   onToggleReminder,
   onDeleteReminder,
 }: CardRemindersSectionProps) {
+  const { profile, user } = useAuthStore()
   const [isOpen, setIsOpen] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
   const todayStr = new Date().toISOString().split("T")[0]
@@ -44,12 +46,15 @@ export function CardRemindersSection({
     e.preventDefault()
     if (!text.trim() || !dueDate) return
 
+    const creator = profile?.name || user?.email?.split("@")[0] || "Staff"
+
     onAddReminder({
       text: text.trim(),
       dueDate,
       dueTime: dueTime.trim() || undefined,
       priority,
       completed: false,
+      createdBy: creator,
     })
     toast.success("Reminder scheduled")
 
@@ -261,6 +266,12 @@ export function CardRemindersSection({
                               }`}
                             >
                               {rem.priority}
+                            </span>
+                          )}
+
+                          {rem.createdBy && (
+                            <span className="text-[9px] font-medium text-stone-500 bg-stone-100 px-1 py-0.2 rounded border border-stone-200">
+                              by {rem.createdBy}
                             </span>
                           )}
                         </div>

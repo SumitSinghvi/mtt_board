@@ -9,6 +9,7 @@ import {
   CheckCircle2,
 } from "lucide-react"
 import { ActivitySection } from "../ActivitySection"
+import { MentionTextarea } from "../MentionTextarea"
 import { formatDate } from "../../lib/date"
 import type { ChecklistItem, Priority } from "../../schemas/board"
 import type { StaffMember } from "../../store/staffStore"
@@ -24,6 +25,8 @@ interface SubCardModalProps {
   onUpdateSubCard: (itemId: string, updates: Partial<ChecklistItem>) => void
   onDeleteSubCard: (itemId: string) => void
   onAddComment: (subCardId: string, comment: string, author: string) => void
+  onEditComment?: (subCardId: string, commentId: string, newContent: string) => void
+  onDeleteComment?: (subCardId: string, commentId: string) => void
 }
 
 export function SubCardModal({
@@ -37,6 +40,8 @@ export function SubCardModal({
   onUpdateSubCard,
   onDeleteSubCard,
   onAddComment,
+  onEditComment,
+  onDeleteComment,
 }: SubCardModalProps) {
   if (!subCard) return null
 
@@ -117,17 +122,16 @@ export function SubCardModal({
                   <FileText className="size-3.5 text-stone-400" />
                   <span>Description</span>
                 </label>
-                <textarea
+                <MentionTextarea
                   rows={4}
                   disabled={!canEdit}
                   value={subCard.description || ""}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     onUpdateSubCard(subCard.id, {
-                      description: e.target.value || undefined,
+                      description: val || undefined,
                     })
                   }
-                  placeholder="Detailed description of what needs to be done for this sub-task..."
-                  className="w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-stone-100 disabled:cursor-not-allowed"
+                  placeholder="Detailed description of what needs to be done for this sub-task... Type @ to tag staff or @all"
                 />
               </div>
 
@@ -137,26 +141,36 @@ export function SubCardModal({
                   <Tag className="size-3.5 text-stone-400" />
                   <span>Notes & Instructions</span>
                 </label>
-                <textarea
+                <MentionTextarea
                   rows={3}
                   disabled={!canEdit}
                   value={subCard.notes || ""}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     onUpdateSubCard(subCard.id, {
-                      notes: e.target.value || undefined,
+                      notes: val || undefined,
                     })
                   }
-                  placeholder="Internal booking IDs, contact references, operational reminders..."
-                  className="w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-stone-100 disabled:cursor-not-allowed"
+                  placeholder="Internal booking IDs, contact references, operational reminders... Type @ to tag staff or @all"
                 />
               </div>
 
               {/* Sub-Card Activity Column */}
               <ActivitySection
                 title="Sub-Card Activity & Comments"
-                placeholder="Write a comment on this sub-card..."
+                placeholder="Write a comment on this sub-card... Type @ to mention staff or @all"
                 activities={subCard.activities || []}
                 onAddComment={(comment, author) => onAddComment(subCard.id, comment, author)}
+                onEditComment={
+                  onEditComment
+                    ? (commentId, newContent) =>
+                        onEditComment(subCard.id, commentId, newContent)
+                    : undefined
+                }
+                onDeleteComment={
+                  onDeleteComment
+                    ? (commentId) => onDeleteComment(subCard.id, commentId)
+                    : undefined
+                }
                 readOnly={!canEdit}
               />
             </div>

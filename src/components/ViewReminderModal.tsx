@@ -281,7 +281,7 @@ export function ViewReminderModal({
               </div>
 
               {/* Schedule Details Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="rounded-xl border border-stone-200 p-3 bg-white shadow-2xs">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 flex items-center gap-1 mb-1">
                     <CalendarIcon className="size-3 text-stone-400" /> Date
@@ -300,7 +300,7 @@ export function ViewReminderModal({
                   </span>
                 </div>
 
-                <div className="rounded-xl border border-stone-200 p-3 bg-white shadow-2xs col-span-2 sm:col-span-1">
+                <div className="rounded-xl border border-stone-200 p-3 bg-white shadow-2xs">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
                     Priority
                   </span>
@@ -316,6 +316,17 @@ export function ViewReminderModal({
                     {reminder.priority || "Medium"}
                   </span>
                 </div>
+
+                {reminder.createdBy && (
+                  <div className="rounded-xl border border-stone-200 p-3 bg-white shadow-2xs">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                      Created By
+                    </span>
+                    <span className="text-xs font-bold text-stone-800 block truncate" title={reminder.createdBy}>
+                      {reminder.createdBy}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Associated Task Context Section */}

@@ -12,13 +12,15 @@ import {
   Crown,
   Hotel,
   IndianRupee,
+  ArrowUpRight,
+  CheckCircle2,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
 import { useCustomerStore } from "../store/customerStore"
 import { useStaffStore, initialStaff } from "../store/staffStore"
 import { CustomerCombobox } from "./CustomerCombobox"
 import { PhoneInput } from "./ui/PhoneInput"
-import type { Priority, HotelBookingStatus } from "../schemas/board"
+import type { Priority, HotelBookingStatus, OutgoingPaymentStatus } from "../schemas/board"
 import { useAuthStore } from "../store/authStore"
 import { isBoardAllowed } from "../lib/permissions"
 import { toast } from "sonner"
@@ -54,6 +56,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
     subtasks: true,
     hotelBooking: false,
     paymentTracking: false,
+    outgoingPayment: false,
   }
 
   const [selectedColumnId, setSelectedColumnId] = useState(() => {
@@ -89,6 +92,11 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
   const [advanceAmount, setAdvanceAmount] = useState<string>("")
   const [advanceDate, setAdvanceDate] = useState<string>("")
   const [advanceMode, setAdvanceMode] = useState<string>("UPI")
+
+  // Outgoing payment state
+  const [outgoingAmount, setOutgoingAmount] = useState<string>("")
+  const [outgoingStatus, setOutgoingStatus] = useState<OutgoingPaymentStatus>("none")
+  const [outgoingNotes, setOutgoingNotes] = useState<string>("")
 
   const { staff } = useStaffStore()
   const activeStaff = (staff.length > 0 ? staff : initialStaff).filter(
@@ -174,6 +182,16 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
           }
         : undefined
 
+    const outgoingAmountNum = outgoingAmount ? Number(outgoingAmount) : undefined
+    const outgoingPayment =
+      modules.outgoingPayment && (outgoingAmountNum !== undefined || outgoingNotes.trim())
+        ? {
+            amount: outgoingAmountNum,
+            status: outgoingStatus,
+            notes: outgoingNotes.trim() || undefined,
+          }
+        : undefined
+
     addTask(selectedBoardId, selectedColumnId, {
       title: title.trim(),
       description: description.trim() || undefined,
@@ -189,6 +207,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
       dueDate: dueDate || undefined,
       hotelBooking,
       paymentTracking,
+      outgoingPayment,
       checklist: [],
     })
 
@@ -697,6 +716,109 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Outgoing Payment Section - when enabled */}
+              {modules.outgoingPayment && (
+                <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 space-y-3 animate-in fade-in-50">
+                  <div className="flex items-center justify-between">
+                    <span className="block text-xs font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
+                      <ArrowUpRight className="size-3.5 text-rose-600" />
+                      Outgoing Payment
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+                        outgoingStatus === "done"
+                          ? "bg-emerald-100 text-emerald-900 border-emerald-300"
+                          : outgoingStatus === "pending"
+                          ? "bg-rose-100 text-rose-900 border-rose-300"
+                          : "bg-stone-100 text-stone-500 border-stone-200"
+                      }`}
+                    >
+                      {outgoingStatus === "done" ? "Done" : outgoingStatus === "pending" ? "Pending" : "None"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                        Amount to Pay (₹)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs font-medium">₹</span>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={outgoingAmount}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setOutgoingAmount(val)
+                            if (outgoingStatus === "none" && val && Number(val) > 0) {
+                              setOutgoingStatus("pending")
+                            }
+                          }}
+                          className="w-full rounded-md border border-stone-200 bg-white pl-6 pr-2.5 py-1.5 text-xs focus:border-rose-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                        Status
+                      </label>
+                      <div className="flex items-center gap-1 rounded-lg border border-stone-200 bg-white p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setOutgoingStatus("none")}
+                          className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[11px] font-bold uppercase transition ${
+                            outgoingStatus === "none"
+                              ? "bg-stone-200 text-stone-700"
+                              : "text-stone-400 hover:text-stone-700"
+                          }`}
+                        >
+                          <span>None</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setOutgoingStatus("pending")}
+                          className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[11px] font-bold uppercase transition ${
+                            outgoingStatus === "pending"
+                              ? "bg-rose-100 text-rose-900 border border-rose-200"
+                              : "text-stone-500 hover:text-stone-800"
+                          }`}
+                        >
+                          <Clock className="size-2.5" />
+                          <span>Pending</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setOutgoingStatus("done")}
+                          className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[11px] font-bold uppercase transition ${
+                            outgoingStatus === "done"
+                              ? "bg-emerald-600 text-white"
+                              : "text-stone-500 hover:text-stone-800"
+                          }`}
+                        >
+                          <CheckCircle2 className="size-2.5" />
+                          <span>Done</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-stone-600 mb-1">
+                      Payee / Vendor Note (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Innova cab fare / Hotel balance"
+                      value={outgoingNotes}
+                      onChange={(e) => setOutgoingNotes(e.target.value)}
+                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-mono focus:border-rose-500 focus:outline-none"
+                    />
+                  </div>
                 </div>
               )}
             </div>

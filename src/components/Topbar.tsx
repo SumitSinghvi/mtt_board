@@ -46,8 +46,75 @@ export function Topbar() {
         count++
       }
     }
+
+    // 3. Unread @mentions
+    if (profile?.name) {
+      const myName = profile.name.toLowerCase().trim()
+      const isAdmin = profile?.role === "admin"
+      for (const b of boards) {
+        if (b.isArchived) continue
+        for (const col of b.columns) {
+          for (const task of col.tasks) {
+            const allComments = [
+              ...(task.activities || []).filter((a) => a.type === "comment"),
+              ...(task.checklist || []).flatMap((c) =>
+                (c.activities || []).filter((a) => a.type === "comment")
+              ),
+            ]
+            for (const c of allComments) {
+              if (c.isDeleted) continue
+              if (c.author && c.author.toLowerCase() === myName) continue
+              const contentLower = c.content.toLowerCase()
+              const isAllMention = /\b@all\b/i.test(contentLower)
+              const isAdminMention =
+                isAdmin && (/\b@admin\b/i.test(contentLower) || /\b@admins\b/i.test(contentLower))
+              const isDirectMention = contentLower.includes(`@${myName}`)
+
+              if (isAllMention || isAdminMention || isDirectMention) {
+                try {
+                  if (!localStorage.getItem(`mtt_seen_mention_${c.id}`)) {
+                    count++
+                  }
+                } catch {
+                  // ignore
+                }
+              }
+            }
+
+            // Also check notes & details
+            const noteTexts = [
+              task.description ? { id: `note-${task.id}`, text: task.description } : null,
+              ...(task.checklist || []).map((ck) =>
+                ck.description || ck.notes
+                  ? { id: `note-sub-${ck.id}`, text: `${ck.description || ""} ${ck.notes || ""}` }
+                  : null
+              ),
+            ].filter(Boolean) as Array<{ id: string; text: string }>
+
+            for (const n of noteTexts) {
+              const contentLower = n.text.toLowerCase()
+              const isAllMention = /\b@all\b/i.test(contentLower)
+              const isAdminMention =
+                isAdmin && (/\b@admin\b/i.test(contentLower) || /\b@admins\b/i.test(contentLower))
+              const isDirectMention = contentLower.includes(`@${myName}`)
+
+              if (isAllMention || isAdminMention || isDirectMention) {
+                try {
+                  if (!localStorage.getItem(`mtt_seen_mention_${n.id}`)) {
+                    count++
+                  }
+                } catch {
+                  // ignore
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     return count
-  }, [boards, generalReminders, todayStr])
+  }, [boards, generalReminders, todayStr, profile?.name, profile?.role])
 
   return (
     <>

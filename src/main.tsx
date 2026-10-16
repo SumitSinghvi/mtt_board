@@ -5,7 +5,10 @@ import './index.css'
 import App from './App.tsx'
 
 Sentry.init({
-  dsn: "https://366ca5499d8e8cdae2eb76eca2913cbf@o4508968497381376.ingest.de.sentry.io/4508968500723792",
+  dsn:
+    import.meta.env.VITE_SENTRY_DSN ||
+    "https://366ca5499d8e8cdae2eb76eca2913cbf@o4508968497381376.ingest.de.sentry.io/4508968500723792",
+  environment: import.meta.env.MODE,
   integrations: [
     Sentry.browserTracingIntegration(),
     Sentry.replayIntegration({
