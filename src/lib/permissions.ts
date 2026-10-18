@@ -52,6 +52,17 @@ export function getUserPermissions(profile: UserProfile | null): StaffPermission
     }
   }
 
+  // Admin superuser always has full access
+  if (profile.role === "admin") {
+    return {
+      allowedBoardIds: undefined,
+      canCreateCards: true,
+      canEditCards: true,
+      canDeleteCards: true,
+      canViewCommercials: true,
+    }
+  }
+
   const roleDefaults = getDefaultRolePermissions(profile.role)
 
   // Explicit permissions set by admin override role defaults
@@ -60,7 +71,9 @@ export function getUserPermissions(profile: UserProfile | null): StaffPermission
     canCreateCards: profile.permissions?.canCreateCards ?? roleDefaults.canCreateCards,
     canEditCards: profile.permissions?.canEditCards ?? roleDefaults.canEditCards,
     canDeleteCards: profile.permissions?.canDeleteCards ?? roleDefaults.canDeleteCards,
-    canViewCommercials: profile.permissions?.canViewCommercials ?? roleDefaults.canViewCommercials,
+    canViewCommercials:
+      profile.role === "accounts" ||
+      (profile.permissions?.canViewCommercials ?? roleDefaults.canViewCommercials),
   }
 }
 

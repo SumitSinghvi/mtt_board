@@ -13,3 +13,16 @@ export function generateId(prefix = "id"): string {
   }
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`
 }
+
+export function isDoneColumn(columnTitle?: string): boolean {
+  if (!columnTitle) return false
+  const lower = columnTitle.toLowerCase().trim()
+  return (
+    lower.includes("done") ||
+    lower.includes("complete") ||
+    lower.includes("issued") ||
+    lower.includes("closed") ||
+    lower.includes("delivered") ||
+    lower.includes("finish")
+  )
+}

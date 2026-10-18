@@ -20,6 +20,7 @@ import { ScheduleReminderModal } from "./ScheduleReminderModal"
 import { ViewReminderModal } from "./ViewReminderModal"
 import { useBoardStore } from "../store/boardStore"
 import { toast } from "sonner"
+import { isDoneColumn } from "../lib/utils"
 
 export interface FlattenedTask {
   boardId: string
@@ -155,6 +156,7 @@ export function DashboardCalendar({
   const alertReminders = useMemo(() => {
     const list: FlattenedReminder[] = []
     filteredTasks.forEach((item) => {
+      if (isDoneColumn(item.columnTitle)) return
       if (item.task.reminders) {
         item.task.reminders.forEach((rem) => {
           if (!rem.completed && rem.dueDate <= todayStr) {
@@ -614,26 +616,33 @@ export function DashboardCalendar({
 
                 {/* 2. Tasks Occurring on this date (unless filtered to reminders only) */}
                 {!onlyShowReminders &&
-                  itemsForDay.map(({ boardId, boardTitle, columnId, task }) => {
+                  itemsForDay.map(({ boardId, boardTitle, columnId, columnTitle, task }) => {
                     const isTripStart = task.travelStartDate === cell.dateStr
                     const isDueDate = task.dueDate === cell.dateStr
+                    const isDone = isDoneColumn(columnTitle)
                     const assignees = getTaskAssignees(task)
 
                     return (
                       <div
                         key={`${task.id}-${cell.dateStr}`}
                         onClick={() => onSelectTask(boardId, columnId, task.id)}
-                        title={`${task.title} • ${boardTitle}`}
-                        className="group flex flex-col p-1.5 rounded-lg bg-stone-50 hover:bg-amber-50 border border-stone-200/90 hover:border-amber-300 cursor-pointer shadow-2xs transition text-[11px] leading-tight"
+                        title={`${task.title} • ${boardTitle} (${columnTitle})`}
+                        className={`group flex flex-col p-1.5 rounded-lg border cursor-pointer shadow-2xs transition text-[11px] leading-tight ${
+                          isDone
+                            ? "bg-stone-50/80 hover:bg-stone-100 border-stone-200 text-stone-500 opacity-75"
+                            : "bg-white hover:bg-amber-50 border-stone-200/90 hover:border-amber-300 text-stone-900"
+                        }`}
                       >
                         {/* Priority Dot + Title */}
                         <div className="flex items-center gap-1.5 min-w-0">
                           <span
                             className={`size-2 rounded-full ring-2 shrink-0 ${
-                              priorityDotColors[task.priority]
+                              isDone ? "bg-stone-400 ring-stone-200" : priorityDotColors[task.priority]
                             }`}
                           />
-                          <span className="font-semibold text-stone-900 truncate group-hover:text-amber-900">
+                          <span className={`font-semibold truncate group-hover:text-amber-900 ${
+                            isDone ? "line-through text-stone-500" : "text-stone-900"
+                          }`}>
                             {task.title}
                           </span>
                         </div>
@@ -657,12 +666,17 @@ export function DashboardCalendar({
                             </span>
                           )}
 
-                          {isDueDate && !isTripStart && (
+                          {isDone ? (
+                            <span className="inline-flex items-center gap-0.5 text-emerald-700 font-semibold shrink-0 bg-emerald-50 px-1 rounded">
+                              <Check className="size-2.5 text-emerald-600" />
+                              <span>Done</span>
+                            </span>
+                          ) : isDueDate && !isTripStart ? (
                             <span className="inline-flex items-center gap-0.5 text-red-600 font-semibold shrink-0">
                               <Clock className="size-2.5" />
                               <span>Due</span>
                             </span>
-                          )}
+                          ) : null}
                         </div>
 
                         {/* Lead / Assignee indicator */}

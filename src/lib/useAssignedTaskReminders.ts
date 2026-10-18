@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/authStore"
 import { useBoardStore } from "../store/boardStore"
 import { getTaskAssignees } from "../schemas/board"
 import { playReminderChime } from "../components/NotificationPopover"
+import { isDoneColumn } from "./utils"
 
 export function useAssignedTaskReminders() {
   const { user, profile } = useAuthStore()
@@ -144,7 +145,7 @@ export function useAssignedTaskReminders() {
             (id) => assignees.includes(id) || task.leader?.toLowerCase().trim() === id
           )
 
-          if (!isAssigned) continue
+          if (!isAssigned || isDoneColumn(col.title)) continue
 
           // 1. Task scheduled reminders
           if (task.reminders && task.reminders.length > 0) {

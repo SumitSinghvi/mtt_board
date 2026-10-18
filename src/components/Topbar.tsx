@@ -5,6 +5,7 @@ import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
 import { GlobalSearch } from "./GlobalSearch"
 import { NotificationPopover } from "./NotificationPopover"
+import { isDoneColumn } from "../lib/utils"
 
 const roleBadgeColor: Record<string, string> = {
   admin: "bg-red-50 text-red-700 border-red-200",
@@ -30,6 +31,7 @@ export function Topbar() {
     for (const b of boards) {
       if (b.isArchived) continue
       for (const col of b.columns) {
+        if (isDoneColumn(col.title)) continue
         for (const task of col.tasks) {
           if (task.reminders) {
             for (const rem of task.reminders) {

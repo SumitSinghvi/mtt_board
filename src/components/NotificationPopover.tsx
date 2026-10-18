@@ -14,6 +14,7 @@ import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
 import { formatDate } from "../lib/date"
 import type { TaskReminder, Task } from "../schemas/board"
+import { isDoneColumn } from "../lib/utils"
 import { toast } from "sonner"
 
 interface ReminderItemWithContext {
@@ -103,6 +104,7 @@ export function NotificationPopover({
     for (const b of boards) {
       if (b.isArchived) continue
       for (const col of b.columns) {
+        if (isDoneColumn(col.title)) continue
         for (const task of col.tasks) {
           if (task.reminders && task.reminders.length > 0) {
             for (const rem of task.reminders) {

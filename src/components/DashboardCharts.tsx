@@ -10,6 +10,7 @@ import {
 import type { Task, Board } from "../schemas/board"
 import { getTaskAssignees } from "../schemas/board"
 import { useStaffStore } from "../store/staffStore"
+import { isDoneColumn } from "../lib/utils"
 
 export interface FlattenedTask {
   boardId: string
@@ -33,11 +34,11 @@ export function DashboardCharts({
   const { staff } = useStaffStore()
   const [pipelineView, setPipelineView] = useState<"boards" | "destinations">("boards")
 
-  // 1. Staff Workload Aggregation
+  // 1. Staff Workload Aggregation (Active work in progress)
   const staffWorkload = useMemo(() => {
     const map = new Map<
       string,
-      { name: string; role?: string; total: number; lead: number; urgent: number }
+      { name: string; role?: string; total: number; completed: number; lead: number; urgent: number }
     >()
 
     // Initialize with active staff from store
@@ -47,6 +48,7 @@ export function DashboardCharts({
           name: member.name,
           role: member.role,
           total: 0,
+          completed: 0,
           lead: 0,
           urgent: 0,
         })
@@ -58,13 +60,16 @@ export function DashboardCharts({
 
     // Accumulate task assignments
     for (const item of tasks) {
+      const isDone = isDoneColumn(item.columnTitle)
       const t = item.task
       const assignees = getTaskAssignees(t)
-      const isUrgent = t.priority === "urgent" || t.priority === "high"
+      const isUrgent = (t.priority === "urgent" || t.priority === "high") && !isDone
 
       if (assignees.length === 0 && !t.leader) {
-        unassignedCount++
-        if (isUrgent) unassignedUrgent++
+        if (!isDone) {
+          unassignedCount++
+          if (isUrgent) unassignedUrgent++
+        }
         continue
       }
 
@@ -73,10 +78,13 @@ export function DashboardCharts({
         const existing = map.get(t.leader) || {
           name: t.leader,
           total: 0,
+          completed: 0,
           lead: 0,
           urgent: 0,
         }
-        existing.lead += 1
+        if (!isDone) {
+          existing.lead += 1
+        }
         map.set(t.leader, existing)
       }
 
@@ -86,17 +94,22 @@ export function DashboardCharts({
         const existing = map.get(name) || {
           name,
           total: 0,
+          completed: 0,
           lead: 0,
           urgent: 0,
         }
-        existing.total += 1
-        if (isUrgent) existing.urgent += 1
+        if (isDone) {
+          existing.completed += 1
+        } else {
+          existing.total += 1
+          if (isUrgent) existing.urgent += 1
+        }
         map.set(name, existing)
       }
     }
 
-    // Sort by total descending
-    const list = Array.from(map.values()).sort((a, b) => b.total - a.total)
+    // Sort by active workload descending (or completed if tie)
+    const list = Array.from(map.values()).sort((a, b) => b.total - a.total || b.completed - a.completed)
 
     return {
       list,
@@ -106,32 +119,48 @@ export function DashboardCharts({
     }
   }, [tasks, staff])
 
-  // 2. Board Distribution Aggregation
+  // 2. Board Distribution Aggregation (Active vs Done)
   const boardDistribution = useMemo(() => {
     const list = boards.map((b) => {
-      const cardCount = b.columns.reduce((sum, c) => sum + c.tasks.length, 0)
-      const urgentCount = b.columns
-        .flatMap((c) => c.tasks)
-        .filter((t) => t.priority === "urgent" || t.priority === "high").length
+      let activeCount = 0
+      let doneCount = 0
+      let urgentCount = 0
+
+      for (const col of b.columns) {
+        const isDone = isDoneColumn(col.title)
+        for (const t of col.tasks) {
+          if (isDone) {
+            doneCount++
+          } else {
+            activeCount++
+            if (t.priority === "urgent" || t.priority === "high") {
+              urgentCount++
+            }
+          }
+        }
+      }
+
       return {
         id: b.id,
         title: b.title,
-        count: cardCount,
+        count: activeCount,
+        doneCount,
         urgentCount,
       }
     })
 
     list.sort((a, b) => b.count - a.count)
-    const totalCards = Math.max(tasks.length, 1)
+    const totalActiveCards = list.reduce((sum, b) => sum + b.count, 0)
     const maxCount = Math.max(...list.map((b) => b.count), 1)
 
-    return { list, totalCards, maxCount }
-  }, [boards, tasks.length])
+    return { list, totalCards: Math.max(totalActiveCards, 1), maxCount }
+  }, [boards])
 
-  // 3. Top Destinations Aggregation
+  // 3. Top Destinations Aggregation (Active Bookings)
   const topDestinations = useMemo(() => {
     const map = new Map<string, number>()
     for (const item of tasks) {
+      if (isDoneColumn(item.columnTitle)) continue
       const dest = item.task.destination?.trim()
       if (dest) {
         map.set(dest, (map.get(dest) || 0) + 1)
@@ -201,6 +230,14 @@ export function DashboardCharts({
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
+                        {s.completed > 0 && (
+                          <span
+                            title={`${s.completed} completed cards`}
+                            className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1 py-0.2 rounded"
+                          >
+                            ✓ {s.completed}
+                          </span>
+                        )}
                         {s.urgent > 0 && (
                           <span
                             title={`${s.urgent} urgent/high cards`}
@@ -210,7 +247,10 @@ export function DashboardCharts({
                             {s.urgent}
                           </span>
                         )}
-                        <span className="text-xs font-bold text-stone-900 w-6 text-right">
+                        <span
+                          title={`${s.total} active cards in progress`}
+                          className="text-xs font-bold text-stone-900 w-6 text-right"
+                        >
                           {s.total}
                         </span>
                       </div>
@@ -313,7 +353,6 @@ export function DashboardCharts({
               ) : (
                 boardDistribution.list.map((b) => {
                   const percent = Math.round((b.count / boardDistribution.maxCount) * 100)
-                  const shareOfTotal = Math.round((b.count / boardDistribution.totalCards) * 100)
 
                   return (
                     <div
@@ -333,10 +372,15 @@ export function DashboardCharts({
                           )}
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[10px] text-stone-400 font-medium">
-                            {shareOfTotal}%
-                          </span>
-                          <span className="text-xs font-bold text-stone-900 w-6 text-right">
+                          {b.doneCount > 0 && (
+                            <span className="text-[10px] text-stone-400 font-medium">
+                              ({b.doneCount} done)
+                            </span>
+                          )}
+                          <span
+                            title={`${b.count} active cards in pipeline`}
+                            className="text-xs font-bold text-stone-900 w-6 text-right"
+                          >
                             {b.count}
                           </span>
                         </div>
