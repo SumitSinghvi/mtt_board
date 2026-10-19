@@ -10,6 +10,7 @@ import { useStaffStore } from "./store/staffStore"
 import { useCustomerStore } from "./store/customerStore"
 import { useHashRouter } from "./lib/useHashRouter"
 import { useAssignedTaskReminders } from "./lib/useAssignedTaskReminders"
+import { useStaffPresence } from "./lib/useStaffPresence"
 import logoImg from "./assets/logo.png"
 
 const MainDashboard = lazy(() => import("./components/MainDashboard").then((m) => ({ default: m.MainDashboard })))
@@ -19,6 +20,7 @@ const KanbanBoard = lazy(() => import("./components/KanbanBoard").then((m) => ({
 const CustomersPage = lazy(() => import("./components/CustomersPage").then((m) => ({ default: m.CustomersPage })))
 const StaffPage = lazy(() => import("./components/StaffPage").then((m) => ({ default: m.StaffPage })))
 const SettingsPage = lazy(() => import("./components/SettingsPage").then((m) => ({ default: m.SettingsPage })))
+const SecretActivityPage = lazy(() => import("./components/SecretActivityPage").then((m) => ({ default: m.SecretActivityPage })))
 
 export default function App() {
   const { currentView, fetchBoardsFromSupabase } = useBoardStore()
@@ -28,6 +30,7 @@ export default function App() {
 
   useHashRouter()
   useAssignedTaskReminders()
+  useStaffPresence()
 
   useEffect(() => {
     initializeAuth()
@@ -87,6 +90,8 @@ export default function App() {
               profile?.role === "admin" ? <StaffPage /> : <MainDashboard />
             ) : currentView === "settings" ? (
               profile?.role === "admin" ? <SettingsPage /> : <MainDashboard />
+            ) : currentView === "audit-logs" ? (
+              profile?.role === "admin" ? <SecretActivityPage /> : <MainDashboard />
             ) : (
               <KanbanBoard />
             )}

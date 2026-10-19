@@ -25,7 +25,7 @@ import { generateId } from "../lib/utils"
 interface BoardState {
   boards: Board[]
   activeBoardId: string | null
-  currentView: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks"
+  currentView: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks" | "audit-logs"
   sidebarOpen: boolean
   loading: boolean
   selectedTask: { boardId: string; columnId: string; taskId: string } | null
@@ -33,7 +33,7 @@ interface BoardState {
   // Actions
   fetchBoardsFromSupabase: () => Promise<void>
   setActiveBoardId: (id: string) => void
-  setCurrentView: (view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks") => void
+  setCurrentView: (view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks" | "audit-logs") => void
   setSelectedTask: (task: { boardId: string; columnId: string; taskId: string } | null) => void
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void

@@ -4,7 +4,7 @@ import { useAuthStore } from "../store/authStore"
 import { getAllowedBoards } from "./permissions"
 
 export function parseHash(hash: string): {
-  view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks"
+  view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks" | "audit-logs"
   boardId?: string
   taskId?: string
 } {
@@ -20,6 +20,7 @@ export function parseHash(hash: string): {
   if (section === "customers") return { view: "customers" }
   if (section === "staff") return { view: "staff" }
   if (section === "settings") return { view: "settings" }
+  if (section === "audit-logs" || section === "audit" || section === "secret-attendance") return { view: "audit-logs" }
 
   if (section === "board") {
     const boardId = parts[1]
@@ -32,7 +33,7 @@ export function parseHash(hash: string): {
 }
 
 export function buildHash(
-  view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks",
+  view: "dashboard" | "board" | "todos" | "customers" | "staff" | "settings" | "my-tasks" | "audit-logs",
   activeBoardId: string | null,
   selectedTask: { boardId: string; taskId: string } | null
 ): string {
@@ -42,6 +43,7 @@ export function buildHash(
   if (view === "customers") return "#customers"
   if (view === "staff") return "#staff"
   if (view === "settings") return "#settings"
+  if (view === "audit-logs") return "#audit-logs"
 
   if (view === "board") {
     if (selectedTask?.boardId && selectedTask?.taskId) {
@@ -126,7 +128,11 @@ export function useHashRouter() {
       const isAdmin = currentProfile?.role === "admin"
 
       // Guard: non-admins cannot access admin management views
-      const isAdminView = parsed.view === "staff" || parsed.view === "settings" || parsed.view === "customers"
+      const isAdminView =
+        parsed.view === "staff" ||
+        parsed.view === "settings" ||
+        parsed.view === "customers" ||
+        parsed.view === "audit-logs"
       if (isAdminView && !isAdmin) {
         store.setCurrentView("dashboard")
         window.location.hash = "#dashboard"
