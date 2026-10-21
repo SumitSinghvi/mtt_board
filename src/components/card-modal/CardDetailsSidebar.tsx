@@ -227,7 +227,7 @@ export function CardDetailsSidebar({
               <div className="flex items-center justify-between">
                 <span className="block text-[11px] font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1">
                   <User className="size-3 text-stone-400" />
-                  Customer
+                  Client Name <span className="text-red-500 font-bold">*</span>
                 </span>
                 {canEdit && trimmedCustomerName && !isCustomerInDirectory && (
                   <button
@@ -252,6 +252,8 @@ export function CardDetailsSidebar({
                 <CustomerCombobox
                   value={currentTask.customerName || ""}
                   disabled={!canEdit}
+                  required={clientContactEnabled}
+                  hasError={clientContactEnabled && !currentTask.customerName?.trim()}
                   onChange={(name) => onChangeField("customerName", name)}
                   onAddNewCustomer={(name) => handleAddCustomerToDirectory(name)}
                   onSelectCustomer={(c) => {
@@ -260,6 +262,11 @@ export function CardDetailsSidebar({
                     if (c.email) onChangeField("customerEmail", c.email)
                   }}
                 />
+                {clientContactEnabled && !currentTask.customerName?.trim() && (
+                  <p className="text-[10px] text-red-600 mt-1 font-medium">
+                    Client name is required
+                  </p>
+                )}
               </div>
 
               {/* Phone + WhatsApp row */}

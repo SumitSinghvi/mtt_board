@@ -107,6 +107,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
   const [customerName, setCustomerName] = useState("")
   const [customerPhone, setCustomerPhone] = useState("")
   const [customerEmail, setCustomerEmail] = useState("")
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false)
 
   const { customers, saveCustomer } = useCustomerStore()
   const trimmedCustName = customerName.trim()
@@ -139,7 +140,16 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title.trim()) return
+    setAttemptedSubmit(true)
+    if (!title.trim()) {
+      toast.error("Card title is required")
+      return
+    }
+
+    if (modules.clientContact && !customerName.trim()) {
+      toast.error("Client name is required")
+      return
+    }
 
     if (modules.clientContact && customerName.trim()) {
       useCustomerStore.getState().saveCustomer({
@@ -456,7 +466,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                     <label className="block text-[11px] font-semibold text-stone-600 mb-1 flex items-center justify-between">
                       <span className="flex items-center gap-1">
                         <User className="size-3 text-stone-400" />
-                        Client Name
+                        Client Name <span className="text-red-500 font-bold">*</span>
                       </span>
                       {trimmedCustName && !isCustInDirectory && (
                         <button
@@ -481,6 +491,8 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                     </label>
                     <CustomerCombobox
                       value={customerName}
+                      required={modules.clientContact}
+                      hasError={attemptedSubmit && !customerName.trim()}
                       onChange={setCustomerName}
                       onAddNewCustomer={handleAddCustToDirectory}
                       onSelectCustomer={(c) => {
@@ -489,6 +501,11 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                         if (c.email) setCustomerEmail(c.email)
                       }}
                     />
+                    {attemptedSubmit && !customerName.trim() && (
+                      <p className="text-[10px] text-red-600 mt-1 font-medium">
+                        Client name is required
+                      </p>
+                    )}
                   </div>
 
                   <div>

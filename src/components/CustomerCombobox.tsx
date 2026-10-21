@@ -10,6 +10,9 @@ interface CustomerComboboxProps {
   onAddNewCustomer?: (name: string) => void
   placeholder?: string
   disabled?: boolean
+  required?: boolean
+  hasError?: boolean
+  className?: string
 }
 
 export function CustomerCombobox({
@@ -19,6 +22,9 @@ export function CustomerCombobox({
   onAddNewCustomer,
   placeholder = "e.g. Rajesh Sharma",
   disabled = false,
+  required = false,
+  hasError = false,
+  className = "",
 }: CustomerComboboxProps) {
   const { customers } = useCustomerStore()
   const [isOpen, setIsOpen] = useState(false)
@@ -60,6 +66,7 @@ export function CustomerCombobox({
         <input
           type="text"
           disabled={disabled}
+          required={required}
           placeholder={placeholder}
           value={value}
           onFocus={() => {
@@ -70,7 +77,11 @@ export function CustomerCombobox({
             onChange(e.target.value)
             setIsOpen(true)
           }}
-          className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 pr-8 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:outline-none disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
+          className={`w-full rounded-md border bg-white px-2.5 py-1.5 pr-8 text-xs text-stone-800 placeholder-stone-400 focus:outline-none disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed ${
+            hasError
+              ? "border-red-400 focus:border-red-500 ring-1 ring-red-300"
+              : "border-stone-200 focus:border-amber-500"
+          } ${className}`}
         />
 
         <button

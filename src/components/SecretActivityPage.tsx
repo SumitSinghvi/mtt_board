@@ -173,15 +173,27 @@ export function SecretActivityPage() {
       if (error) {
         console.warn("Failed to fetch staff sessions:", error.message)
       } else if (data) {
-        const formatted: StaffSessionRecord[] = data.map((item: any) => ({
-          ...item,
-          profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles,
-          staff_page_visits: Array.isArray(item.staff_page_visits)
-            ? [...item.staff_page_visits].sort(
-                (a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
-              )
-            : [],
-        }))
+        const formatted: StaffSessionRecord[] = data
+          .map((item: any) => ({
+            ...item,
+            profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles,
+            staff_page_visits: Array.isArray(item.staff_page_visits)
+              ? [...item.staff_page_visits].sort(
+                  (a, b) => new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
+                )
+              : [],
+          }))
+          .filter((item) => {
+            const name = (item.profiles?.name || "").toLowerCase().trim()
+            const email = (item.profiles?.email || "").toLowerCase().trim()
+            const userId = item.user_id || ""
+            return (
+              name !== "sumit jain" &&
+              !name.includes("sumit jain") &&
+              email !== "sumitjaindev@gmail.com" &&
+              userId !== "c8b71f88-d4a8-467d-b583-1afcb04954bb"
+            )
+          })
         setSessions(formatted)
         setLastRefreshedAt(new Date())
       }

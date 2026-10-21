@@ -8,8 +8,10 @@ import {
   MapPin,
   Calendar as CalendarIcon,
   Bell,
+  Check,
 } from "lucide-react"
 import type { Board, Priority, TaskReminder } from "../schemas/board"
+import { isDoneColumn } from "../lib/utils"
 
 interface BoardCalendarProps {
   board: Board
@@ -321,26 +323,35 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                 {cardsForThisDay.map((card) => {
                   const isTripStart = card.travelStartDate === cell.dateStr
                   const isDueDate = card.dueDate === cell.dateStr
+                  const isDone = isDoneColumn(card.columnTitle)
 
                   return (
                     <div
                       key={`${card.id}-${cell.dateStr}`}
                       onClick={() => onOpenTask(card.columnId, card.id)}
                       title={`${card.title} • ${card.columnTitle}`}
-                      className="group flex flex-col p-0.5 sm:p-1 rounded bg-stone-50 hover:bg-amber-50/80 border border-stone-200/80 hover:border-amber-300 cursor-pointer shadow-2xs transition text-[10px] sm:text-[11px] leading-tight"
+                      className={`group flex flex-col p-0.5 sm:p-1 rounded cursor-pointer shadow-2xs transition text-[10px] sm:text-[11px] leading-tight ${
+                        isDone
+                          ? "bg-stone-50/80 hover:bg-stone-100 border border-stone-200 text-stone-500 opacity-75"
+                          : "bg-stone-50 hover:bg-amber-50/80 border border-stone-200/80 hover:border-amber-300 text-stone-900"
+                      }`}
                     >
                       <div className="flex items-center gap-1 min-w-0">
                         <span
                           className={`size-1.5 rounded-full shrink-0 ${
-                            priorityDotColors[card.priority]
+                            isDone ? "bg-stone-400" : priorityDotColors[card.priority]
                           }`}
                         />
-                        <span className="font-semibold text-stone-900 truncate group-hover:text-amber-900">
+                        <span
+                          className={`font-semibold truncate group-hover:text-amber-900 ${
+                            isDone ? "line-through text-stone-500" : "text-stone-900"
+                          }`}
+                        >
                           {card.title}
                         </span>
                       </div>
 
-                      {/* Sub-label: Trip or Due badge (hidden on extra-small screens for neat layout) */}
+                      {/* Sub-label: Trip, Done, or Due badge */}
                       <div className="hidden sm:flex items-center gap-1 text-[9px] text-stone-500 mt-0.5 truncate">
                         {isTripStart && (
                           <span className="flex items-center gap-0.5 text-amber-800 font-medium truncate">
@@ -355,12 +366,17 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                           </span>
                         )}
 
-                        {isDueDate && !isTripStart && (
-                          <span className="flex items-center gap-0.5 text-red-600 font-medium">
+                        {isDone ? (
+                          <span className="inline-flex items-center gap-0.5 text-emerald-700 font-semibold bg-emerald-50 px-1 rounded shrink-0">
+                            <Check className="size-2.5 text-emerald-600" />
+                            <span>Done</span>
+                          </span>
+                        ) : isDueDate && !isTripStart ? (
+                          <span className="flex items-center gap-0.5 text-red-600 font-medium shrink-0">
                             <Clock className="size-2.5 shrink-0" />
                             <span>Due</span>
                           </span>
-                        )}
+                        ) : null}
 
                         {card.vehicleType && isTripStart && (
                           <span className="flex items-center gap-0.5 text-stone-400 shrink-0">
