@@ -1,110 +1,102 @@
 import { supabase } from "../lib/supabase"
 import type { Board, Column, Task, TaskReminder } from "../schemas/board"
 
+// Throws on any query error. Returns [] only when the boards table is confirmed empty,
+// so callers can safely treat [] as "seed needed" and an exception as "keep local state".
 export async function fetchBoardsFromSupabase(): Promise<Board[]> {
-  try {
-    const { data: boardsData, error: boardsErr } = await supabase
-      .from("boards")
-      .select("*")
-      .order("position", { ascending: true })
-      .order("created_at", { ascending: true })
+  const { data: boardsData, error: boardsErr } = await supabase
+    .from("boards")
+    .select("*")
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true })
 
-    if (boardsErr || !boardsData || boardsData.length === 0) {
-      return []
+  if (boardsErr) throw new Error(`boards: ${boardsErr.message}`)
+  if (!boardsData || boardsData.length === 0) return []
+
+  const { data: colsData, error: colsErr } = await supabase
+    .from("columns")
+    .select("*")
+    .order("position", { ascending: true })
+
+  if (colsErr) throw new Error(`columns: ${colsErr.message}`)
+
+  const { data: tasksData, error: tasksErr } = await supabase
+    .from("tasks")
+    .select("*")
+    .order("position", { ascending: true })
+
+  if (tasksErr) throw new Error(`tasks: ${tasksErr.message}`)
+
+  const tasksMap = new Map<string, Task[]>()
+  ;(tasksData || []).forEach((row) => {
+    const rawAssignees = Array.isArray(row.assignees) ? row.assignees : []
+    const fallbackAssignee = row.assignee || undefined
+    const assignees = rawAssignees.length > 0 ? rawAssignees : (fallbackAssignee ? [fallbackAssignee] : [])
+
+    const task: Task = {
+      id: row.id,
+      title: row.title,
+      description: row.description || undefined,
+      priority: row.priority || "medium",
+      assignee: assignees[0] || undefined,
+      assignees,
+      leader: row.leader || undefined,
+      createdBy: row.created_by || undefined,
+      customerName: row.customer_name || undefined,
+      customerPhone: row.customer_phone || undefined,
+      customerEmail: row.customer_email || undefined,
+      amount: row.amount ? Number(row.amount) : undefined,
+      advancePaid: row.advance_paid ? Number(row.advance_paid) : undefined,
+      dueDate: row.due_date || undefined,
+      travelStartDate: row.travel_start_date || undefined,
+      travelEndDate: row.travel_end_date || undefined,
+      pickupLocation: row.pickup_location || undefined,
+      destination: row.destination || undefined,
+      vehicleType: row.vehicle_type || undefined,
+      paxAdults: row.pax_adults !== null ? Number(row.pax_adults) : undefined,
+      paxKids: row.pax_kids !== null ? Number(row.pax_kids) : undefined,
+      checklist: Array.isArray(row.checklist) ? row.checklist : [],
+      activities: Array.isArray(row.activities) ? row.activities : [],
+      reminders: Array.isArray(row.reminders) ? row.reminders : [],
+      hotelBooking: row.hotel_booking || undefined,
+      paymentTracking: row.payment_tracking || undefined,
+      outgoingPayment: row.outgoing_payment || undefined,
+      createdAt: row.created_at || new Date().toISOString(),
     }
+    const existing = tasksMap.get(row.column_id) || []
+    existing.push(task)
+    tasksMap.set(row.column_id, existing)
+  })
 
-    const { data: colsData, error: colsErr } = await supabase
-      .from("columns")
-      .select("*")
-      .order("position", { ascending: true })
-
-    if (colsErr) {
-      console.warn("colsErr:", colsErr.message)
+  const colsMap = new Map<string, Column[]>()
+  ;(colsData || []).forEach((cRow) => {
+    const col: Column = {
+      id: cRow.id,
+      title: cRow.title,
+      tasks: tasksMap.get(cRow.id) || [],
     }
+    const existing = colsMap.get(cRow.board_id) || []
+    existing.push(col)
+    colsMap.set(cRow.board_id, existing)
+  })
 
-    const { data: tasksData, error: tasksErr } = await supabase
-      .from("tasks")
-      .select("*")
-      .order("position", { ascending: true })
-
-    if (tasksErr) {
-      console.warn("tasksErr:", tasksErr.message)
-    }
-
-    const tasksMap = new Map<string, Task[]>()
-    ;(tasksData || []).forEach((row) => {
-      const rawAssignees = Array.isArray(row.assignees) ? row.assignees : []
-      const fallbackAssignee = row.assignee || undefined
-      const assignees = rawAssignees.length > 0 ? rawAssignees : (fallbackAssignee ? [fallbackAssignee] : [])
-
-      const task: Task = {
-        id: row.id,
-        title: row.title,
-        description: row.description || undefined,
-        priority: row.priority || "medium",
-        assignee: assignees[0] || undefined,
-        assignees,
-        leader: row.leader || undefined,
-        createdBy: row.created_by || undefined,
-        customerName: row.customer_name || undefined,
-        customerPhone: row.customer_phone || undefined,
-        customerEmail: row.customer_email || undefined,
-        amount: row.amount ? Number(row.amount) : undefined,
-        advancePaid: row.advance_paid ? Number(row.advance_paid) : undefined,
-        dueDate: row.due_date || undefined,
-        travelStartDate: row.travel_start_date || undefined,
-        travelEndDate: row.travel_end_date || undefined,
-        pickupLocation: row.pickup_location || undefined,
-        destination: row.destination || undefined,
-        vehicleType: row.vehicle_type || undefined,
-        paxAdults: row.pax_adults !== null ? Number(row.pax_adults) : undefined,
-        paxKids: row.pax_kids !== null ? Number(row.pax_kids) : undefined,
-        checklist: Array.isArray(row.checklist) ? row.checklist : [],
-        activities: Array.isArray(row.activities) ? row.activities : [],
-        reminders: Array.isArray(row.reminders) ? row.reminders : [],
-        hotelBooking: row.hotel_booking || undefined,
-        paymentTracking: row.payment_tracking || undefined,
-        outgoingPayment: row.outgoing_payment || undefined,
-        createdAt: row.created_at || new Date().toISOString(),
-      }
-      const existing = tasksMap.get(row.column_id) || []
-      existing.push(task)
-      tasksMap.set(row.column_id, existing)
-    })
-
-    const colsMap = new Map<string, Column[]>()
-    ;(colsData || []).forEach((cRow) => {
-      const col: Column = {
-        id: cRow.id,
-        title: cRow.title,
-        tasks: tasksMap.get(cRow.id) || [],
-      }
-      const existing = colsMap.get(cRow.board_id) || []
-      existing.push(col)
-      colsMap.set(cRow.board_id, existing)
-    })
-
-    return boardsData.map((b, idx) => ({
-      id: b.id,
-      title: b.title,
-      description: b.description || undefined,
-      icon: b.icon || "clipboard-list",
-      modules: {
-        clientContact: true,
-        subtasks: true,
-        hotelBooking: false,
-        paymentTracking: false,
-        ...(b.modules || {}),
-      },
-      isArchived: b.is_archived ?? false,
-      position: b.position ?? idx,
-      columns: colsMap.get(b.id) || [],
-      createdAt: b.created_at || new Date().toISOString(),
-    }))
-  } catch (err) {
-    console.warn("fetchBoardsFromSupabase error:", err)
-    return []
-  }
+  return boardsData.map((b, idx) => ({
+    id: b.id,
+    title: b.title,
+    description: b.description || undefined,
+    icon: b.icon || "clipboard-list",
+    modules: {
+      clientContact: true,
+      subtasks: true,
+      hotelBooking: false,
+      paymentTracking: false,
+      ...(b.modules || {}),
+    },
+    isArchived: b.is_archived ?? false,
+    position: b.position ?? idx,
+    columns: colsMap.get(b.id) || [],
+    createdAt: b.created_at || new Date().toISOString(),
+  }))
 }
 
 export async function syncBoardToSupabase(board: Board): Promise<void> {
@@ -310,6 +302,20 @@ export async function deleteTaskFromSupabase(taskId: string): Promise<boolean> {
   } catch (err) {
     console.warn("deleteTaskFromSupabase error:", err)
     return false
+  }
+}
+
+// Rewrites position (and column/board) for every task in a column to match local order.
+// Uses update, not upsert: rows not yet inserted are skipped and get their position from their own pending upsert.
+// ponytail: one request per task; fine for board-sized columns. Upgrade path: a single RPC that takes an id array.
+export async function syncTaskPositionsToSupabase(boardId: string, columnId: string, taskIds: string[]): Promise<void> {
+  const results = await Promise.all(
+    taskIds.map((id, position) =>
+      supabase.from("tasks").update({ position, column_id: columnId, board_id: boardId }).eq("id", id)
+    )
+  )
+  for (const { error } of results) {
+    if (error) console.error("syncTaskPositionsToSupabase error:", error.message)
   }
 }
 

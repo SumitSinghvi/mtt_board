@@ -8,6 +8,7 @@ import {
   seedInitialBoardToSupabase,
   flushTaskSync,
   syncTaskToSupabase,
+  syncTaskPositionsToSupabase,
   deleteTaskFromSupabase,
   deleteBoardFromSupabase,
   syncColumnToSupabase,
@@ -109,6 +110,16 @@ interface BoardState {
   toggleGeneralReminder: (id: string) => void
 }
 
+function findColumn(boards: Board[], boardId: string, columnId: string) {
+  return boards.find((b) => b.id === boardId)?.columns.find((c) => c.id === columnId)
+}
+
+// Persist the local order of a column's tasks so a reload shows the same order.
+function syncColumnTaskOrder(boards: Board[], boardId: string, columnId: string) {
+  const col = findColumn(boards, boardId, columnId)
+  if (col) syncTaskPositionsToSupabase(boardId, columnId, col.tasks.map((t) => t.id))
+}
+
 export const useBoardStore = create<BoardState>()(
   persist(
     (set, get) => ({
@@ -123,14 +134,23 @@ export const useBoardStore = create<BoardState>()(
       fetchBoardsFromSupabase: async () => {
         try {
           set({ loading: true })
-          const [remoteBoards, remoteGeneralReminders] = await Promise.all([
-            loadSupabaseBoards(),
+          const [boardsResult, remoteGeneralReminders] = await Promise.all([
+            loadSupabaseBoards().then(
+              (boards) => ({ ok: true as const, boards }),
+              (error) => ({ ok: false as const, error })
+            ),
             fetchGeneralRemindersFromSupabase(),
           ])
           if (remoteGeneralReminders && remoteGeneralReminders.length > 0) {
             set({ generalReminders: remoteGeneralReminders })
           }
-          if (remoteBoards && remoteBoards.length > 0) {
+          if (!boardsResult.ok) {
+            // Never seed on a failed fetch: seeding upserts fixed demo IDs and can overwrite real rows.
+            console.warn("fetchBoardsFromSupabase failed, keeping local boards:", boardsResult.error)
+            return
+          }
+          const remoteBoards = boardsResult.boards
+          if (remoteBoards.length > 0) {
             set((state) => ({
               boards: remoteBoards,
               activeBoardId:
@@ -194,7 +214,10 @@ export const useBoardStore = create<BoardState>()(
           activeBoardId: newBoard.id,
         }))
 
-        syncBoardToSupabase(newBoard)
+        // Board row must exist before its columns (columns.board_id FK).
+        syncBoardToSupabase(newBoard).then(() =>
+          Promise.all(newBoard.columns.map((c, idx) => syncColumnToSupabase(newBoard.id, c.id, c.title, idx)))
+        )
         return newBoard.id
       },
 
@@ -361,7 +384,8 @@ export const useBoardStore = create<BoardState>()(
           ),
         }))
 
-        syncColumnToSupabase(boardId, columnId, title.trim())
+        const position = get().boards.find((b) => b.id === boardId)?.columns.findIndex((c) => c.id === columnId) ?? -1
+        if (position >= 0) syncColumnToSupabase(boardId, columnId, title.trim(), position)
       },
 
       moveColumn: (boardId, sourceIndex, targetIndex) => {
@@ -382,6 +406,9 @@ export const useBoardStore = create<BoardState>()(
             ),
           }
         })
+
+        const board = get().boards.find((b) => b.id === boardId)
+        board?.columns.forEach((c, idx) => syncColumnToSupabase(boardId, c.id, c.title, idx))
       },
 
       addTask: (boardId, columnId, taskData) => {
@@ -429,6 +456,8 @@ export const useBoardStore = create<BoardState>()(
         }))
 
         syncTaskToSupabase(boardId, columnId, newTask, 0)
+        // New task is prepended; shift existing siblings down.
+        syncColumnTaskOrder(get().boards, boardId, columnId)
       },
 
       updateTask: (boardId, columnId, taskId, updates, immediate = false) => {
@@ -450,11 +479,10 @@ export const useBoardStore = create<BoardState>()(
           ),
         }))
 
-        const board = get().boards.find((b) => b.id === boardId)
-        const col = board?.columns.find((c) => c.id === columnId)
-        const task = col?.tasks.find((t) => t.id === taskId)
-        if (task) {
-          syncTaskToSupabase(boardId, columnId, task, 0, immediate)
+        const col = findColumn(get().boards, boardId, columnId)
+        const position = col ? col.tasks.findIndex((t) => t.id === taskId) : -1
+        if (col && position >= 0) {
+          syncTaskToSupabase(boardId, columnId, col.tasks[position], position, immediate)
         }
       },
 
@@ -522,11 +550,13 @@ export const useBoardStore = create<BoardState>()(
         })
 
         // Cloud sync moved task to new column in Supabase
-        const board = get().boards.find((b) => b.id === boardId)
-        const targetCol = board?.columns.find((c) => c.id === targetColumnId)
-        const movedTask = targetCol?.tasks.find((t) => t.id === taskId)
-        if (movedTask) {
-          syncTaskToSupabase(boardId, targetColumnId, movedTask, targetIndex ?? 0)
+        const boardsAfter = get().boards
+        const targetCol = findColumn(boardsAfter, boardId, targetColumnId)
+        const movedIndex = targetCol ? targetCol.tasks.findIndex((t) => t.id === taskId) : -1
+        if (targetCol && movedIndex >= 0) {
+          syncTaskToSupabase(boardId, targetColumnId, targetCol.tasks[movedIndex], movedIndex)
+          syncColumnTaskOrder(boardsAfter, boardId, targetColumnId)
+          if (sourceColumnId !== targetColumnId) syncColumnTaskOrder(boardsAfter, boardId, sourceColumnId)
         }
       },
 
@@ -596,7 +626,11 @@ export const useBoardStore = create<BoardState>()(
         }))
 
         // Cloud sync moved task with new board_id and column_id
-        syncTaskToSupabase(targetBoardId, targetCol.id, updatedTask, targetIndex ?? 0, true)
+        const boardsAfter = get().boards
+        const movedIndex = findColumn(boardsAfter, targetBoardId, targetCol.id)?.tasks.findIndex((t) => t.id === taskId) ?? 0
+        syncTaskToSupabase(targetBoardId, targetCol.id, updatedTask, Math.max(0, movedIndex), true)
+        syncColumnTaskOrder(boardsAfter, targetBoardId, targetCol.id)
+        syncColumnTaskOrder(boardsAfter, sourceBoardId, sourceColumnId)
       },
 
       addReminderToTask: (boardId, columnId, taskId, reminder) => {
