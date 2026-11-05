@@ -1,31 +1,46 @@
-import { supabase } from "../lib/supabase"
+import { supabase, fetchAllRows } from "../lib/supabase"
 import type { Board, Column, Task, TaskReminder } from "../schemas/board"
 
 // Throws on any query error. Returns [] only when the boards table is confirmed empty,
 // so callers can safely treat [] as "seed needed" and an exception as "keep local state".
 export async function fetchBoardsFromSupabase(): Promise<Board[]> {
-  const { data: boardsData, error: boardsErr } = await supabase
-    .from("boards")
-    .select("*")
-    .order("position", { ascending: true })
-    .order("created_at", { ascending: true })
+  // Independent queries: run in parallel (one round-trip wave instead of three).
+  const [
+    { data: boardsData, error: boardsErr },
+    { data: colsData, error: colsErr },
+    { data: tasksData, error: tasksErr },
+  ] = await Promise.all([
+    fetchAllRows((from, to) =>
+      supabase
+        .from("boards")
+        .select("*")
+        .order("position", { ascending: true })
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to)
+    ),
+    fetchAllRows((from, to) =>
+      supabase
+        .from("columns")
+        .select("*")
+        .order("position", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to)
+    ),
+    fetchAllRows((from, to) =>
+      supabase
+        .from("tasks")
+        .select("*")
+        .order("position", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to)
+    ),
+  ])
 
   if (boardsErr) throw new Error(`boards: ${boardsErr.message}`)
-  if (!boardsData || boardsData.length === 0) return []
-
-  const { data: colsData, error: colsErr } = await supabase
-    .from("columns")
-    .select("*")
-    .order("position", { ascending: true })
-
   if (colsErr) throw new Error(`columns: ${colsErr.message}`)
-
-  const { data: tasksData, error: tasksErr } = await supabase
-    .from("tasks")
-    .select("*")
-    .order("position", { ascending: true })
-
   if (tasksErr) throw new Error(`tasks: ${tasksErr.message}`)
+  if (boardsData.length === 0) return []
 
   const tasksMap = new Map<string, Task[]>()
   ;(tasksData || []).forEach((row) => {
@@ -358,12 +373,16 @@ export async function deleteColumnFromSupabase(columnId: string): Promise<void> 
 
 export async function fetchGeneralRemindersFromSupabase(): Promise<TaskReminder[]> {
   try {
-    const { data, error } = await supabase
-      .from("general_reminders")
-      .select("*")
-      .order("created_at", { ascending: false })
+    const { data, error } = await fetchAllRows((from, to) =>
+      supabase
+        .from("general_reminders")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, to)
+    )
 
-    if (error || !data) return []
+    if (error) return []
 
     return data.map((row) => ({
       id: row.id,

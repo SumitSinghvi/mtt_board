@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { supabase } from "../lib/supabase"
+import { supabase, fetchAllRows } from "../lib/supabase"
 import { useAuthStore } from "./authStore"
 import { generateId } from "../lib/utils"
 
@@ -35,11 +35,15 @@ export const useTodoStore = create<TodoState>()(
         if (!user) return
         set({ loading: true })
         try {
-          const { data, error } = await supabase
-            .from("staff_todos")
-            .select("*")
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: false })
+          const { data, error } = await fetchAllRows((from, to) =>
+            supabase
+              .from("staff_todos")
+              .select("*")
+              .eq("user_id", user.id)
+              .order("created_at", { ascending: false })
+              .order("id", { ascending: true })
+              .range(from, to)
+          )
 
           if (error) {
             console.error("Failed to load todos from Supabase:", error)

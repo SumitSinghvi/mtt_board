@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { persist, type PersistStorage, type StorageValue } from "zustand/middleware"
 import { type Board, type Task, type BoardModules, type ActivityItem, type TaskReminder, BoardSchema } from "../schemas/board"
 import {
   fetchBoardsFromSupabase as loadSupabaseBoards,
@@ -108,6 +108,46 @@ interface BoardState {
   updateGeneralReminder: (id: string, updates: Partial<TaskReminder>) => void
   deleteGeneralReminder: (id: string) => void
   toggleGeneralReminder: (id: string) => void
+}
+
+// Persisting all boards stringifies every task/comment/payment; doing it per keystroke blocks typing.
+// Defer stringify + write, coalescing bursts; flush when the page is hidden/closed so nothing is lost.
+const PERSIST_DEBOUNCE_MS = 1000
+function createDebouncedStorage<S>(): PersistStorage<S> {
+  let pending: { name: string; value: StorageValue<S> } | null = null
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const flush = () => {
+    clearTimeout(timer)
+    if (!pending) return
+    try {
+      localStorage.setItem(pending.name, JSON.stringify(pending.value))
+    } catch (err) {
+      console.warn("boardStore persist failed:", err)
+    }
+    pending = null
+  }
+  if (typeof window !== "undefined") {
+    window.addEventListener("pagehide", flush)
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") flush()
+    })
+  }
+  return {
+    getItem: (name) => {
+      const raw = localStorage.getItem(name)
+      return raw ? (JSON.parse(raw) as StorageValue<S>) : null
+    },
+    setItem: (name, value) => {
+      pending = { name, value }
+      clearTimeout(timer)
+      timer = setTimeout(flush, PERSIST_DEBOUNCE_MS)
+    },
+    removeItem: (name) => {
+      pending = null
+      clearTimeout(timer)
+      localStorage.removeItem(name)
+    },
+  }
 }
 
 function findColumn(boards: Board[], boardId: string, columnId: string) {
@@ -739,6 +779,7 @@ export const useBoardStore = create<BoardState>()(
     }),
     {
       name: "mtt-boards-storage",
+      storage: createDebouncedStorage(),
       partialize: (state) => ({
         boards: state.boards,
         activeBoardId: state.activeBoardId,

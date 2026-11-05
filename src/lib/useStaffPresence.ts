@@ -32,14 +32,16 @@ export function getCurrentPageTitle(): string {
 }
 
 export function useStaffPresence() {
-  const { user } = useAuthStore()
-  const { currentView, activeBoardId, selectedTask } = useBoardStore()
+  const userId = useAuthStore((s) => s.user?.id)
+  const currentView = useBoardStore((s) => s.currentView)
+  const activeBoardId = useBoardStore((s) => s.activeBoardId)
+  const selectedTaskId = useBoardStore((s) => s.selectedTask?.taskId)
   const sessionIdRef = useRef<string | null>(null)
   const lastPingTimeRef = useRef<number>(0)
   const lastPageRef = useRef<string>("")
 
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       if (sessionIdRef.current) {
         void supabase.rpc("end_staff_session", { p_session_id: sessionIdRef.current })
         sessionIdRef.current = null
@@ -60,7 +62,6 @@ export function useStaffPresence() {
     let isMounted = true
 
     const sendHeartbeat = async () => {
-      if (!user) return
       const currentPage = getCurrentPageTitle()
       lastPageRef.current = currentPage
 
@@ -115,11 +116,11 @@ export function useStaffPresence() {
       document.removeEventListener("visibilitychange", handleVisibilityChange)
       window.removeEventListener("beforeunload", handleBeforeUnload)
     }
-  }, [user?.id])
+  }, [userId])
 
   // Immediate page change sync (debounced slightly to avoid burst on rapid navigation)
   useEffect(() => {
-    if (!user || !sessionIdRef.current) return
+    if (!userId || !sessionIdRef.current) return
     const currentPage = getCurrentPageTitle()
     if (currentPage !== lastPageRef.current) {
       lastPageRef.current = currentPage
@@ -129,5 +130,5 @@ export function useStaffPresence() {
         p_current_page: currentPage,
       })
     }
-  }, [user, currentView, activeBoardId, selectedTask?.taskId])
+  }, [userId, currentView, activeBoardId, selectedTaskId])
 }

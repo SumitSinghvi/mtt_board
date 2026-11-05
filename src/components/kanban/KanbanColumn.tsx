@@ -74,7 +74,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   onMoveTask,
   onMoveToBoard,
 }: KanbanColumnProps) {
-  const { profile } = useAuthStore()
+  const profile = useAuthStore((s) => s.profile)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
   const [renameTitle, setRenameTitle] = useState(column.title)

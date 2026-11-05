@@ -263,17 +263,14 @@ export function SecretActivityPage() {
   }, [sessions, dateFilter, roleFilter, searchQuery])
 
   // Current Online Staff (unique by user_id)
-  const currentlyOnlineStaff = useMemo(() => {
-    const onlineMap = new Map<string, StaffSessionRecord>()
-    for (const session of sessions) {
-      if (isSessionOnline(session)) {
-        if (!onlineMap.has(session.user_id)) {
-          onlineMap.set(session.user_id, session)
-        }
-      }
+  // Not memoized: "online" depends on the current time, not only on `sessions` (memo kept stale staff online).
+  const onlineMap = new Map<string, StaffSessionRecord>()
+  for (const session of sessions) {
+    if (isSessionOnline(session) && !onlineMap.has(session.user_id)) {
+      onlineMap.set(session.user_id, session)
     }
-    return Array.from(onlineMap.values())
-  }, [sessions])
+  }
+  const currentlyOnlineStaff = Array.from(onlineMap.values())
 
   // Summary Metrics
   const metrics = useMemo(() => {

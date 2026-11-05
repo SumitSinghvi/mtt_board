@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import { supabase } from "../lib/supabase"
+import { supabase, fetchAllRows } from "../lib/supabase"
 import { getDefaultRolePermissions } from "../lib/permissions"
 import { useAuthStore } from "./authStore"
 
@@ -138,10 +138,14 @@ export const useStaffStore = create<StaffState>()(
       fetchStaffFromSupabase: async () => {
         try {
           set({ loading: true })
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("id, name, phone, email, role, status, permissions, created_at")
-            .order("created_at", { ascending: false })
+          const { data, error } = await fetchAllRows((from, to) =>
+            supabase
+              .from("profiles")
+              .select("id, name, phone, email, role, status, permissions, created_at")
+              .order("created_at", { ascending: false })
+              .order("id", { ascending: true })
+              .range(from, to)
+          )
 
           if (error) {
             console.warn("Could not fetch profiles from Supabase, using local fallback:", error.message)

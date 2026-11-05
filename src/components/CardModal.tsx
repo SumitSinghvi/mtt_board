@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import {
   X,
   Trash2,
@@ -73,13 +73,6 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
   const [localTitle, setLocalTitle] = useState(currentTask?.title || "")
   const [localDescription, setLocalDescription] = useState(currentTask?.description || "")
 
-  useEffect(() => {
-    if (currentTask) {
-      setLocalTitle(currentTask.title)
-      setLocalDescription(currentTask.description || "")
-    }
-  }, [currentTask?.id])
-
   const modules = currentBoard?.modules || {
     clientContact: true,
     subtasks: true,
@@ -88,14 +81,45 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
     outgoingPayment: false,
   }
 
-  // Flush pending changes to Supabase when modal unmounts
+  // Title/description keystrokes are buffered here and committed to the store after a pause:
+  // every store write re-serializes all boards and re-renders board subscribers.
+  // Commit resolves the task's current board/column by id, so a move made meanwhile doesn't drop the text.
+  const pendingTextRef = useRef<{ taskId: string; updates: Partial<Pick<Task, "title" | "description">> } | null>(null)
+  const textTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const commitPendingText = useCallback(() => {
+    clearTimeout(textTimerRef.current)
+    const pending = pendingTextRef.current
+    pendingTextRef.current = null
+    if (!pending) return
+    for (const b of useBoardStore.getState().boards) {
+      for (const c of b.columns) {
+        if (c.tasks.some((t) => t.id === pending.taskId)) {
+          updateTask(b.id, c.id, pending.taskId, pending.updates)
+          return
+        }
+      }
+    }
+  }, [updateTask])
+
+  // Pull title/description from the store on card switch or external change (refetch, other edits),
+  // but never while local keystrokes are still buffered, so typing isn't overwritten.
+  const storeTitle = currentTask?.title
+  const storeDescription = currentTask?.description
+  useEffect(() => {
+    if (storeTitle === undefined || pendingTextRef.current) return
+    setLocalTitle(storeTitle)
+    setLocalDescription(storeDescription || "")
+  }, [taskId, storeTitle, storeDescription])
+
+  // Commit buffered text and flush pending changes to Supabase when modal unmounts or switches card
   useEffect(() => {
     return () => {
+      commitPendingText()
       if (taskId) {
         flushTask(taskId)
       }
     }
-  }, [taskId, flushTask])
+  }, [taskId, flushTask, commitPendingText])
 
   // Mark comments read on modal open
   useEffect(() => {
@@ -130,6 +154,17 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
       ...fieldUpdates,
       activities: [...currentActivities, historyEvent],
     })
+  }
+
+  const queueTextChange = (field: "title" | "description", value: string) => {
+    if (!canEditCard) return
+    if (pendingTextRef.current?.taskId !== taskId) commitPendingText()
+    pendingTextRef.current = {
+      taskId,
+      updates: { ...pendingTextRef.current?.updates, [field]: value },
+    }
+    clearTimeout(textTimerRef.current)
+    textTimerRef.current = setTimeout(commitPendingText, 300)
   }
 
   const handleFieldChange = (field: keyof Task, value: unknown) => {
@@ -463,7 +498,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
               value={localTitle}
               onChange={(e) => {
                 setLocalTitle(e.target.value)
-                handleFieldChange("title", e.target.value)
+                queueTextChange("title", e.target.value)
               }}
               className="w-full text-base sm:text-xl font-bold text-stone-900 bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-85 disabled:cursor-not-allowed"
               placeholder="Card Title"
@@ -585,7 +620,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                     value={localDescription}
                     onChange={(val) => {
                       setLocalDescription(val)
-                      handleFieldChange("description", val)
+                      queueTextChange("description", val)
                     }}
                   />
                 )}

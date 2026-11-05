@@ -71,7 +71,8 @@ export const KanbanCard = memo(function KanbanCard({
   const checklistItems = task.checklist || []
   const doneChecklist = checklistItems.filter((c) => c.done).length
 
-  const { profile, user } = useAuthStore()
+  const profile = useAuthStore((s) => s.profile)
+  const user = useAuthStore((s) => s.user)
   const currentUserName = profile?.name || user?.email?.split("@")[0] || ""
   const [, setReadVersion] = useState(0)
 

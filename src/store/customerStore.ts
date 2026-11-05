@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { type Customer, CustomerSchema } from "../schemas/customer"
-import { supabase } from "../lib/supabase"
+import { supabase, fetchAllRows } from "../lib/supabase"
 
 interface CustomerState {
   customers: Customer[]
@@ -11,83 +11,38 @@ interface CustomerState {
   deleteCustomer: (id: string) => Promise<void>
 }
 
-const initialCustomers: Customer[] = [
-  {
-    id: "cust-1",
-    name: "Rajesh Sharma",
-    phone: "+91 98290 11223",
-    email: "rajesh.sharma@example.com",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "cust-2",
-    name: "Vikram Malhotra",
-    phone: "+91 97110 44556",
-    email: "vikram.m@example.com",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "cust-3",
-    name: "Sunil Verma",
-    phone: "+91 94140 88990",
-    email: "sunilverma@example.com",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "cust-4",
-    name: "Ananya Roy",
-    phone: "+91 99880 33445",
-    email: "ananya.roy@example.com",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "cust-5",
-    name: "David Miller",
-    phone: "+1 555 234 5678",
-    email: "david.miller@example.com",
-    createdAt: new Date().toISOString(),
-  },
-]
-
 export const useCustomerStore = create<CustomerState>()(
   persist(
     (set, get) => ({
-      customers: initialCustomers,
+      customers: [],
       loading: false,
 
       fetchCustomersFromSupabase: async () => {
         try {
           set({ loading: true })
-          const { data, error } = await supabase
-            .from("customers")
-            .select("id, name, phone, email, created_at")
-            .order("created_at", { ascending: false })
+          const { data, error } = await fetchAllRows((from, to) =>
+            supabase
+              .from("customers")
+              .select("id, name, phone, email, created_at")
+              .order("created_at", { ascending: false })
+              .order("id", { ascending: true })
+              .range(from, to)
+          )
 
           if (error) {
             console.warn("Error fetching customers from Supabase:", error.message)
             return
           }
 
-          if (data && data.length > 0) {
-            const mapped: Customer[] = data.map((c) => ({
-              id: c.id,
-              name: c.name,
-              phone: c.phone || undefined,
-              email: c.email || undefined,
-              createdAt: c.created_at || new Date().toISOString(),
-            }))
-            set({ customers: mapped })
-          } else {
-            // Seed initial customers to Supabase if empty
-            for (const cust of initialCustomers) {
-              await supabase.from("customers").upsert({
-                id: cust.id,
-                name: cust.name,
-                phone: cust.phone,
-                email: cust.email,
-              })
-            }
-          }
+          // A successful fetch is the source of truth, including an empty one (no demo seeding).
+          const mapped: Customer[] = data.map((c) => ({
+            id: c.id,
+            name: c.name,
+            phone: c.phone || undefined,
+            email: c.email || undefined,
+            createdAt: c.created_at || new Date().toISOString(),
+          }))
+          set({ customers: mapped })
         } catch (err) {
           console.warn("fetchCustomersFromSupabase exception:", err)
         } finally {
