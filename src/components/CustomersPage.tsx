@@ -20,16 +20,19 @@ import { PhoneInput } from "./ui/PhoneInput"
 
 export function CustomersPage() {
   const { customers, fetchCustomersFromSupabase, createCustomer, updateCustomer, deleteCustomer } = useCustomerStore()
-  const { boards, setCurrentView } = useBoardStore()
+  const { boards, setCurrentView, fetchBoardsFromSupabase } = useBoardStore()
   const { profile } = useAuthStore()
 
   const isAdmin = profile?.role === "admin"
 
+  // Boards are otherwise only loaded at login; refresh them too so booking links
+  // aren't counted from a stale copy in a long-open tab.
   useEffect(() => {
     if (isAdmin) {
       fetchCustomersFromSupabase()
+      fetchBoardsFromSupabase()
     }
-  }, [fetchCustomersFromSupabase, isAdmin])
+  }, [fetchCustomersFromSupabase, fetchBoardsFromSupabase, isAdmin])
 
   const [search, setSearch] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
