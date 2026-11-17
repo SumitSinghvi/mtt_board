@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   X,
   Plus,
@@ -16,7 +16,8 @@ import {
   CheckCircle2,
 } from "lucide-react"
 import { useBoardStore } from "../store/boardStore"
-import { useCustomerStore } from "../store/customerStore"
+import { useCustomerStore, ensureCustomer } from "../store/customerStore"
+import type { Customer } from "../schemas/customer"
 import { useStaffStore, initialStaff } from "../store/staffStore"
 import { CustomerCombobox } from "./CustomerCombobox"
 import { PhoneInput } from "./ui/PhoneInput"
@@ -109,22 +110,27 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
   const [customerEmail, setCustomerEmail] = useState("")
   const [attemptedSubmit, setAttemptedSubmit] = useState(false)
 
-  const { customers, saveCustomer } = useCustomerStore()
+  const [customerId, setCustomerId] = useState<string | null>(null)
+  const submittingRef = useRef(false) // blocks a double submit while the customer save is awaited
   const trimmedCustName = customerName.trim()
-  const isCustInDirectory = Boolean(
-    trimmedCustName &&
-    customers.some((c) => c.name.toLowerCase() === trimmedCustName.toLowerCase())
-  )
+  const isCustInDirectory = Boolean(trimmedCustName && customerId)
 
-  const handleAddCustToDirectory = (nameToSave?: string) => {
+  const linkCustomer = (c: Customer) => {
+    setCustomerId(c.id)
+    setCustomerName(c.name)
+    if (c.phone) setCustomerPhone(c.phone)
+    if (c.email) setCustomerEmail(c.email)
+  }
+
+  const handleAddCustToDirectory = async (nameToSave?: string) => {
     const name = (nameToSave || trimmedCustName).trim()
     if (!name) return
     setCustomerName(name)
-    saveCustomer({
-      name,
-      phone: customerPhone.trim() || undefined,
-      email: customerEmail.trim() || undefined,
-    })
+    try {
+      linkCustomer(await ensureCustomer({ name, phone: customerPhone, email: customerEmail }))
+    } catch (err) {
+      toast.error((err as Error).message)
+    }
   }
 
   // Close on Escape key
@@ -138,7 +144,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
 
   if (!currentBoard) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setAttemptedSubmit(true)
     if (!title.trim()) {
@@ -151,12 +157,31 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
       return
     }
 
+    // Link the card to a directory customer. A failed customer save never blocks the card:
+    // it is created unlinked (its typed contact text is kept) and can be linked later.
+    let linkedId: string | undefined
+    if (submittingRef.current) return
+    submittingRef.current = true
     if (modules.clientContact && customerName.trim()) {
-      useCustomerStore.getState().saveCustomer({
-        name: customerName,
-        phone: customerPhone,
-        email: customerEmail,
-      })
+      try {
+        const store = useCustomerStore.getState()
+        const input = { name: customerName, phone: customerPhone, email: customerEmail }
+        const linked = customerId ? store.customers.find((c) => c.id === customerId) : undefined
+        if (linked) {
+          // Contact typed on the card updates the customer record (single source of truth).
+          if (
+            (customerPhone.trim() && customerPhone.trim() !== linked.phone) ||
+            (customerEmail.trim() && customerEmail.trim() !== linked.email)
+          ) {
+            await store.updateCustomer(linked.id, { ...input, name: linked.name })
+          }
+          linkedId = linked.id
+        } else {
+          linkedId = (await ensureCustomer(input)).id
+        }
+      } catch (err) {
+        toast.warning(`Card saved without customer link: ${(err as Error).message}`)
+      }
     }
 
     const hotelBooking =
@@ -209,6 +234,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
       assignees,
       assignee: assignees[0] || undefined,
       leader: leader || (assignees.length > 0 ? assignees[0] : undefined),
+      customerId: linkedId,
       customerName: modules.clientContact && customerName.trim() ? customerName.trim() : undefined,
       customerPhone: modules.clientContact && customerPhone.trim() ? customerPhone.trim() : undefined,
       customerEmail: modules.clientContact && customerEmail.trim() ? customerEmail.trim() : undefined,
@@ -493,13 +519,12 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                       value={customerName}
                       required={modules.clientContact}
                       hasError={attemptedSubmit && !customerName.trim()}
-                      onChange={setCustomerName}
-                      onAddNewCustomer={handleAddCustToDirectory}
-                      onSelectCustomer={(c) => {
-                        setCustomerName(c.name)
-                        if (c.phone) setCustomerPhone(c.phone)
-                        if (c.email) setCustomerEmail(c.email)
+                      onChange={(v) => {
+                        setCustomerName(v)
+                        setCustomerId(null) // typing a different name drops the link
                       }}
+                      onAddNewCustomer={handleAddCustToDirectory}
+                      onSelectCustomer={linkCustomer}
                     />
                     {attemptedSubmit && !customerName.trim() && (
                       <p className="text-[10px] text-red-600 mt-1 font-medium">

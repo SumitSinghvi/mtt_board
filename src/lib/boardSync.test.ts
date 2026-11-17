@@ -4,6 +4,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 const tables: Record<string, unknown[] | { error: string }> = {}
 const SERVER_MAX_ROWS = 1000
 const rangeCalls: string[] = []
+// Results returned by successive tasks.upsert() calls (default: success); records each payload.
+const upsertResults: { error: { code?: string; message: string } | null }[] = []
+const upserts: Record<string, unknown>[] = []
 
 vi.mock("./supabase", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./supabase")>()
@@ -19,6 +22,10 @@ vi.mock("./supabase", async (importOriginal) => {
         const stop = Math.min(end + 1, start + SERVER_MAX_ROWS, t.length)
         return Promise.resolve({ data: t.slice(start, Math.max(start, stop)), error: null })
       },
+      upsert: (row: Record<string, unknown>) => {
+        upserts.push(row)
+        return Promise.resolve(upsertResults.shift() ?? { error: null })
+      },
     }
     return builder
   }
@@ -26,11 +33,13 @@ vi.mock("./supabase", async (importOriginal) => {
 })
 
 const { fetchAllRows } = await import("./supabase")
-const { fetchBoardsFromSupabase } = await import("./boardSync")
+const { fetchBoardsFromSupabase, syncTaskToSupabase } = await import("./boardSync")
 
 beforeEach(() => {
   for (const k of Object.keys(tables)) delete tables[k]
   rangeCalls.length = 0
+  upsertResults.length = 0
+  upserts.length = 0
 })
 
 describe("fetchAllRows", () => {
@@ -105,5 +114,38 @@ describe("fetchBoardsFromSupabase", () => {
     await fetchBoardsFromSupabase()
     // All three first pages are requested before any second page.
     expect(rangeCalls.slice(0, 3).sort()).toEqual(["boards", "columns", "tasks"])
+  })
+})
+
+describe("customer link (customer_id)", () => {
+  const base = { id: "t1", title: "Trip", priority: "medium" as const, createdAt: "2026-01-01" }
+
+  it("maps tasks.customer_id to task.customerId", async () => {
+    tables.boards = [{ id: "b1", title: "B", position: 0, created_at: "2026-01-01" }]
+    tables.columns = [{ id: "c1", board_id: "b1", title: "To Do", position: 0 }]
+    tables.tasks = [
+      { id: "t1", column_id: "c1", title: "A", customer_id: "cust-1", pax_adults: null, pax_kids: null },
+      { id: "t2", column_id: "c1", title: "B", customer_id: null, pax_adults: null, pax_kids: null },
+    ]
+    const [t1, t2] = (await fetchBoardsFromSupabase())[0].columns[0].tasks
+    expect(t1.customerId).toBe("cust-1")
+    expect(t2.customerId).toBeUndefined()
+  })
+
+  it("omits customer_id when unknown, sends it when set or explicitly null", async () => {
+    await syncTaskToSupabase("b1", "c1", base, 0, true)
+    await syncTaskToSupabase("b1", "c1", { ...base, customerId: "cust-1" }, 0, true)
+    await syncTaskToSupabase("b1", "c1", { ...base, customerId: null }, 0, true)
+    expect("customer_id" in upserts[0]).toBe(false)
+    expect(upserts[1].customer_id).toBe("cust-1")
+    expect(upserts[2].customer_id).toBeNull()
+  })
+
+  it("retries without customer_id when the DB is not migrated yet, so the card still saves", async () => {
+    upsertResults.push({ error: { code: "PGRST204", message: "column customer_id not found" } })
+    await syncTaskToSupabase("b1", "c1", { ...base, customerId: "cust-1", customerName: "Ravi" }, 0, true)
+    expect(upserts).toHaveLength(2)
+    expect("customer_id" in upserts[1]).toBe(false)
+    expect(upserts[1].customer_name).toBe("Ravi")
   })
 })

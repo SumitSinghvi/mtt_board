@@ -57,6 +57,7 @@ export async function fetchBoardsFromSupabase(): Promise<Board[]> {
       assignees,
       leader: row.leader || undefined,
       createdBy: row.created_by || undefined,
+      customerId: row.customer_id || undefined,
       customerName: row.customer_name || undefined,
       customerPhone: row.customer_phone || undefined,
       customerEmail: row.customer_email || undefined,
@@ -240,7 +241,7 @@ export async function syncTaskToSupabase(
           ? [task.assignee]
           : []
 
-      const { error } = await supabase.from("tasks").upsert({
+      const row = {
         id: task.id,
         board_id: boardId,
         column_id: columnId,
@@ -251,6 +252,8 @@ export async function syncTaskToSupabase(
         assignees: assigneesList,
         leader: task.leader || null,
         created_by: task.createdBy || null,
+        // Only sent once set, so saves keep working before the customer_link migration runs.
+        ...(task.customerId !== undefined && { customer_id: task.customerId }),
         customer_name: task.customerName || null,
         customer_phone: task.customerPhone || null,
         customer_email: task.customerEmail || null,
@@ -272,7 +275,15 @@ export async function syncTaskToSupabase(
         payment_tracking: task.paymentTracking || null,
         outgoing_payment: task.outgoingPayment || null,
         updated_at: new Date().toISOString(),
-      })
+      }
+
+      let { error } = await supabase.from("tasks").upsert(row)
+      // ponytail: DB without the customer_link migration rejects customer_id (PGRST204);
+      // retry without it so the card's other edits are not lost. Remove once migrated everywhere.
+      if (error?.code === "PGRST204" && "customer_id" in row) {
+        const { customer_id: _, ...rest } = row
+        ;({ error } = await supabase.from("tasks").upsert(rest))
+      }
 
       if (error) {
         console.error("syncTaskToSupabase error:", error.message, error.details)

@@ -6,7 +6,7 @@ import type { Customer } from "../schemas/customer"
 interface CustomerComboboxProps {
   value: string
   onChange: (value: string) => void
-  onSelectCustomer: (customer: { name: string; phone?: string; email?: string }) => void
+  onSelectCustomer: (customer: Customer) => void
   onAddNewCustomer?: (name: string) => void
   placeholder?: string
   disabled?: boolean
@@ -52,11 +52,7 @@ export function CustomerCombobox({
 
   const handleSelect = (customer: Customer) => {
     onChange(customer.name)
-    onSelectCustomer({
-      name: customer.name,
-      phone: customer.phone,
-      email: customer.email,
-    })
+    onSelectCustomer(customer)
     setIsOpen(false)
   }
 
@@ -153,7 +149,7 @@ export function CustomerCombobox({
                   if (onAddNewCustomer) {
                     onAddNewCustomer(trimmed)
                   } else {
-                    useCustomerStore.getState().saveCustomer({ name: trimmed })
+                    useCustomerStore.getState().createCustomer({ name: trimmed }).catch((err) => console.error(err))
                   }
                   setIsOpen(false)
                 }}

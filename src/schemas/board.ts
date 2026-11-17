@@ -165,6 +165,9 @@ export const TaskSchema = z.object({
   assignees: z.array(z.string()).optional(),
   leader: z.string().optional(),
   createdBy: z.string().optional(),
+  // Link to customers.id. null = explicitly unlinked; undefined = unknown (not sent to DB).
+  customerId: z.string().nullable().optional(),
+  // Display copies of the linked customer's contact (kept in sync by DB trigger).
   customerName: z.string().optional(),
   customerPhone: z.string().optional(),
   customerEmail: z.string().optional(),

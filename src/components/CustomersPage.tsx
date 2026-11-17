@@ -9,14 +9,17 @@ import {
   X,
   FileText,
   ShieldAlert,
+  Pencil,
 } from "lucide-react"
-import { useCustomerStore } from "../store/customerStore"
+import { toast } from "sonner"
+import { useCustomerStore, findCustomerMatch } from "../store/customerStore"
+import type { Customer } from "../schemas/customer"
 import { useBoardStore } from "../store/boardStore"
 import { useAuthStore } from "../store/authStore"
 import { PhoneInput } from "./ui/PhoneInput"
 
 export function CustomersPage() {
-  const { customers, fetchCustomersFromSupabase, saveCustomer, deleteCustomer } = useCustomerStore()
+  const { customers, fetchCustomersFromSupabase, createCustomer, updateCustomer, deleteCustomer } = useCustomerStore()
   const { boards, setCurrentView } = useBoardStore()
   const { profile } = useAuthStore()
 
@@ -33,6 +36,16 @@ export function CustomersPage() {
   const [name, setName] = useState("")
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  const openModal = (c?: Customer) => {
+    setEditingId(c?.id ?? null)
+    setName(c?.name ?? "")
+    setPhone(c?.phone ?? "")
+    setEmail(c?.email ?? "")
+    setIsModalOpen(true)
+  }
 
   // Filter customers
   const filtered = customers.filter(
@@ -43,12 +56,12 @@ export function CustomersPage() {
   )
 
   // Find linked cards across all boards for a customer
-  const getCustomerBookings = (custName: string) => {
+  const getCustomerBookings = (customerId: string) => {
     const list: { boardTitle: string; cardTitle: string; amount?: number }[] = []
     boards.forEach((board) => {
       board.columns.forEach((col) => {
         col.tasks.forEach((t) => {
-          if (t.customerName && t.customerName.toLowerCase() === custName.toLowerCase()) {
+          if (t.customerId === customerId) {
             list.push({
               boardTitle: board.title,
               cardTitle: t.title,
@@ -61,15 +74,33 @@ export function CustomersPage() {
     return list
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) return
+    if (!name.trim() || saving) return
+    const input = { name, phone, email }
 
-    saveCustomer({ name: name.trim(), phone: phone.trim() || undefined, email: email.trim() || undefined })
-    setName("")
-    setPhone("")
-    setEmail("")
-    setIsModalOpen(false)
+    if (!editingId) {
+      const match = findCustomerMatch(customers, input)
+      if (match && !confirm(`"${match.name}"${match.phone ? ` (${match.phone})` : ""} already exists. Add a separate customer anyway?`)) {
+        return
+      }
+    }
+
+    setSaving(true)
+    try {
+      if (editingId) {
+        await updateCustomer(editingId, input)
+        toast.success("Customer updated (linked cards updated too)")
+      } else {
+        await createCustomer(input)
+        toast.success("Customer added")
+      }
+      setIsModalOpen(false)
+    } catch (err) {
+      toast.error((err as Error).message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (!isAdmin) {
@@ -125,7 +156,7 @@ export function CustomersPage() {
 
           <button
             type="button"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => openModal()}
             className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-blue-700 transition shrink-0"
           >
             <Plus className="size-3.5" />
@@ -155,7 +186,7 @@ export function CustomersPage() {
             </thead>
             <tbody className="divide-y divide-stone-100">
               {filtered.map((c) => {
-                const bookings = getCustomerBookings(c.name)
+                const bookings = getCustomerBookings(c.id)
 
                 return (
                   <tr key={c.id} className="hover:bg-blue-50/30 transition">
@@ -220,12 +251,20 @@ export function CustomersPage() {
                       )}
                     </td>
 
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => openModal(c)}
+                        title="Edit Customer"
+                        className="p-1 rounded text-stone-400 hover:text-blue-700 hover:bg-blue-50 transition"
+                      >
+                        <Pencil className="size-3.5" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
                           if (confirm(`Remove "${c.name}" from customer directory?`)) {
-                            deleteCustomer(c.id)
+                            deleteCustomer(c.id).catch((err) => toast.error((err as Error).message))
                           }
                         }}
                         title="Delete Customer"
@@ -248,7 +287,7 @@ export function CustomersPage() {
           <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs" onClick={() => setIsModalOpen(false)} />
           <div className="relative w-full max-w-md rounded-xl border border-stone-200 bg-white p-4 sm:p-6 shadow-xl z-10">
             <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-              <h2 className="text-sm font-bold text-stone-900">Add New Customer</h2>
+              <h2 className="text-sm font-bold text-stone-900">{editingId ? "Edit Customer" : "Add New Customer"}</h2>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
@@ -303,7 +342,8 @@ export function CustomersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-2xs"
+                  disabled={saving}
+                  className="rounded-md bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-2xs disabled:opacity-60"
                 >
                   Save Customer
                 </button>

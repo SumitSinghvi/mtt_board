@@ -2,18 +2,68 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { type Customer, CustomerSchema } from "../schemas/customer"
 import { supabase, fetchAllRows } from "../lib/supabase"
+import { useBoardStore } from "./boardStore"
+
+type CustomerInput = { name: string; phone?: string; email?: string }
 
 interface CustomerState {
   customers: Customer[]
   loading: boolean
   fetchCustomersFromSupabase: () => Promise<void>
-  saveCustomer: (data: { name: string; phone?: string; email?: string }) => Promise<Customer>
+  createCustomer: (data: CustomerInput) => Promise<Customer>
+  updateCustomer: (id: string, data: CustomerInput) => Promise<Customer>
   deleteCustomer: (id: string) => Promise<void>
 }
 
+// Same rule as public.phone_key() in the customer_link migration: last 10 digits, null if < 7 digits.
+export function phoneKey(phone?: string | null): string | null {
+  const digits = (phone || "").replace(/\D/g, "")
+  return digits.length >= 7 ? digits.slice(-10) : null
+}
+
+/** Existing customer that is probably this person: unique phone match, else unique name match without a phone conflict. */
+export function findCustomerMatch(customers: Customer[], { name, phone }: CustomerInput): Customer | null {
+  const pk = phoneKey(phone)
+  if (pk) {
+    const byPhone = customers.filter((c) => phoneKey(c.phone) === pk)
+    if (byPhone.length === 1) return byPhone[0]
+    if (byPhone.length > 1) return null
+  }
+  const nk = name.trim().toLowerCase()
+  const byName = customers.filter((c) => c.name.trim().toLowerCase() === nk)
+  if (byName.length !== 1) return null
+  const cpk = phoneKey(byName[0].phone)
+  return !pk || !cpk || cpk === pk ? byName[0] : null
+}
+
+/** Count of cards linked to a customer, across all boards. */
+export function countCustomerBookings(customerId: string): number {
+  let n = 0
+  for (const b of useBoardStore.getState().boards)
+    for (const col of b.columns) for (const t of col.tasks) if (t.customerId === customerId) n++
+  return n
+}
+
+/** Link target for a card: offers an existing match (confirm), otherwise creates a new customer. */
+export async function ensureCustomer(data: CustomerInput): Promise<Customer> {
+  const match = findCustomerMatch(useCustomerStore.getState().customers, data)
+  if (
+    match &&
+    window.confirm(
+      `"${match.name}"${match.phone ? ` (${match.phone})` : ""} is already in the Customer Directory.\n\n` +
+        `OK = link this card to them\nCancel = create a separate customer`
+    )
+  ) {
+    return match
+  }
+  return useCustomerStore.getState().createCustomer(data)
+}
+
+const clean = (v?: string) => v?.trim() || undefined
+
 export const useCustomerStore = create<CustomerState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       customers: [],
       loading: false,
 
@@ -50,79 +100,83 @@ export const useCustomerStore = create<CustomerState>()(
         }
       },
 
-      saveCustomer: async ({ name, phone, email }) => {
-        const trimmedName = name.trim()
-        if (!trimmedName) {
-          throw new Error("Customer name required")
-        }
-
-        const existing = get().customers.find(
-          (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
-        )
-
-        if (existing) {
-          const updated: Customer = {
-            ...existing,
-            phone: phone?.trim() || existing.phone,
-            email: email?.trim() || existing.email,
-          }
-
-          set((state) => ({
-            customers: state.customers.map((c) => (c.id === existing.id ? updated : c)),
-          }))
-
-          try {
-            await supabase
-              .from("customers")
-              .update({
-                phone: updated.phone,
-                email: updated.email,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", existing.id)
-          } catch {
-            // ignore
-          }
-
-          return updated
-        }
-
+      // Always a new record (never merges by name). Resolves only after the DB insert succeeds,
+      // so a card is never linked to a customer that does not exist.
+      createCustomer: async ({ name, phone, email }) => {
         const newCustomer: Customer = CustomerSchema.parse({
-          id: `cust-${Date.now()}`,
-          name: trimmedName,
-          phone: phone?.trim() || undefined,
-          email: email?.trim() || undefined,
+          id: `cust-${crypto.randomUUID()}`,
+          name: name.trim(),
+          phone: clean(phone),
+          email: clean(email),
           createdAt: new Date().toISOString(),
         })
 
-        set((state) => ({
-          customers: [newCustomer, ...state.customers],
-        }))
+        const { error } = await supabase.from("customers").insert({
+          id: newCustomer.id,
+          name: newCustomer.name,
+          phone: newCustomer.phone ?? null,
+          email: newCustomer.email ?? null,
+        })
+        if (error) throw new Error(`Could not save customer: ${error.message}`)
 
-        try {
-          await supabase.from("customers").insert({
-            id: newCustomer.id,
-            name: newCustomer.name,
-            phone: newCustomer.phone,
-            email: newCustomer.email,
-          })
-        } catch {
-          // ignore
-        }
-
+        set((state) => ({ customers: [newCustomer, ...state.customers] }))
         return newCustomer
       },
 
-      deleteCustomer: async (id) => {
-        set((state) => ({
-          customers: state.customers.filter((c) => c.id !== id),
-        }))
+      // DB trigger copies the change onto linked cards; mirror it locally (no card re-sync needed).
+      // Empty phone/email keep the old value, so an edit never blanks stored contact info.
+      updateCustomer: async (id, { name, phone, email }) => {
+        const existing = useCustomerStore.getState().customers.find((c) => c.id === id)
+        if (!existing) throw new Error("Customer not found")
+        const updated: Customer = CustomerSchema.parse({
+          ...existing,
+          name: name.trim(),
+          phone: clean(phone) ?? existing.phone,
+          email: clean(email) ?? existing.email,
+        })
 
-        try {
-          await supabase.from("customers").delete().eq("id", id)
-        } catch {
-          // ignore
+        const { error } = await supabase
+          .from("customers")
+          .update({
+            name: updated.name,
+            phone: updated.phone ?? null,
+            email: updated.email ?? null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id)
+        if (error) throw new Error(`Could not update customer: ${error.message}`)
+
+        set((state) => ({ customers: state.customers.map((c) => (c.id === id ? updated : c)) }))
+        useBoardStore.setState((state) => ({
+          boards: state.boards.map((b) => ({
+            ...b,
+            columns: b.columns.map((col) => ({
+              ...col,
+              tasks: col.tasks.map((t) =>
+                t.customerId === id
+                  ? {
+                      ...t,
+                      customerName: updated.name,
+                      customerPhone: updated.phone ?? t.customerPhone,
+                      customerEmail: updated.email ?? t.customerEmail,
+                    }
+                  : t
+              ),
+            })),
+          })),
+        }))
+        return updated
+      },
+
+      // Refuses while cards are linked, so booking history is never orphaned by accident.
+      deleteCustomer: async (id) => {
+        const linked = countCustomerBookings(id)
+        if (linked > 0) {
+          throw new Error(`Customer has ${linked} linked card${linked === 1 ? "" : "s"}. Unlink them first.`)
         }
+        const { error } = await supabase.from("customers").delete().eq("id", id)
+        if (error) throw new Error(`Could not delete customer: ${error.message}`)
+        set((state) => ({ customers: state.customers.filter((c) => c.id !== id) }))
       },
     }),
     {

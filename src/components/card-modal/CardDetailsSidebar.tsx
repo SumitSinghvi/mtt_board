@@ -12,7 +12,9 @@ import {
   Crown,
 } from "lucide-react"
 import { CustomerCombobox } from "../CustomerCombobox"
-import { useCustomerStore } from "../../store/customerStore"
+import { useCustomerStore, ensureCustomer, phoneKey } from "../../store/customerStore"
+import type { Customer } from "../../schemas/customer"
+import { toast } from "sonner"
 import { formatDate } from "../../lib/date"
 import { priorityColors } from "./priorityColors"
 import { type Task, type Board, type Priority, getTaskAssignees } from "../../schemas/board"
@@ -45,22 +47,40 @@ export function CardDetailsSidebar({
     ? `https://wa.me/${cleanPhone.startsWith("91") ? cleanPhone : `91${cleanPhone}`}`
     : null
 
-  const { customers, saveCustomer } = useCustomerStore()
+  const { customers, updateCustomer } = useCustomerStore()
   const trimmedCustomerName = currentTask.customerName?.trim() || ""
-  const isCustomerInDirectory = Boolean(
-    trimmedCustomerName &&
-    customers.some((c) => c.name.toLowerCase() === trimmedCustomerName.toLowerCase())
-  )
+  const linkedCustomer = currentTask.customerId
+    ? customers.find((c) => c.id === currentTask.customerId)
+    : undefined
+  const isCustomerInDirectory = Boolean(trimmedCustomerName && currentTask.customerId)
 
-  const handleAddCustomerToDirectory = (nameToSave?: string) => {
+  const linkCustomer = (c: Customer) => {
+    onChangeField("customerId", c.id)
+    onChangeField("customerName", c.name)
+    if (c.phone) onChangeField("customerPhone", c.phone)
+    if (c.email) onChangeField("customerEmail", c.email)
+  }
+
+  const handleAddCustomerToDirectory = async (nameToSave?: string) => {
     const name = (nameToSave || trimmedCustomerName).trim()
     if (!name) return
     onChangeField("customerName", name)
-    saveCustomer({
-      name,
-      phone: currentTask.customerPhone,
-      email: currentTask.customerEmail,
-    })
+    try {
+      linkCustomer(
+        await ensureCustomer({ name, phone: currentTask.customerPhone, email: currentTask.customerEmail })
+      )
+    } catch (err) {
+      toast.error((err as Error).message)
+    }
+  }
+
+  // Phone edited on a linked card updates the customer record (and so every linked card).
+  const handlePhoneBlur = () => {
+    const phone = currentTask.customerPhone?.trim()
+    if (!linkedCustomer || !phone || phoneKey(phone) === phoneKey(linkedCustomer.phone)) return
+    updateCustomer(linkedCustomer.id, { name: linkedCustomer.name, phone, email: linkedCustomer.email })
+      .then(() => toast.success(`Updated phone for ${linkedCustomer.name}`))
+      .catch((err) => toast.error((err as Error).message))
   }
 
   return (
@@ -254,13 +274,13 @@ export function CardDetailsSidebar({
                   disabled={!canEdit}
                   required={clientContactEnabled}
                   hasError={clientContactEnabled && !currentTask.customerName?.trim()}
-                  onChange={(name) => onChangeField("customerName", name)}
-                  onAddNewCustomer={(name) => handleAddCustomerToDirectory(name)}
-                  onSelectCustomer={(c) => {
-                    onChangeField("customerName", c.name)
-                    if (c.phone) onChangeField("customerPhone", c.phone)
-                    if (c.email) onChangeField("customerEmail", c.email)
+                  onChange={(name) => {
+                    onChangeField("customerName", name)
+                    // typing a different name drops the link (fix a customer's name on the Customers page)
+                    if (currentTask.customerId) onChangeField("customerId", null)
                   }}
+                  onAddNewCustomer={(name) => handleAddCustomerToDirectory(name)}
+                  onSelectCustomer={linkCustomer}
                 />
                 {clientContactEnabled && !currentTask.customerName?.trim() && (
                   <p className="text-[10px] text-red-600 mt-1 font-medium">
@@ -270,7 +290,7 @@ export function CardDetailsSidebar({
               </div>
 
               {/* Phone + WhatsApp row */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" onBlur={handlePhoneBlur}>
                 <PhoneInput
                   value={currentTask.customerPhone || ""}
                   disabled={!canEdit}
