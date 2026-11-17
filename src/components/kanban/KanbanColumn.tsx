@@ -99,9 +99,9 @@ export const KanbanColumn = memo(function KanbanColumn({
       onDragEnd={onResetDrag}
       className={`flex w-[82vw] max-w-xs sm:w-80 shrink-0 flex-col rounded-xl border bg-stone-50/90 shadow-2xs max-h-full transition-all duration-150 ${
         isDraggingThisCol
-          ? "opacity-40 scale-[0.98] border-amber-400 border-dashed"
+          ? "opacity-40 scale-[0.98] border-blue-400 border-dashed"
           : isOverThisCol
-          ? "border-amber-500 ring-2 ring-amber-400/50 shadow-md translate-y-[-2px]"
+          ? "border-blue-500 ring-2 ring-blue-400/50 shadow-md translate-y-[-2px]"
           : "border-stone-200/80"
       }`}
     >
@@ -112,7 +112,7 @@ export const KanbanColumn = memo(function KanbanColumn({
           {isAdmin && (
             <div
               title="Drag column to move left or right"
-              className="cursor-grab active:cursor-grabbing p-0.5 text-stone-400 hover:text-amber-700 transition shrink-0"
+              className="cursor-grab active:cursor-grabbing p-0.5 text-stone-400 hover:text-blue-700 transition shrink-0"
             >
               <GripVertical className="size-4" />
             </div>
@@ -133,7 +133,7 @@ export const KanbanColumn = memo(function KanbanColumn({
                   setIsRenaming(false)
                 }
               }}
-              className="w-full text-xs font-bold text-stone-900 bg-white border border-amber-500 rounded px-1.5 py-0.5 outline-none ring-1 ring-amber-400/50"
+              className="w-full text-xs font-bold text-stone-900 bg-white border border-blue-500 rounded px-1.5 py-0.5 outline-none ring-1 ring-blue-400/50"
             />
           ) : (
             <span
@@ -144,7 +144,7 @@ export const KanbanColumn = memo(function KanbanColumn({
               }}
               title={isAdmin ? "Double-click to rename" : undefined}
               className={`text-xs font-bold text-stone-800 truncate ${
-                isAdmin ? "cursor-pointer hover:text-amber-800" : ""
+                isAdmin ? "cursor-pointer hover:text-blue-800" : ""
               }`}
             >
               {column.title}
@@ -195,7 +195,7 @@ export const KanbanColumn = memo(function KanbanColumn({
                       setIsMenuOpen(false)
                       onAddCardClick(column.id)
                     }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-stone-700 hover:bg-amber-50 hover:text-amber-900 transition"
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-stone-700 hover:bg-blue-50 hover:text-blue-900 transition"
                   >
                     <Plus className="size-3.5 text-stone-400" />
                     <span>Add Card</span>

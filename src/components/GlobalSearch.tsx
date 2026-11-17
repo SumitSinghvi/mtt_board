@@ -159,7 +159,7 @@ export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
                       className="group rounded-lg p-2.5 hover:bg-stone-50 border border-stone-100 hover:border-stone-200 transition cursor-pointer"
                     >
                       <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-xs font-bold text-stone-900 group-hover:text-amber-800 truncate">
+                        <span className="text-xs font-bold text-stone-900 group-hover:text-blue-800 truncate">
                           {item.title}
                         </span>
                         <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.2 text-[10px] font-semibold bg-stone-100 text-stone-600 shrink-0">
@@ -177,7 +177,7 @@ export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
 
                         {item.destination && (
                           <span className="inline-flex items-center gap-1 text-stone-500">
-                            <MapPin className="size-3 text-amber-600" />
+                            <MapPin className="size-3 text-blue-600" />
                             {item.destination}
                           </span>
                         )}
@@ -217,7 +217,7 @@ export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
             }}
             onFocus={() => setIsOpen(true)}
             placeholder="Search bookings, client phone, destination across boards..."
-            className="w-full rounded-lg border border-stone-200 bg-stone-50 pl-9 pr-8 py-1.5 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-500 transition shadow-2xs"
+            className="w-full rounded-lg border border-stone-200 bg-stone-50 pl-9 pr-8 py-1.5 text-xs text-stone-800 placeholder-stone-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition shadow-2xs"
           />
           {query && (
             <button
@@ -258,7 +258,7 @@ export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
                     className="group rounded-lg p-2.5 hover:bg-stone-50 border border-transparent hover:border-stone-200 transition cursor-pointer"
                   >
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-xs font-bold text-stone-900 group-hover:text-amber-800 truncate">
+                      <span className="text-xs font-bold text-stone-900 group-hover:text-blue-800 truncate">
                         {item.title}
                       </span>
                       <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-stone-100 text-stone-600 shrink-0">
@@ -276,7 +276,7 @@ export function GlobalSearch({ onSelectTask }: GlobalSearchProps) {
 
                       {item.destination && (
                         <span className="inline-flex items-center gap-1 text-stone-500">
-                          <MapPin className="size-3 text-amber-600" />
+                          <MapPin className="size-3 text-blue-600" />
                           {item.destination}
                         </span>
                       )}

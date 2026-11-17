@@ -181,7 +181,7 @@ export function ActivitySection({
       {/* Header with Title & Filter Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/80 pb-3">
         <h4 className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5">
-          <MessageSquare className="size-3.5 text-amber-600" />
+          <MessageSquare className="size-3.5 text-blue-600" />
           <span>{title}</span>
         </h4>
 
@@ -236,7 +236,7 @@ export function ActivitySection({
                 <span>Commenting as</span>
                 <span className="font-semibold text-stone-700">{profile.name}</span>
                 {profile.role && (
-                  <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">
+                  <span className="text-[10px] uppercase font-bold text-blue-700 bg-blue-50 px-1 py-0.2 rounded border border-blue-200">
                     {profile.role}
                   </span>
                 )}
@@ -265,12 +265,12 @@ export function ActivitySection({
                 onChange={handleTextChange}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
-                className="flex-1 rounded-lg border border-stone-200 bg-white p-2.5 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:outline-none resize-none shadow-2xs leading-relaxed"
+                className="flex-1 rounded-lg border border-stone-200 bg-white p-2.5 text-xs text-stone-800 placeholder-stone-400 focus:border-blue-500 focus:outline-none resize-none shadow-2xs leading-relaxed"
               />
               <button
                 type="submit"
                 disabled={!commentText.trim()}
-                className="self-end rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-40 disabled:hover:bg-amber-600 transition shadow-2xs flex items-center gap-1 cursor-pointer"
+                className="self-end rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-40 disabled:hover:bg-blue-600 transition shadow-2xs flex items-center gap-1 cursor-pointer"
               >
                 <Send className="size-3.5" />
                 <span>Send</span>
@@ -339,8 +339,8 @@ export function ActivitySection({
                 <div className="flex items-center justify-between gap-2 mb-1.5">
                   <div className="flex items-center gap-1.5 font-semibold text-stone-800">
                     {isComment ? (
-                      <span className="flex items-center gap-1 text-amber-700">
-                        <UserCheck className="size-3 text-amber-600" />
+                      <span className="flex items-center gap-1 text-blue-700">
+                        <UserCheck className="size-3 text-blue-600" />
                         <span>{act.author}</span>
                       </span>
                     ) : (
@@ -402,7 +402,7 @@ export function ActivitySection({
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
                       placeholder="Edit your comment..."
-                      className="w-full rounded-lg border border-amber-300 bg-amber-50/20 p-2 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:bg-white focus:outline-none resize-none leading-relaxed"
+                      className="w-full rounded-lg border border-blue-300 bg-blue-50/20 p-2 text-xs text-stone-800 placeholder-stone-400 focus:border-blue-500 focus:bg-white focus:outline-none resize-none leading-relaxed"
                       autoFocus
                     />
                     <div className="flex items-center justify-end gap-1.5">
@@ -417,7 +417,7 @@ export function ActivitySection({
                         type="button"
                         onClick={() => handleSaveEdit(act.id)}
                         disabled={!editContent.trim()}
-                        className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-40 transition shadow-2xs cursor-pointer flex items-center gap-1"
+                        className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 transition shadow-2xs cursor-pointer flex items-center gap-1"
                       >
                         <Check className="size-3" />
                         <span>Save</span>

@@ -77,7 +77,7 @@ export function CardDetailsSidebar({
           ) : (
             <ChevronRight className="size-3.5 text-stone-400" />
           )}
-          <Tag className="size-3.5 text-amber-600" />
+          <Tag className="size-3.5 text-blue-600" />
           <span>Card Details</span>
         </button>
         <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-wide px-2 py-0.5 rounded bg-stone-200/60">
@@ -132,13 +132,13 @@ export function CardDetailsSidebar({
                         key={name}
                         className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium transition ${
                           isLeader
-                            ? "bg-amber-100 text-amber-900 border border-amber-300 font-semibold"
+                            ? "bg-blue-100 text-blue-900 border border-blue-300 font-semibold"
                             : "bg-stone-100 text-stone-700 border border-stone-200/80"
                         }`}
                       >
-                        {isLeader && <Crown className="size-3 text-amber-700 shrink-0" />}
+                        {isLeader && <Crown className="size-3 text-blue-700 shrink-0" />}
                         <span className="truncate max-w-[110px]">{name}</span>
-                        {isLeader && <span className="text-[9px] uppercase font-bold text-amber-700">Lead</span>}
+                        {isLeader && <span className="text-[9px] uppercase font-bold text-blue-700">Lead</span>}
                         {canEdit && (
                           <div className="flex items-center gap-0.5 ml-0.5">
                             <button
@@ -146,8 +146,8 @@ export function CardDetailsSidebar({
                               onClick={() => onChangeField("leader", isLeader ? undefined : name)}
                               className={`rounded p-0.5 cursor-pointer ${
                                 isLeader
-                                  ? "text-amber-700 hover:text-amber-900"
-                                  : "text-stone-300 hover:text-amber-600"
+                                  ? "text-blue-700 hover:text-blue-900"
+                                  : "text-stone-300 hover:text-blue-600"
                               }`}
                               title={isLeader ? "Unset Team Leader" : `Set ${name} as Team Leader`}
                             >
@@ -191,7 +191,7 @@ export function CardDetailsSidebar({
                       }
                     }
                   }}
-                  className="w-full rounded-lg border border-stone-200 bg-white px-2 py-1 text-xs font-medium text-stone-700 focus:border-amber-500 focus:outline-none cursor-pointer"
+                  className="w-full rounded-lg border border-stone-200 bg-white px-2 py-1 text-xs font-medium text-stone-700 focus:border-blue-500 focus:outline-none cursor-pointer"
                 >
                   <option value="" disabled>+ Add assignee...</option>
                   {staff
@@ -216,7 +216,7 @@ export function CardDetailsSidebar({
                 disabled={!canEdit}
                 value={currentTask.dueDate || ""}
                 onChange={(e) => onChangeField("dueDate", e.target.value)}
-                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -233,10 +233,10 @@ export function CardDetailsSidebar({
                   <button
                     type="button"
                     onClick={() => handleAddCustomerToDirectory()}
-                    className="inline-flex items-center gap-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-1.5 py-0.5 text-[10px] font-semibold transition cursor-pointer"
+                    className="inline-flex items-center gap-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 text-[10px] font-semibold transition cursor-pointer"
                     title="Save this client to the Customer Directory"
                   >
-                    <UserPlus className="size-3 text-amber-600" />
+                    <UserPlus className="size-3 text-blue-600" />
                     <span>+ Add to Directory</span>
                   </button>
                 )}

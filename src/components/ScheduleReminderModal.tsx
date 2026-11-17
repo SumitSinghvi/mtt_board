@@ -144,7 +144,7 @@ export function ScheduleReminderModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4 bg-stone-50/80 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-amber-600 text-white shadow-2xs">
+            <div className="p-2 rounded-xl bg-blue-600 text-white shadow-2xs">
               <Bell className="size-4.5" />
             </div>
             <div>
@@ -190,7 +190,7 @@ export function ScheduleReminderModal({
                   placeholder="Filter tasks by title, customer, or destination..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8.5 pr-3 py-1.5 rounded-lg border border-stone-200 text-xs bg-stone-50/50 focus:bg-white focus:border-amber-500 focus:outline-none"
+                  className="w-full pl-8.5 pr-3 py-1.5 rounded-lg border border-stone-200 text-xs bg-stone-50/50 focus:bg-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -200,7 +200,7 @@ export function ScheduleReminderModal({
                   setSelectedTaskKey(e.target.value)
                   setError("")
                 }}
-                className="w-full rounded-xl border border-stone-200 bg-white p-2.5 text-xs font-medium text-stone-800 focus:border-amber-500 focus:outline-none shadow-2xs"
+                className="w-full rounded-xl border border-stone-200 bg-white p-2.5 text-xs font-medium text-stone-800 focus:border-blue-500 focus:outline-none shadow-2xs"
               >
                 <option value="general">
                   📌 General Operational Reminder (Not associated with any staff / task)
@@ -223,19 +223,19 @@ export function ScheduleReminderModal({
               {/* Status explanation pill */}
               {selectedTaskKey === "general" ? (
                 <div className="rounded-lg border border-stone-200 bg-stone-50 p-2 text-[11px] text-stone-600 flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-amber-600 shrink-0" />
+                  <span className="size-2 rounded-full bg-blue-600 shrink-0" />
                   <span>General operational reminder &bull; Not tied to any staff member &bull; Visible team-wide on Operations Calendar</span>
                 </div>
               ) : currentSelectedTask ? (
-                <div className="rounded-lg border border-amber-200/80 bg-amber-50/60 p-2 text-[11px] text-amber-900 flex items-center justify-between">
+                <div className="rounded-lg border border-blue-200/80 bg-blue-50/60 p-2 text-[11px] text-blue-900 flex items-center justify-between">
                   <div className="truncate">
                     <span className="font-bold">{currentSelectedTask.task.title}</span>
-                    <span className="text-amber-700/80 ml-1.5 font-medium">
+                    <span className="text-blue-700/80 ml-1.5 font-medium">
                       Board: {currentSelectedTask.boardTitle}
                     </span>
                   </div>
                   {(currentSelectedTask.task.dueDate || currentSelectedTask.task.travelStartDate) && (
-                    <span className="shrink-0 font-semibold text-[10px] text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
+                    <span className="shrink-0 font-semibold text-[10px] text-blue-800 bg-blue-100 px-2 py-0.5 rounded">
                       Due/Trip: {formatDate(currentSelectedTask.task.travelStartDate || currentSelectedTask.task.dueDate)}
                     </span>
                   )}
@@ -292,7 +292,7 @@ export function ScheduleReminderModal({
                     required
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full pl-8.5 pr-2.5 py-2 rounded-xl border border-stone-200 text-xs text-stone-800 font-medium focus:border-amber-500 focus:outline-none shadow-2xs"
+                    className="w-full pl-8.5 pr-2.5 py-2 rounded-xl border border-stone-200 text-xs text-stone-800 font-medium focus:border-blue-500 focus:outline-none shadow-2xs"
                   />
                 </div>
               </div>
@@ -304,7 +304,7 @@ export function ScheduleReminderModal({
                     type="time"
                     value={dueTime}
                     onChange={(e) => setDueTime(e.target.value)}
-                    className="w-full pl-8.5 pr-2.5 py-2 rounded-xl border border-stone-200 text-xs text-stone-800 font-medium focus:border-amber-500 focus:outline-none shadow-2xs"
+                    className="w-full pl-8.5 pr-2.5 py-2 rounded-xl border border-stone-200 text-xs text-stone-800 font-medium focus:border-blue-500 focus:outline-none shadow-2xs"
                   />
                 </div>
               </div>
@@ -329,7 +329,7 @@ export function ScheduleReminderModal({
                 setReminderText(e.target.value)
                 setError("")
               }}
-              className="w-full rounded-xl border border-stone-200 p-3 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:outline-none shadow-2xs"
+              className="w-full rounded-xl border border-stone-200 p-3 text-xs text-stone-800 placeholder-stone-400 focus:border-blue-500 focus:outline-none shadow-2xs"
             />
           </div>
 
@@ -353,7 +353,7 @@ export function ScheduleReminderModal({
                           : p === "high"
                           ? "bg-orange-500 text-white border-orange-600 shadow-2xs"
                           : p === "medium"
-                          ? "bg-amber-600 text-white border-amber-700 shadow-2xs"
+                          ? "bg-blue-600 text-white border-blue-700 shadow-2xs"
                           : "bg-stone-600 text-white border-stone-700 shadow-2xs"
                         : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100"
                     }`}
@@ -376,7 +376,7 @@ export function ScheduleReminderModal({
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 text-xs font-bold shadow-2xs transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-xs font-bold shadow-2xs transition cursor-pointer"
             >
               <Check className="size-3.5" />
               <span>Schedule Reminder</span>

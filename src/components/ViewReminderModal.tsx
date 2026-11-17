@@ -93,7 +93,7 @@ export function ViewReminderModal({
                   ? "bg-red-600"
                   : reminder.priority === "high"
                   ? "bg-orange-500"
-                  : "bg-amber-600"
+                  : "bg-blue-600"
               }`}
             >
               <Bell className="size-4.5" />
@@ -108,7 +108,7 @@ export function ViewReminderModal({
                     General
                   </span>
                 ) : (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
                     Task-Linked
                   </span>
                 )}
@@ -150,7 +150,7 @@ export function ViewReminderModal({
                 : isOverdue
                 ? "bg-red-50 border-red-200 text-red-900"
                 : isDueToday
-                ? "bg-amber-50 border-amber-200 text-amber-900"
+                ? "bg-blue-50 border-blue-200 text-blue-900"
                 : "bg-stone-50 border-stone-200 text-stone-800"
             }`}
           >
@@ -160,7 +160,7 @@ export function ViewReminderModal({
               ) : isOverdue ? (
                 <AlertTriangle className="size-4 text-red-600 shrink-0" />
               ) : (
-                <Clock className="size-4 text-amber-600 shrink-0" />
+                <Clock className="size-4 text-blue-600 shrink-0" />
               )}
               <span className="font-semibold truncate">
                 {reminder.completed
@@ -198,7 +198,7 @@ export function ViewReminderModal({
                   required
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="w-full rounded-xl border border-stone-200 p-2.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none shadow-2xs"
+                  className="w-full rounded-xl border border-stone-200 p-2.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none shadow-2xs"
                 />
               </div>
 
@@ -212,7 +212,7 @@ export function ViewReminderModal({
                     required
                     value={editDate}
                     onChange={(e) => setEditDate(e.target.value)}
-                    className="w-full rounded-xl border border-stone-200 p-2 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
+                    className="w-full rounded-xl border border-stone-200 p-2 text-xs text-stone-800 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
 
@@ -224,7 +224,7 @@ export function ViewReminderModal({
                     type="time"
                     value={editTime}
                     onChange={(e) => setEditTime(e.target.value)}
-                    className="w-full rounded-xl border border-stone-200 p-2 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
+                    className="w-full rounded-xl border border-stone-200 p-2 text-xs text-stone-800 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -241,7 +241,7 @@ export function ViewReminderModal({
                       onClick={() => setEditPriority(p)}
                       className={`py-1.5 px-2 rounded-lg font-bold capitalize border transition cursor-pointer text-center ${
                         editPriority === p
-                          ? "bg-amber-600 text-white border-amber-700 shadow-2xs"
+                          ? "bg-blue-600 text-white border-blue-700 shadow-2xs"
                           : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100"
                       }`}
                     >
@@ -261,7 +261,7 @@ export function ViewReminderModal({
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1 rounded-xl bg-amber-600 text-white px-4 py-1.5 text-xs font-bold hover:bg-amber-700 shadow-2xs"
+                  className="inline-flex items-center gap-1 rounded-xl bg-blue-600 text-white px-4 py-1.5 text-xs font-bold hover:bg-blue-700 shadow-2xs"
                 >
                   <Check className="size-3.5" />
                   <span>Save Changes</span>
@@ -310,7 +310,7 @@ export function ViewReminderModal({
                         ? "bg-red-100 text-red-800 border border-red-200"
                         : reminder.priority === "high"
                         ? "bg-orange-100 text-orange-800 border border-orange-200"
-                        : "bg-amber-100 text-amber-800 border border-amber-200"
+                        : "bg-blue-100 text-blue-800 border border-blue-200"
                     }`}
                   >
                     {reminder.priority || "Medium"}
@@ -337,7 +337,7 @@ export function ViewReminderModal({
 
                 {isGeneral ? (
                   <div className="text-xs text-stone-600 flex items-start gap-2">
-                    <span className="size-2 rounded-full bg-amber-600 mt-1.5 shrink-0" />
+                    <span className="size-2 rounded-full bg-blue-600 mt-1.5 shrink-0" />
                     <div>
                       <span className="font-bold text-stone-800 block">
                         General Operational Reminder
@@ -371,7 +371,7 @@ export function ViewReminderModal({
                           onClose()
                           onOpenTask(boardId, columnId, task.id)
                         }}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-xl transition cursor-pointer shrink-0"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-xl transition cursor-pointer shrink-0"
                       >
                         <span>Open Task Card</span>
                         <ExternalLink className="size-3.5" />

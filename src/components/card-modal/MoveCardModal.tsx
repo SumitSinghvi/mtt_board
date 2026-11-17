@@ -103,7 +103,7 @@ export function MoveCardModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
               <ArrowRightLeft className="size-4" />
             </div>
             <div>
@@ -132,7 +132,7 @@ export function MoveCardModal({
         </div>
 
         {targetBoards.length === 0 ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-center text-xs text-amber-800">
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-3.5 text-center text-xs text-blue-800">
             No other accessible active boards are currently available to receive this card.
           </div>
         ) : (
@@ -146,7 +146,7 @@ export function MoveCardModal({
                 id={boardSelectId}
                 value={activeTargetBoard?.id || ""}
                 onChange={(e) => handleBoardChange(e.target.value)}
-                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 text-xs font-semibold text-stone-800 focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 text-xs font-semibold text-stone-800 focus:border-blue-500 focus:outline-none"
               >
                 {targetBoards.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -166,7 +166,7 @@ export function MoveCardModal({
                   id={colSelectId}
                   value={selectedColId}
                   onChange={(e) => setSelectedColId(e.target.value)}
-                  className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 text-xs font-semibold text-stone-800 focus:border-amber-500 focus:outline-none"
+                  className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 text-xs font-semibold text-stone-800 focus:border-blue-500 focus:outline-none"
                 >
                   {activeTargetBoard.columns.map((col) => (
                     <option key={col.id} value={col.id}>
@@ -190,7 +190,7 @@ export function MoveCardModal({
                 id={posSelectId}
                 value={position}
                 onChange={(e) => setPosition(e.target.value as "top" | "bottom")}
-                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 text-xs font-medium text-stone-700 focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 text-xs font-medium text-stone-700 focus:border-blue-500 focus:outline-none"
               >
                 <option value="top">Top of column (First position)</option>
                 <option value="bottom">Bottom of column (Last position)</option>
@@ -205,7 +205,7 @@ export function MoveCardModal({
                   type="checkbox"
                   checked={switchBoard}
                   onChange={(e) => setSwitchBoard(e.target.checked)}
-                  className="size-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                  className="size-4 rounded border-stone-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                 />
                 <span className="text-[11px] font-medium text-stone-700">
                   Switch to destination board after moving
@@ -229,7 +229,7 @@ export function MoveCardModal({
               type="button"
               disabled={!activeTargetBoard || activeTargetBoard.columns.length === 0}
               onClick={handleConfirmMove}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-amber-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Check className="size-3.5" />
               <span>Move Card</span>

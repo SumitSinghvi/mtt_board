@@ -62,12 +62,12 @@ export function SubCardModal({
               checked={subCard.done}
               disabled={!canEdit}
               onChange={() => onToggleDone(subCard.id)}
-              className="size-5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-60"
+              className="size-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-60"
               title={subCard.done ? "Mark as incomplete" : "Mark as complete"}
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-semibold text-[10px] sm:text-[11px] shrink-0">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-semibold text-[10px] sm:text-[11px] shrink-0">
                   <Layers className="size-3" />
                   Sub-Card
                 </span>
@@ -81,7 +81,7 @@ export function SubCardModal({
                 value={subCard.text}
                 onChange={(e) => onUpdateSubCard(subCard.id, { text: e.target.value })}
                 placeholder="Sub-card title / task..."
-                className={`w-full text-base sm:text-xl font-bold bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-80 disabled:cursor-not-allowed ${
+                className={`w-full text-base sm:text-xl font-bold bg-transparent border-b border-transparent hover:border-stone-300 focus:border-blue-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-80 disabled:cursor-not-allowed ${
                   subCard.done ? "line-through text-stone-400" : "text-stone-900"
                 }`}
               />
@@ -180,14 +180,14 @@ export function SubCardModal({
               <div className="rounded-xl border border-stone-200 bg-stone-50/70 p-4 space-y-3.5 shadow-2xs">
                 <div className="flex items-center justify-between border-b border-stone-200/80 pb-2.5">
                   <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-stone-700">
-                    <Layers className="size-3.5 text-amber-600" />
+                    <Layers className="size-3.5 text-blue-600" />
                     <span>Sub-Card Details</span>
                   </div>
                   <span
                     className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                       subCard.done
                         ? "bg-emerald-100 text-emerald-700"
-                        : "bg-amber-100 text-amber-700"
+                        : "bg-blue-100 text-blue-700"
                     }`}
                   >
                     {subCard.done ? "Completed" : "In Progress"}
@@ -209,7 +209,7 @@ export function SubCardModal({
                           priority: e.target.value as Priority,
                         })
                       }
-                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 capitalize focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
+                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 capitalize focus:border-blue-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
                     >
                       <option value="urgent">Urgent</option>
                       <option value="high">High</option>
@@ -233,7 +233,7 @@ export function SubCardModal({
                           dueDate: e.target.value || undefined,
                         })
                       }
-                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
+                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
                     />
                     {subCard.dueDate && (
                       <p className="mt-1 text-[11px] text-stone-500">
@@ -256,7 +256,7 @@ export function SubCardModal({
                           assignee: e.target.value || undefined,
                         })
                       }
-                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
+                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none disabled:bg-stone-100 disabled:cursor-not-allowed"
                     >
                       <option value="">Unassigned</option>
                       {subCard.assignee && !staff.some((m) => m.name === subCard.assignee) && (

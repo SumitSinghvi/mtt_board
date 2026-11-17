@@ -500,11 +500,11 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                 setLocalTitle(e.target.value)
                 queueTextChange("title", e.target.value)
               }}
-              className="w-full text-base sm:text-xl font-bold text-stone-900 bg-transparent border-b border-transparent hover:border-stone-300 focus:border-amber-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-85 disabled:cursor-not-allowed"
+              className="w-full text-base sm:text-xl font-bold text-stone-900 bg-transparent border-b border-transparent hover:border-stone-300 focus:border-blue-500 focus:bg-white focus:outline-none rounded px-1 -mx-1 transition disabled:opacity-85 disabled:cursor-not-allowed"
               placeholder="Card Title"
             />
             {isArchived && (
-              <span className="shrink-0 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-amber-900 border border-amber-300">
+              <span className="shrink-0 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-blue-900 border border-blue-300">
                 Archived
               </span>
             )}
@@ -523,7 +523,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                 disabled={!canEditCard || otherBoards.length === 0}
                 onChange={(e) => handleBoardChange(e.target.value)}
                 title={canEditCard ? "Change board" : "Current board"}
-                className="h-8 sm:h-8.5 rounded-lg border border-stone-200 bg-white px-2 sm:px-2.5 text-xs font-semibold text-stone-800 shadow-2xs hover:border-stone-300 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:text-stone-600 disabled:cursor-not-allowed max-w-[125px] sm:max-w-[170px] truncate"
+                className="h-8 sm:h-8.5 rounded-lg border border-stone-200 bg-white px-2 sm:px-2.5 text-xs font-semibold text-stone-800 shadow-2xs hover:border-stone-300 focus:border-blue-500 focus:outline-none disabled:bg-stone-100 disabled:text-stone-600 disabled:cursor-not-allowed max-w-[125px] sm:max-w-[170px] truncate"
               >
                 <option value={currentBoard.id}>{currentBoard.title}</option>
                 {otherBoards.map((b) => (
@@ -545,7 +545,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
                 disabled={!canEditCard}
                 onChange={(e) => handleColumnChange(e.target.value)}
                 title={canEditCard ? "Change stage / column" : "Current stage"}
-                className="h-8 sm:h-8.5 rounded-lg border border-stone-200 bg-white px-2 sm:px-2.5 text-xs font-semibold text-stone-800 shadow-2xs hover:border-stone-300 focus:border-amber-500 focus:outline-none disabled:bg-stone-100 disabled:text-stone-600 disabled:cursor-not-allowed max-w-[115px] sm:max-w-[150px] truncate"
+                className="h-8 sm:h-8.5 rounded-lg border border-stone-200 bg-white px-2 sm:px-2.5 text-xs font-semibold text-stone-800 shadow-2xs hover:border-stone-300 focus:border-blue-500 focus:outline-none disabled:bg-stone-100 disabled:text-stone-600 disabled:cursor-not-allowed max-w-[115px] sm:max-w-[150px] truncate"
               >
                 {currentBoard.columns.map((col) => (
                   <option key={col.id} value={col.id}>
@@ -580,8 +580,8 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
 
         {/* Read-Only Restriction Banner */}
         {!canEditCard && (
-          <div className="flex items-center gap-2 bg-amber-50 border-b border-amber-200/80 px-4 py-2 text-xs text-amber-800 shrink-0">
-            <Lock className="size-3.5 shrink-0 text-amber-700" />
+          <div className="flex items-center gap-2 bg-blue-50 border-b border-blue-200/80 px-4 py-2 text-xs text-blue-800 shrink-0">
+            <Lock className="size-3.5 shrink-0 text-blue-700" />
             <span>Read-only: Only administrators, assigned staff, or the card creator can modify this card.</span>
           </div>
         )}
@@ -711,7 +711,7 @@ export function CardModal({ boardId, columnId, taskId, onClose }: CardModalProps
         <div className="flex items-center justify-between border-t border-stone-200 px-6 py-3.5 bg-stone-50/80 shrink-0">
           <div className="flex items-center gap-1.5 text-[11px] text-stone-500">
             {isArchived ? (
-              <span className="font-semibold text-amber-800">
+              <span className="font-semibold text-blue-800">
                 Archived board — view only mode
               </span>
             ) : (

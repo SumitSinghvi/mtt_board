@@ -155,9 +155,9 @@ export function KanbanBoard() {
 
       {/* Archived Read-Only Notice Banner */}
       {isArchived && (
-        <div className="bg-amber-100/90 border-b border-amber-300 px-6 py-2.5 flex items-center justify-between text-xs text-amber-900 shrink-0">
+        <div className="bg-blue-100/90 border-b border-blue-300 px-6 py-2.5 flex items-center justify-between text-xs text-blue-900 shrink-0">
           <div className="flex items-center gap-2">
-            <Archive className="size-4 text-amber-700 shrink-0" />
+            <Archive className="size-4 text-blue-700 shrink-0" />
             <span>
               <strong>Archived Board (Read-Only)</strong> — You are viewing an archived workflow. Cards and columns cannot be added, edited, or moved.
             </span>
@@ -166,7 +166,7 @@ export function KanbanBoard() {
             <button
               type="button"
               onClick={() => unarchiveBoard(activeBoard.id)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-600 text-white font-semibold hover:bg-amber-700 transition shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-2xs cursor-pointer"
             >
               <ArchiveRestore className="size-3.5" />
               <span>Restore Board</span>
@@ -267,7 +267,7 @@ export function KanbanBoard() {
                       placeholder="Column Title (e.g. In Review, Invoiced)"
                       value={newColumnTitle}
                       onChange={(e) => setNewColumnTitle(e.target.value)}
-                      className="w-full rounded border border-stone-300 px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                      className="w-full rounded border border-stone-300 px-2.5 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
                     />
                     <div className="flex justify-end gap-1.5">
                       <button
@@ -279,7 +279,7 @@ export function KanbanBoard() {
                       </button>
                       <button
                         type="submit"
-                        className="rounded bg-amber-600 px-3 py-1 text-xs font-medium text-white hover:bg-amber-700"
+                        className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
                       >
                         Add Column
                       </button>
@@ -290,7 +290,7 @@ export function KanbanBoard() {
                 <button
                   type="button"
                   onClick={() => setIsAddingColumn(true)}
-                  className="flex h-12 w-[82vw] max-w-xs sm:w-80 shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-stone-300 text-xs font-semibold text-stone-600 hover:border-amber-500 hover:text-amber-700 hover:bg-amber-50/50 transition"
+                  className="flex h-12 w-[82vw] max-w-xs sm:w-80 shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-stone-300 text-xs font-semibold text-stone-600 hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50/50 transition"
                 >
                   <PlusCircle className="size-4" />
                   <span>Add New Column</span>

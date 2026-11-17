@@ -179,7 +179,7 @@ export function Sidebar() {
                 type="button"
                 title="Create New Board"
                 onClick={() => setIsCreating(true)}
-                className="rounded-md p-1.5 text-stone-600 hover:bg-stone-100 hover:text-amber-700 transition cursor-pointer"
+                className="rounded-md p-1.5 text-stone-600 hover:bg-stone-100 hover:text-blue-700 transition cursor-pointer"
               >
                 <Plus className="size-4" />
               </button>
@@ -202,7 +202,7 @@ export function Sidebar() {
               placeholder="Filter boards..."
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
-              className="w-full rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:bg-white focus:outline-none"
+              className="w-full rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs text-stone-800 placeholder-stone-400 focus:border-blue-500 focus:bg-white focus:outline-none"
             />
           </div>
         )}
@@ -217,12 +217,12 @@ export function Sidebar() {
             }}
             className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer ${
               currentView === "dashboard"
-                ? "bg-amber-600 text-white shadow-sm shadow-amber-600/20"
+                ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20"
                 : "text-stone-700 hover:bg-stone-100 hover:text-stone-900"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <LayoutDashboard className={`size-4 ${currentView === "dashboard" ? "text-white" : "text-amber-600"}`} />
+              <LayoutDashboard className={`size-4 ${currentView === "dashboard" ? "text-white" : "text-blue-600"}`} />
               <span>Dashboard</span>
             </div>
             {currentView === "dashboard" ? (
@@ -240,20 +240,20 @@ export function Sidebar() {
             }}
             className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer ${
               currentView === "my-tasks"
-                ? "bg-amber-600 text-white shadow-sm shadow-amber-600/20"
+                ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20"
                 : "text-stone-700 hover:bg-stone-100 hover:text-stone-900"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <UserCheck className={`size-4 ${currentView === "my-tasks" ? "text-white" : "text-amber-600"}`} />
+              <UserCheck className={`size-4 ${currentView === "my-tasks" ? "text-white" : "text-blue-600"}`} />
               <span>My Tasks</span>
             </div>
             {myTasksCount > 0 ? (
               <span
                 className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
                   currentView === "my-tasks"
-                    ? "bg-white text-amber-700 font-extrabold"
-                    : "bg-amber-100 text-amber-800"
+                    ? "bg-white text-blue-700 font-extrabold"
+                    : "bg-blue-100 text-blue-800"
                 }`}
               >
                 {myTasksCount}
@@ -273,7 +273,7 @@ export function Sidebar() {
             }}
             className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition cursor-pointer ${
               currentView === "todos"
-                ? "bg-amber-600 text-white shadow-sm shadow-amber-600/20"
+                ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20"
                 : "text-stone-700 hover:bg-stone-100 hover:text-stone-900"
             }`}
           >
@@ -323,10 +323,10 @@ export function Sidebar() {
                 }}
                 className={`group relative flex items-center justify-between rounded-lg px-2 py-2 text-xs font-medium cursor-pointer transition select-none ${
                   isActive
-                    ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
+                    ? "bg-blue-50 text-blue-900 font-semibold shadow-2xs border border-blue-200/60"
                     : "text-stone-700 hover:bg-stone-100"
                 } ${
-                  isDragOver ? "ring-2 ring-amber-500 bg-amber-50/50" : ""
+                  isDragOver ? "ring-2 ring-blue-500 bg-blue-50/50" : ""
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
@@ -339,7 +339,7 @@ export function Sidebar() {
                     </div>
                   )}
                   <LayoutDashboard
-                    className={`size-4 shrink-0 ${isActive ? "text-amber-600" : "text-stone-400"}`}
+                    className={`size-4 shrink-0 ${isActive ? "text-blue-600" : "text-stone-400"}`}
                   />
                   <div className="truncate">
                     <div className="truncate">{board.title}</div>
@@ -352,7 +352,7 @@ export function Sidebar() {
                 <div className="flex items-center gap-1 shrink-0">
                   <span
                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-                      isActive ? "bg-amber-200/70 text-amber-900" : "bg-stone-100 text-stone-600"
+                      isActive ? "bg-blue-200/70 text-blue-900" : "bg-stone-100 text-stone-600"
                     }`}
                   >
                     {totalTasks}
@@ -363,7 +363,7 @@ export function Sidebar() {
                         type="button"
                         title="Archive board"
                         onClick={(e) => handleArchive(board.id, board.title, e)}
-                        className="opacity-0 group-hover:opacity-100 rounded p-1 text-stone-400 hover:bg-amber-100/70 hover:text-amber-700 transition cursor-pointer"
+                        className="opacity-0 group-hover:opacity-100 rounded p-1 text-stone-400 hover:bg-blue-100/70 hover:text-blue-700 transition cursor-pointer"
                       >
                         <Archive className="size-3.5" />
                       </button>
@@ -379,7 +379,7 @@ export function Sidebar() {
                       )}
                     </>
                   )}
-                  {isActive && <ChevronRight className="size-3.5 text-amber-600" />}
+                  {isActive && <ChevronRight className="size-3.5 text-blue-600" />}
                 </div>
               </div>
             )
@@ -430,7 +430,7 @@ export function Sidebar() {
                         }}
                         className={`group flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs cursor-pointer transition select-none ${
                           isArchivedActive
-                            ? "bg-amber-100/70 text-amber-900 font-semibold shadow-2xs border border-amber-300"
+                            ? "bg-blue-100/70 text-blue-900 font-semibold shadow-2xs border border-blue-300"
                             : "text-stone-600 bg-stone-100/60 hover:bg-stone-200/60 border border-stone-200/50"
                         }`}
                       >
@@ -448,7 +448,7 @@ export function Sidebar() {
                               e.stopPropagation()
                               unarchiveBoard(ab.id)
                             }}
-                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 hover:text-amber-800 bg-white px-2 py-0.5 rounded border border-stone-200 hover:border-amber-300 shadow-2xs transition cursor-pointer shrink-0 ml-1.5"
+                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-700 hover:text-blue-800 bg-white px-2 py-0.5 rounded border border-stone-200 hover:border-blue-300 shadow-2xs transition cursor-pointer shrink-0 ml-1.5"
                           >
                             <ArchiveRestore className="size-3" />
                             <span>Restore</span>
@@ -479,15 +479,15 @@ export function Sidebar() {
               }}
               className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition cursor-pointer ${
                 currentView === "customers"
-                  ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
+                  ? "bg-blue-50 text-blue-900 font-semibold shadow-2xs border border-blue-200/60"
                   : "text-stone-700 hover:bg-stone-100"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Users className={`size-4 ${currentView === "customers" ? "text-amber-600" : "text-stone-400"}`} />
+                <Users className={`size-4 ${currentView === "customers" ? "text-blue-600" : "text-stone-400"}`} />
                 <span>Customers</span>
               </div>
-              {currentView === "customers" && <ChevronRight className="size-3.5 text-amber-600" />}
+              {currentView === "customers" && <ChevronRight className="size-3.5 text-blue-600" />}
             </button>
 
             {/* Staff & Roles Page - Admin Only */}
@@ -499,15 +499,15 @@ export function Sidebar() {
               }}
               className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition cursor-pointer ${
                 currentView === "staff"
-                  ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
+                  ? "bg-blue-50 text-blue-900 font-semibold shadow-2xs border border-blue-200/60"
                   : "text-stone-700 hover:bg-stone-100"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <ShieldCheck className={`size-4 ${currentView === "staff" ? "text-amber-600" : "text-stone-400"}`} />
+                <ShieldCheck className={`size-4 ${currentView === "staff" ? "text-blue-600" : "text-stone-400"}`} />
                 <span>Staff & Roles</span>
               </div>
-              {currentView === "staff" && <ChevronRight className="size-3.5 text-amber-600" />}
+              {currentView === "staff" && <ChevronRight className="size-3.5 text-blue-600" />}
             </button>
 
             {/* Settings Page - Admin Only */}
@@ -519,15 +519,15 @@ export function Sidebar() {
               }}
               className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition cursor-pointer ${
                 currentView === "settings"
-                  ? "bg-amber-50 text-amber-900 font-semibold shadow-2xs border border-amber-200/60"
+                  ? "bg-blue-50 text-blue-900 font-semibold shadow-2xs border border-blue-200/60"
                   : "text-stone-700 hover:bg-stone-100"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Settings className={`size-4 ${currentView === "settings" ? "text-amber-600" : "text-stone-400"}`} />
+                <Settings className={`size-4 ${currentView === "settings" ? "text-blue-600" : "text-stone-400"}`} />
                 <span>Settings</span>
               </div>
-              {currentView === "settings" && <ChevronRight className="size-3.5 text-amber-600" />}
+              {currentView === "settings" && <ChevronRight className="size-3.5 text-blue-600" />}
             </button>
           </div>
         )}
@@ -559,7 +559,7 @@ export function Sidebar() {
                     placeholder="e.g. VIP Bookings, Cab Maintenance"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
@@ -572,7 +572,7 @@ export function Sidebar() {
                     placeholder="Short description of this board's workflow"
                     value={newDescription}
                     onChange={(e) => setNewDescription(e.target.value)}
-                    className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
@@ -586,7 +586,7 @@ export function Sidebar() {
                   </button>
                   <button
                     type="submit"
-                    className="rounded-md bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 shadow-2xs"
+                    className="rounded-md bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-2xs"
                   >
                     Create Board
                   </button>

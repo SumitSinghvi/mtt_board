@@ -72,7 +72,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
       <div className="relative w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col rounded-xl sm:rounded-2xl border border-stone-200 bg-white p-3.5 sm:p-6 shadow-2xl z-10 animate-in fade-in-50 zoom-in-95">
         <div className="flex items-center justify-between pb-3.5 border-b border-stone-100">
           <div className="flex items-center gap-2.5">
-            <div className="size-8 rounded-full bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-sm">
+            <div className="size-8 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center text-sm">
               {name.charAt(0).toUpperCase() || "S"}
             </div>
             <div>
@@ -101,7 +101,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none"
               />
             </div>
 
@@ -122,7 +122,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none"
               />
             </div>
 
@@ -131,7 +131,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as StaffRole)}
-                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none"
               >
                 <option value="admin">Admin (Full Control)</option>
                 <option value="visa">Visa (Applications & Liaison)</option>
@@ -147,7 +147,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Leave blank to keep existing password"
-                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none placeholder:text-stone-400"
+                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none placeholder:text-stone-400"
               />
             </div>
           </div>
@@ -157,7 +157,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
-                  <LayoutDashboard className="size-3.5 text-amber-700" />
+                  <LayoutDashboard className="size-3.5 text-blue-700" />
                   <span>Board Access Permissions</span>
                 </h3>
                 <p className="text-[11px] text-stone-500">Choose which boards this staff member can view</p>
@@ -169,7 +169,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                   onClick={() => setPermissions((p) => ({ ...p, allowedBoardIds: undefined }))}
                   className={`px-2.5 py-1 rounded text-[11px] font-semibold transition ${
                     !permissions.allowedBoardIds
-                      ? "bg-amber-600 text-white"
+                      ? "bg-blue-600 text-white"
                       : "bg-stone-200/70 text-stone-700 hover:bg-stone-300"
                   }`}
                 >
@@ -185,7 +185,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                   }
                   className={`px-2.5 py-1 rounded text-[11px] font-semibold transition ${
                     permissions.allowedBoardIds
-                      ? "bg-amber-600 text-white"
+                      ? "bg-blue-600 text-white"
                       : "bg-stone-200/70 text-stone-700 hover:bg-stone-300"
                   }`}
                 >
@@ -203,7 +203,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                       key={b.id}
                       className={`flex items-center gap-2.5 p-2 rounded-lg border cursor-pointer select-none transition text-xs ${
                         isAllowed
-                          ? "bg-amber-50/80 border-amber-300 text-amber-950 font-medium"
+                          ? "bg-blue-50/80 border-blue-300 text-blue-950 font-medium"
                           : "bg-white border-stone-200 text-stone-600 hover:bg-stone-50"
                       }`}
                     >
@@ -217,7 +217,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                             : current.filter((id) => id !== b.id)
                           setPermissions((p) => ({ ...p, allowedBoardIds: updated }))
                         }}
-                        className="rounded text-amber-600 focus:ring-amber-500 size-3.5"
+                        className="rounded text-blue-600 focus:ring-blue-500 size-3.5"
                       />
                       <div className="truncate">
                         <div className="truncate">{b.title}</div>
@@ -233,19 +233,19 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
           {/* 2. Task Level Permissions */}
           <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-4 space-y-3">
             <h3 className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
-              <Check className="size-3.5 text-amber-700" />
+              <Check className="size-3.5 text-blue-700" />
               <span>Task Operations & Action Rights</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-white hover:border-amber-300 cursor-pointer select-none">
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-white hover:border-blue-300 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={permissions.canCreateCards}
                   onChange={(e) =>
                     setPermissions((p) => ({ ...p, canCreateCards: e.target.checked }))
                   }
-                  className="rounded text-amber-600 focus:ring-amber-500 size-3.5 mt-0.5"
+                  className="rounded text-blue-600 focus:ring-blue-500 size-3.5 mt-0.5"
                 />
                 <div>
                   <div className="font-semibold text-stone-800">Create New Tasks / Cards</div>
@@ -253,14 +253,14 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                 </div>
               </label>
 
-              <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-white hover:border-amber-300 cursor-pointer select-none">
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-white hover:border-blue-300 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={permissions.canEditCards}
                   onChange={(e) =>
                     setPermissions((p) => ({ ...p, canEditCards: e.target.checked }))
                   }
-                  className="rounded text-amber-600 focus:ring-amber-500 size-3.5 mt-0.5"
+                  className="rounded text-blue-600 focus:ring-blue-500 size-3.5 mt-0.5"
                 />
                 <div>
                   <div className="font-semibold text-stone-800">Edit Existing Cards</div>
@@ -268,14 +268,14 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                 </div>
               </label>
 
-              <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-white hover:border-amber-300 cursor-pointer select-none">
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-white hover:border-blue-300 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={permissions.canDeleteCards}
                   onChange={(e) =>
                     setPermissions((p) => ({ ...p, canDeleteCards: e.target.checked }))
                   }
-                  className="rounded text-amber-600 focus:ring-amber-500 size-3.5 mt-0.5"
+                  className="rounded text-blue-600 focus:ring-blue-500 size-3.5 mt-0.5"
                 />
                 <div>
                   <div className="font-semibold text-stone-800">Delete Tasks & Cards</div>
@@ -283,14 +283,14 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
                 </div>
               </label>
 
-              <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-white hover:border-amber-300 cursor-pointer select-none">
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-stone-200 bg-white hover:border-blue-300 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={permissions.canViewCommercials}
                   onChange={(e) =>
                     setPermissions((p) => ({ ...p, canViewCommercials: e.target.checked }))
                   }
-                  className="rounded text-amber-600 focus:ring-amber-500 size-3.5 mt-0.5"
+                  className="rounded text-blue-600 focus:ring-blue-500 size-3.5 mt-0.5"
                 />
                 <div>
                   <div className="font-semibold text-stone-800">View Commercials & Rates</div>
@@ -310,7 +310,7 @@ export function EditStaffModal({ member, boards, onClose, onSave }: EditStaffMod
             </button>
             <button
               type="submit"
-              className="rounded-md bg-amber-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 shadow-2xs"
+              className="rounded-md bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-2xs"
             >
               Save Changes
             </button>

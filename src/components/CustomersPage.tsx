@@ -85,7 +85,7 @@ export function CustomersPage() {
         <button
           type="button"
           onClick={() => setCurrentView("dashboard")}
-          className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-amber-700 transition cursor-pointer"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-blue-700 transition cursor-pointer"
         >
           Return to Dashboard
         </button>
@@ -99,7 +99,7 @@ export function CustomersPage() {
       <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-stone-200 bg-white px-4 sm:px-6 py-3 sm:py-4 rounded-t-xl shadow-2xs">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+            <div className="p-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
               <Users className="size-5" />
             </div>
             <div>
@@ -119,14 +119,14 @@ export function CustomersPage() {
               placeholder="Search name, phone, email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-stone-300 bg-stone-50 pl-8 pr-3 py-1.5 text-xs text-stone-900 placeholder-stone-400 focus:bg-white focus:border-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-stone-300 bg-stone-50 pl-8 pr-3 py-1.5 text-xs text-stone-900 placeholder-stone-400 focus:bg-white focus:border-blue-500 focus:outline-none"
             />
           </div>
 
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-amber-700 transition shrink-0"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-blue-700 transition shrink-0"
           >
             <Plus className="size-3.5" />
             <span>Add Customer</span>
@@ -158,10 +158,10 @@ export function CustomersPage() {
                 const bookings = getCustomerBookings(c.name)
 
                 return (
-                  <tr key={c.id} className="hover:bg-amber-50/30 transition">
+                  <tr key={c.id} className="hover:bg-blue-50/30 transition">
                     <td className="py-3.5 px-5 font-semibold text-stone-900">
                       <div className="flex items-center gap-2.5">
-                        <div className="size-7 rounded-full bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-xs">
+                        <div className="size-7 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center text-xs">
                           {c.name.charAt(0).toUpperCase()}
                         </div>
                         <span>{c.name}</span>
@@ -172,7 +172,7 @@ export function CustomersPage() {
                       {c.phone ? (
                         <a
                           href={`tel:${c.phone}`}
-                          className="inline-flex items-center gap-1.5 hover:text-amber-700 font-medium"
+                          className="inline-flex items-center gap-1.5 hover:text-blue-700 font-medium"
                         >
                           <Phone className="size-3 text-stone-400" />
                           <span>{c.phone}</span>
@@ -186,7 +186,7 @@ export function CustomersPage() {
                       {c.email ? (
                         <a
                           href={`mailto:${c.email}`}
-                          className="inline-flex items-center gap-1.5 hover:text-amber-700"
+                          className="inline-flex items-center gap-1.5 hover:text-blue-700"
                         >
                           <Mail className="size-3 text-stone-400" />
                           <span>{c.email}</span>
@@ -268,7 +268,7 @@ export function CustomersPage() {
                   placeholder="e.g. Vikram Malhotra"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
 
@@ -289,7 +289,7 @@ export function CustomersPage() {
                   placeholder="vikram@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
 
@@ -303,7 +303,7 @@ export function CustomersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-amber-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 shadow-2xs"
+                  className="rounded-md bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-2xs"
                 >
                   Save Customer
                 </button>

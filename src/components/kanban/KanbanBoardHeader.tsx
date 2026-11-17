@@ -36,7 +36,7 @@ export function KanbanBoardHeader({
                 : "text-stone-500 hover:text-stone-800"
             }`}
           >
-            <LayoutGrid className="size-3.5 text-amber-700" />
+            <LayoutGrid className="size-3.5 text-blue-700" />
             <span>Board</span>
           </button>
 
@@ -49,7 +49,7 @@ export function KanbanBoardHeader({
                 : "text-stone-500 hover:text-stone-800"
             }`}
           >
-            <BarChart2 className="size-3.5 text-amber-700" />
+            <BarChart2 className="size-3.5 text-blue-700" />
             <span>Dashboard</span>
           </button>
 
@@ -62,7 +62,7 @@ export function KanbanBoardHeader({
                 : "text-stone-500 hover:text-stone-800"
             }`}
           >
-            <Calendar className="size-3.5 text-amber-700" />
+            <Calendar className="size-3.5 text-blue-700" />
             <span>Calendar</span>
           </button>
         </div>
@@ -76,7 +76,7 @@ export function KanbanBoardHeader({
             onClick={onOpenSettings}
             className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-stone-700 shadow-2xs hover:bg-stone-50 transition cursor-pointer"
           >
-            <Sliders className="size-3.5 text-amber-700" />
+            <Sliders className="size-3.5 text-blue-700" />
             <span>Modules</span>
           </button>
         </div>

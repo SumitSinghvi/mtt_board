@@ -109,7 +109,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
         <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs">
           <div className="flex items-center justify-between text-stone-500">
             <span className="text-xs font-semibold uppercase tracking-wider">Total Cards</span>
-            <TrendingUp className="size-4 text-amber-600" />
+            <TrendingUp className="size-4 text-blue-600" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-bold text-stone-900">{totalCards}</span>
@@ -156,7 +156,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
             </div>
             <div className="mt-3 w-full bg-stone-100 rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-amber-600 h-1.5 rounded-full transition-all"
+                className="bg-blue-600 h-1.5 rounded-full transition-all"
                 style={{ width: `${subtaskPct}%` }}
               />
             </div>
@@ -165,7 +165,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
           <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs">
             <div className="flex items-center justify-between text-stone-500">
               <span className="text-xs font-semibold uppercase tracking-wider">Workflow Columns</span>
-              <TrendingUp className="size-4 text-amber-600" />
+              <TrendingUp className="size-4 text-blue-600" />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-2xl font-bold text-stone-900">{board.columns.length}</span>
@@ -179,7 +179,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
           <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs">
             <div className="flex items-center justify-between text-stone-500">
               <span className="text-xs font-semibold uppercase tracking-wider">Hotel Bookings</span>
-              <Hotel className="size-4 text-amber-600" />
+              <Hotel className="size-4 text-blue-600" />
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-2xl font-bold text-stone-900">
@@ -188,8 +188,8 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
               <span className="text-xs text-stone-500">reservations</span>
             </div>
             <div className="mt-3 flex items-center gap-1.5 text-[10px] font-semibold flex-wrap">
-              <span className="inline-flex items-center gap-1 rounded bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5">
-                <span className="size-1.5 rounded-full bg-amber-500" />
+              <span className="inline-flex items-center gap-1 rounded bg-blue-50 text-blue-800 border border-blue-200 px-1.5 py-0.5">
+                <span className="size-1.5 rounded-full bg-blue-500" />
                 {hotelCounts.hold} Hold
               </span>
               <span className="inline-flex items-center gap-1 rounded bg-purple-50 text-purple-800 border border-purple-200 px-1.5 py-0.5">
@@ -218,7 +218,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
               <span className="text-xs text-stone-500">received</span>
             </div>
             <div className="mt-3 flex items-center gap-1.5 text-[10px] font-semibold flex-wrap">
-              <span className="inline-flex items-center gap-1 rounded bg-amber-50 text-amber-900 border border-amber-200 px-1.5 py-0.5">
+              <span className="inline-flex items-center gap-1 rounded bg-blue-50 text-blue-900 border border-blue-200 px-1.5 py-0.5">
                 <span>₹{totalPending.toLocaleString("en-IN")} Pending</span>
               </span>
               <span className="inline-flex items-center gap-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5">
@@ -249,7 +249,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
                 <span className="inline-flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                   Total Collected: ₹{totalReceived.toLocaleString("en-IN")}
                 </span>
-                <span className="inline-flex items-center gap-1 font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                <span className="inline-flex items-center gap-1 font-semibold text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                   Pending: ₹{totalPending.toLocaleString("en-IN")}
                 </span>
               </div>
@@ -276,7 +276,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
                         <span
                           className={`text-[10px] font-bold px-1.5 py-0.2 rounded border uppercase tracking-wider ${
                             summary.isPartiallyPaid
-                              ? "bg-amber-100 text-amber-900 border-amber-300"
+                              ? "bg-blue-100 text-blue-900 border-blue-300"
                               : "bg-stone-100 text-stone-600 border-stone-200"
                           }`}
                         >
@@ -300,7 +300,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
                           Received: <strong className="text-emerald-700">₹{summary.received.toLocaleString("en-IN")}</strong>
                         </span>
                         <span>
-                          Pending: <strong className="text-amber-700">₹{summary.pending.toLocaleString("en-IN")}</strong>
+                          Pending: <strong className="text-blue-700">₹{summary.pending.toLocaleString("en-IN")}</strong>
                         </span>
                       </div>
                     </div>
@@ -317,11 +317,11 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
           <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-2xs lg:col-span-2">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <Hotel className="size-4 text-amber-600" />
+                <Hotel className="size-4 text-blue-600" />
                 <h2 className="text-sm font-bold text-stone-900">Hotel Follow-ups & Room Holds</h2>
               </div>
               <div className="flex items-center gap-2 text-xs">
-                <span className="inline-flex items-center gap-1 font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                <span className="inline-flex items-center gap-1 font-semibold text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                   {hotelCounts.hold} on Hold
                 </span>
                 <span className="inline-flex items-center gap-1 font-semibold text-purple-800 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
@@ -360,7 +360,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
                               bkg.status === "hold"
                                 ? isExpired
                                   ? "bg-red-50 text-red-700 border-red-300"
-                                  : "bg-amber-100/90 text-amber-900 border-amber-300"
+                                  : "bg-blue-100/90 text-blue-900 border-blue-300"
                                 : "bg-purple-100/90 text-purple-900 border-purple-300"
                             }`}
                           >
@@ -391,7 +391,7 @@ export function BoardDashboard({ board, onOpenTask }: BoardDashboardProps) {
                                   isExpired
                                     ? "text-red-600 font-bold"
                                     : isToday
-                                    ? "text-amber-700 font-semibold"
+                                    ? "text-blue-700 font-semibold"
                                     : "text-stone-500"
                                 }`}
                               >

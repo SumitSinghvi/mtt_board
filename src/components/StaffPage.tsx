@@ -51,7 +51,7 @@ export function StaffPage() {
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-stone-200 bg-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-2xs">
         <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="p-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+          <div className="p-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
             <ShieldCheck className="size-5" />
           </div>
           <div>
@@ -70,14 +70,14 @@ export function StaffPage() {
             disabled={loading}
             className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 transition disabled:opacity-50"
           >
-            <RefreshCw className={`size-3.5 ${loading ? "animate-spin text-amber-600" : "text-stone-500"}`} />
+            <RefreshCw className={`size-3.5 ${loading ? "animate-spin text-blue-600" : "text-stone-500"}`} />
             <span>Sync Profiles</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsInviteOpen(true)}
-            className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-amber-700 transition"
+            className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-blue-700 transition"
           >
             <UserPlus className="size-3.5" />
             <span>Add Staff Member</span>

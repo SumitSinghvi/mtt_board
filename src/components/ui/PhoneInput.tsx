@@ -100,7 +100,7 @@ export function PhoneInput({
   return (
     <div ref={containerRef} className={`relative flex items-center ${className}`}>
       <div
-        className={`flex w-full items-center rounded-lg border bg-white shadow-2xs transition focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500 ${
+        className={`flex w-full items-center rounded-lg border bg-white shadow-2xs transition focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 ${
           disabled ? "bg-stone-100 opacity-60 cursor-not-allowed" : "border-stone-200 hover:border-stone-300"
         }`}
       >
@@ -161,7 +161,7 @@ export function PhoneInput({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search country or code..."
-                className="w-full rounded-md border border-stone-200 bg-white pl-8 pr-2.5 py-1 text-xs text-stone-900 placeholder-stone-400 focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-md border border-stone-200 bg-white pl-8 pr-2.5 py-1 text-xs text-stone-900 placeholder-stone-400 focus:border-blue-500 focus:outline-none"
                 onKeyDown={(e) => {
                   if (e.key === "Escape") {
                     setIsOpen(false)
@@ -185,7 +185,7 @@ export function PhoneInput({
                     type="button"
                     onClick={() => handleCountrySelect(c)}
                     className={`flex items-center justify-between w-full px-3 py-1.5 text-xs text-left transition hover:bg-stone-50 ${
-                      isSelected ? "bg-amber-50/60 font-semibold text-amber-900" : "text-stone-700"
+                      isSelected ? "bg-blue-50/60 font-semibold text-blue-900" : "text-stone-700"
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate pr-2">

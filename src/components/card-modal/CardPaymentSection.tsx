@@ -124,7 +124,7 @@ export function CardPaymentSection({
             summary.isFullyPaid
               ? "bg-emerald-100 text-emerald-900 border-emerald-300"
               : summary.isPartiallyPaid
-              ? "bg-amber-100 text-amber-900 border-amber-300"
+              ? "bg-blue-100 text-blue-900 border-blue-300"
               : "bg-stone-200 text-stone-600 border-stone-300"
           }`}
         >
@@ -135,7 +135,7 @@ export function CardPaymentSection({
             </>
           ) : summary.isPartiallyPaid ? (
             <>
-              <Clock className="size-2.5 text-amber-700" />
+              <Clock className="size-2.5 text-blue-700" />
               <span>₹{summary.received.toLocaleString("en-IN")} Recv</span>
             </>
           ) : (
@@ -172,7 +172,7 @@ export function CardPaymentSection({
                 <span className="text-stone-300">•</span>
                 <span title="Pending Balance">
                   Due:{" "}
-                  <strong className={summary.pending > 0 ? "text-amber-800" : "text-stone-400"}>
+                  <strong className={summary.pending > 0 ? "text-blue-800" : "text-stone-400"}>
                     ₹{summary.pending.toLocaleString("en-IN")}
                   </strong>
                 </span>
@@ -184,7 +184,7 @@ export function CardPaymentSection({
               <div className="w-full bg-stone-100 rounded-full h-1.5 overflow-hidden">
                 <div
                   className={`h-1.5 rounded-full transition-all ${
-                    summary.isFullyPaid ? "bg-emerald-600" : "bg-amber-500"
+                    summary.isFullyPaid ? "bg-emerald-600" : "bg-blue-500"
                   }`}
                   style={{ width: `${pctPaid}%` }}
                 />
@@ -214,7 +214,7 @@ export function CardPaymentSection({
                     isReceived
                       ? "border-emerald-200/90 bg-emerald-50/30"
                       : hasAmount
-                      ? "border-amber-200/90 bg-amber-50/30"
+                      ? "border-blue-200/90 bg-blue-50/30"
                       : "border-stone-200/90 bg-white"
                   }`}
                 >
@@ -224,7 +224,7 @@ export function CardPaymentSection({
                       <div className="flex items-center gap-1.5">
                         <span
                           className={`size-1.5 rounded-full shrink-0 ${
-                            isReceived ? "bg-emerald-500" : hasAmount ? "bg-amber-500" : "bg-stone-300"
+                            isReceived ? "bg-emerald-500" : hasAmount ? "bg-blue-500" : "bg-stone-300"
                           }`}
                         />
                         <span className="text-[11px] font-semibold text-stone-700 truncate">

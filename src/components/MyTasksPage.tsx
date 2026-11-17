@@ -226,7 +226,7 @@ export function MyTasksPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <div className="size-8 rounded-lg bg-amber-600 text-white flex items-center justify-center shadow-2xs">
+              <div className="size-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-2xs">
                 <UserCheck className="size-4.5" />
               </div>
               <h1 className="text-base sm:text-lg font-bold text-stone-900">
@@ -249,7 +249,7 @@ export function MyTasksPage() {
               placeholder="Search my tasks..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-stone-200 bg-stone-50 pl-8 pr-3 py-1.5 text-xs text-stone-800 placeholder-stone-400 focus:bg-white focus:border-amber-500 focus:outline-none shadow-2xs"
+              className="w-full rounded-xl border border-stone-200 bg-stone-50 pl-8 pr-3 py-1.5 text-xs text-stone-800 placeholder-stone-400 focus:bg-white focus:border-blue-500 focus:outline-none shadow-2xs"
             />
           </div>
         </div>
@@ -278,17 +278,17 @@ export function MyTasksPage() {
             onClick={() => setActiveTab("todo")}
             className={`p-3 rounded-xl border transition cursor-pointer ${
               activeTab === "todo"
-                ? "bg-amber-50/80 border-amber-300 ring-1 ring-amber-400"
-                : "bg-white border-stone-200 hover:border-amber-300"
+                ? "bg-blue-50/80 border-blue-300 ring-1 ring-blue-400"
+                : "bg-white border-stone-200 hover:border-blue-300"
             }`}
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500">
                 To Do (Pending)
               </span>
-              <Clock className="size-3.5 text-amber-600" />
+              <Clock className="size-3.5 text-blue-600" />
             </div>
-            <div className="text-xl font-extrabold text-amber-700 mt-1">
+            <div className="text-xl font-extrabold text-blue-700 mt-1">
               {metrics.todoCount}
             </div>
           </div>
@@ -351,7 +351,7 @@ export function MyTasksPage() {
               <span>To Do</span>
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                  activeTab === "todo" ? "bg-amber-100 text-amber-800" : "bg-stone-200 text-stone-600"
+                  activeTab === "todo" ? "bg-blue-100 text-blue-800" : "bg-stone-200 text-stone-600"
                 }`}
               >
                 {metrics.todoCount}
@@ -431,7 +431,7 @@ export function MyTasksPage() {
               <select
                 value={boardFilter}
                 onChange={(e) => setBoardFilter(e.target.value)}
-                className="rounded-lg border border-stone-200 bg-white px-2 py-1 text-xs text-stone-700 focus:border-amber-500 focus:outline-none cursor-pointer"
+                className="rounded-lg border border-stone-200 bg-white px-2 py-1 text-xs text-stone-700 focus:border-blue-500 focus:outline-none cursor-pointer"
               >
                 <option value="all">All Boards</option>
                 {allowedBoards.map((b) => (
@@ -445,7 +445,7 @@ export function MyTasksPage() {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="rounded-lg border border-stone-200 bg-white px-2 py-1 text-xs text-stone-700 focus:border-amber-500 focus:outline-none cursor-pointer"
+              className="rounded-lg border border-stone-200 bg-white px-2 py-1 text-xs text-stone-700 focus:border-blue-500 focus:outline-none cursor-pointer"
             >
               <option value="all">All Priorities</option>
               <option value="urgent">Urgent</option>
@@ -497,8 +497,8 @@ export function MyTasksPage() {
                   isOverdue
                     ? "border-red-200 bg-red-50/20 hover:border-red-400"
                     : isDueToday
-                    ? "border-amber-200 bg-amber-50/20 hover:border-amber-400"
-                    : "border-stone-200 hover:border-amber-400"
+                    ? "border-blue-200 bg-blue-50/20 hover:border-blue-400"
+                    : "border-stone-200 hover:border-blue-400"
                 }`}
               >
                 {/* Left Task Content */}
@@ -512,7 +512,7 @@ export function MyTasksPage() {
 
                     <span className="text-stone-400">&bull;</span>
 
-                    <span className="font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/80">
+                    <span className="font-semibold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/80">
                       {columnTitle}
                     </span>
 
@@ -530,7 +530,7 @@ export function MyTasksPage() {
                   </div>
 
                   {/* Task Title */}
-                  <h3 className="text-sm font-bold text-stone-900 group-hover:text-amber-700 transition leading-snug">
+                  <h3 className="text-sm font-bold text-stone-900 group-hover:text-blue-700 transition leading-snug">
                     {task.title}
                   </h3>
 
@@ -552,8 +552,8 @@ export function MyTasksPage() {
                       )}
 
                       {task.destination && (
-                        <span className="flex items-center gap-1 text-amber-800 font-medium">
-                          <MapPin className="size-3 text-amber-600" />
+                        <span className="flex items-center gap-1 text-blue-800 font-medium">
+                          <MapPin className="size-3 text-blue-600" />
                           <span>{task.destination}</span>
                         </span>
                       )}
@@ -581,11 +581,11 @@ export function MyTasksPage() {
 
                     {pendingReminders.length > 0 && (
                       <div className="flex items-center gap-1.5">
-                        <Bell className="size-3.5 text-amber-600" />
+                        <Bell className="size-3.5 text-blue-600" />
                         {pendingReminders.slice(0, 2).map((rem) => (
                           <span
                             key={rem.id}
-                            className="bg-amber-50 text-amber-900 border border-amber-200 px-1.5 py-0.5 rounded text-[10px] font-medium inline-flex items-center gap-1"
+                            className="bg-blue-50 text-blue-900 border border-blue-200 px-1.5 py-0.5 rounded text-[10px] font-medium inline-flex items-center gap-1"
                           >
                             <span>{rem.text}</span>
                             {rem.createdBy && (
@@ -614,7 +614,7 @@ export function MyTasksPage() {
                           <span>Overdue ({formatDate(task.dueDate)})</span>
                         </span>
                       ) : isDueToday ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-700">
                           <Clock className="size-3.5" />
                           <span>Due Today</span>
                         </span>
@@ -640,7 +640,7 @@ export function MyTasksPage() {
                         setSelectedTask({ boardId, columnId, taskId: task.id })
                       }}
                       title="Switch to Kanban board"
-                      className="p-1.5 rounded-lg border border-stone-200 text-stone-500 hover:text-amber-800 hover:bg-stone-50 transition cursor-pointer text-xs font-semibold flex items-center gap-1"
+                      className="p-1.5 rounded-lg border border-stone-200 text-stone-500 hover:text-blue-800 hover:bg-stone-50 transition cursor-pointer text-xs font-semibold flex items-center gap-1"
                     >
                       <span>Board</span>
                       <ExternalLink className="size-3" />

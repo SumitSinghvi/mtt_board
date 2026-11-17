@@ -131,7 +131,7 @@ export function MentionTextarea({
             onClick={() => setPreviewMode(false)}
             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold transition ${
               !previewMode
-                ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs"
+                ? "bg-blue-100 text-blue-900 border border-blue-300 shadow-2xs"
                 : "text-stone-500 hover:text-stone-800"
             }`}
           >
@@ -143,7 +143,7 @@ export function MentionTextarea({
             onClick={() => setPreviewMode(true)}
             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold transition ${
               previewMode
-                ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs"
+                ? "bg-blue-100 text-blue-900 border border-blue-300 shadow-2xs"
                 : "text-stone-500 hover:text-stone-800"
             }`}
           >
@@ -185,7 +185,7 @@ export function MentionTextarea({
           value={value}
           onChange={handleTextChange}
           onKeyDown={handleKeyDown}
-          className={`w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-stone-100 disabled:cursor-not-allowed ${className}`}
+          className={`w-full rounded-xl border border-stone-200 bg-white p-3 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-stone-100 disabled:cursor-not-allowed ${className}`}
         />
       )}
     </div>

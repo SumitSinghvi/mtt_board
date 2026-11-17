@@ -115,7 +115,7 @@ function DueDatePicker({
             isOverdue
               ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
               : isDueToday
-              ? "bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100"
+              ? "bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100"
               : isTomorrow
               ? "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
               : "bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-200"
@@ -174,7 +174,7 @@ function DueDatePicker({
                 onChange(todayStr)
                 setIsOpen(false)
               }}
-              className="text-left text-xs font-medium text-stone-700 hover:bg-amber-50 hover:text-amber-800 p-1.5 rounded-lg border border-stone-100 transition"
+              className="text-left text-xs font-medium text-stone-700 hover:bg-blue-50 hover:text-blue-800 p-1.5 rounded-lg border border-stone-100 transition"
             >
               Today
             </button>
@@ -184,7 +184,7 @@ function DueDatePicker({
                 onChange(tomorrowStr)
                 setIsOpen(false)
               }}
-              className="text-left text-xs font-medium text-stone-700 hover:bg-amber-50 hover:text-amber-800 p-1.5 rounded-lg border border-stone-100 transition"
+              className="text-left text-xs font-medium text-stone-700 hover:bg-blue-50 hover:text-blue-800 p-1.5 rounded-lg border border-stone-100 transition"
             >
               Tomorrow
             </button>
@@ -194,7 +194,7 @@ function DueDatePicker({
                 onChange(in3DaysStr)
                 setIsOpen(false)
               }}
-              className="text-left text-xs font-medium text-stone-700 hover:bg-amber-50 hover:text-amber-800 p-1.5 rounded-lg border border-stone-100 transition"
+              className="text-left text-xs font-medium text-stone-700 hover:bg-blue-50 hover:text-blue-800 p-1.5 rounded-lg border border-stone-100 transition"
             >
               In 3 days
             </button>
@@ -204,7 +204,7 @@ function DueDatePicker({
                 onChange(in1WeekStr)
                 setIsOpen(false)
               }}
-              className="text-left text-xs font-medium text-stone-700 hover:bg-amber-50 hover:text-amber-800 p-1.5 rounded-lg border border-stone-100 transition"
+              className="text-left text-xs font-medium text-stone-700 hover:bg-blue-50 hover:text-blue-800 p-1.5 rounded-lg border border-stone-100 transition"
             >
               Next week
             </button>
@@ -224,7 +224,7 @@ function DueDatePicker({
                   setIsOpen(false)
                 }
               }}
-              className="w-full text-xs rounded-lg border border-stone-200 bg-stone-50 p-1.5 text-stone-800 focus:border-amber-500 focus:bg-white focus:outline-none cursor-pointer"
+              className="w-full text-xs rounded-lg border border-stone-200 bg-stone-50 p-1.5 text-stone-800 focus:border-blue-500 focus:bg-white focus:outline-none cursor-pointer"
             />
           </div>
 
@@ -304,7 +304,7 @@ export function TodoPage() {
         {/* Notion-style Header */}
         <div className="border-b border-stone-100 pb-4">
           <div className="flex items-center gap-2 mb-1">
-            <span className="p-1 rounded-md bg-amber-50 text-amber-700">
+            <span className="p-1 rounded-md bg-blue-50 text-blue-700">
               <CheckSquare className="size-5" />
             </span>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900">
@@ -331,7 +331,7 @@ export function TodoPage() {
                 type="checkbox"
                 checked={todo.completed}
                 onChange={() => toggleTodo(todo.id)}
-                className="size-4.5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer shrink-0 accent-amber-600 mt-1"
+                className="size-4.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0 accent-blue-600 mt-1"
               />
 
               {/* Multi-line Word-Wrapping Title */}
@@ -395,7 +395,7 @@ export function TodoPage() {
                 <button
                   type="button"
                   onClick={handleCreate}
-                  className="text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded transition cursor-pointer"
+                  className="text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded transition cursor-pointer"
                 >
                   Add
                 </button>
@@ -419,7 +419,7 @@ export function TodoPage() {
                   type="checkbox"
                   checked={todo.completed}
                   onChange={() => toggleTodo(todo.id)}
-                  className="size-4.5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer shrink-0 accent-amber-600 mt-1"
+                  className="size-4.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0 accent-blue-600 mt-1"
                 />
                 <div className="flex-1 min-w-0">
                   <AutoResizeTextarea

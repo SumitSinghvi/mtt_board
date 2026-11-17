@@ -83,15 +83,15 @@ export function QuickActionFab() {
               <button
                 type="button"
                 onClick={() => handleSelectOption("reminder")}
-                className="w-full flex items-center gap-3 rounded-xl p-2.5 text-left transition hover:bg-amber-50/80 group cursor-pointer"
+                className="w-full flex items-center gap-3 rounded-xl p-2.5 text-left transition hover:bg-blue-50/80 group cursor-pointer"
               >
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800 transition group-hover:bg-amber-600 group-hover:text-white">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-800 transition group-hover:bg-blue-600 group-hover:text-white">
                   <Bell className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-amber-700">1)</span>
-                    <span className="text-xs font-bold text-stone-800 group-hover:text-amber-900">
+                    <span className="text-[11px] font-bold text-blue-700">1)</span>
+                    <span className="text-xs font-bold text-stone-800 group-hover:text-blue-900">
                       Reminder
                     </span>
                   </div>
@@ -105,15 +105,15 @@ export function QuickActionFab() {
               <button
                 type="button"
                 onClick={() => handleSelectOption("notes")}
-                className="w-full flex items-center gap-3 rounded-xl p-2.5 text-left transition hover:bg-amber-50/80 group cursor-pointer"
+                className="w-full flex items-center gap-3 rounded-xl p-2.5 text-left transition hover:bg-blue-50/80 group cursor-pointer"
               >
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800 transition group-hover:bg-amber-600 group-hover:text-white">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-800 transition group-hover:bg-blue-600 group-hover:text-white">
                   <CheckSquare className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-amber-700">2)</span>
-                    <span className="text-xs font-bold text-stone-800 group-hover:text-amber-900">
+                    <span className="text-[11px] font-bold text-blue-700">2)</span>
+                    <span className="text-xs font-bold text-stone-800 group-hover:text-blue-900">
                       Notes
                     </span>
                   </div>
@@ -127,15 +127,15 @@ export function QuickActionFab() {
               <button
                 type="button"
                 onClick={() => handleSelectOption("card")}
-                className="w-full flex items-center gap-3 rounded-xl p-2.5 text-left transition hover:bg-amber-50/80 group cursor-pointer"
+                className="w-full flex items-center gap-3 rounded-xl p-2.5 text-left transition hover:bg-blue-50/80 group cursor-pointer"
               >
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800 transition group-hover:bg-amber-600 group-hover:text-white">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-800 transition group-hover:bg-blue-600 group-hover:text-white">
                   <Kanban className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-amber-700">3)</span>
-                    <span className="text-xs font-bold text-stone-800 group-hover:text-amber-900">
+                    <span className="text-[11px] font-bold text-blue-700">3)</span>
+                    <span className="text-xs font-bold text-stone-800 group-hover:text-blue-900">
                       Card
                     </span>
                   </div>
@@ -153,7 +153,7 @@ export function QuickActionFab() {
           type="button"
           onClick={() => setMenuOpen((prev) => !prev)}
           title="Create New (Reminder, Notes, Card)"
-          className="flex size-14 items-center justify-center rounded-full bg-amber-600 text-white shadow-xl shadow-amber-900/25 ring-4 ring-amber-600/15 transition-all duration-200 hover:bg-amber-700 hover:scale-105 active:scale-95 cursor-pointer focus:outline-none"
+          className="flex size-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-xl shadow-blue-900/25 ring-4 ring-blue-600/15 transition-all duration-200 hover:bg-blue-700 hover:scale-105 active:scale-95 cursor-pointer focus:outline-none"
         >
           <Plus
             className={`size-6 transition-transform duration-200 ${

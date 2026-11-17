@@ -297,7 +297,7 @@ export function NotificationPopover({
         {/* Header */}
         <div className="border-b border-stone-200 px-4 py-3 bg-stone-50/90 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-600 text-white shadow-2xs">
+            <div className="p-1.5 rounded-lg bg-blue-600 text-white shadow-2xs">
               <Bell className="size-4" />
             </div>
             <div>
@@ -353,7 +353,7 @@ export function NotificationPopover({
           >
             <span>@Mentions</span>
             {unreadMentions.length > 0 && (
-              <span className="size-4 rounded-full bg-amber-600 text-white text-[9px] flex items-center justify-center font-bold">
+              <span className="size-4 rounded-full bg-blue-600 text-white text-[9px] flex items-center justify-center font-bold">
                 {unreadMentions.length}
               </span>
             )}
@@ -414,12 +414,12 @@ export function NotificationPopover({
                     onClick={() => handleOpenMention(mention)}
                     className={`p-2.5 rounded-xl transition flex items-start gap-2.5 cursor-pointer border ${
                       !mention.isRead
-                        ? "bg-amber-50/70 border-amber-200/90 shadow-2xs"
+                        ? "bg-blue-50/70 border-blue-200/90 shadow-2xs"
                         : "bg-white border-stone-200/70 hover:bg-stone-50/80"
                     }`}
                   >
-                    <div className="size-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                      <AtSign className="size-3.5 text-amber-700" />
+                    <div className="size-7 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                      <AtSign className="size-3.5 text-blue-700" />
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -444,7 +444,7 @@ export function NotificationPopover({
                       </p>
 
                       <div className="mt-1 flex items-center justify-between text-[10px] text-stone-500">
-                        <span className="font-semibold text-amber-800 truncate">
+                        <span className="font-semibold text-blue-800 truncate">
                           {mention.task.title}
                         </span>
                         <span className="text-stone-400 truncate">{mention.boardTitle}</span>
@@ -480,10 +480,10 @@ export function NotificationPopover({
                       isOverdue
                         ? "bg-red-50/70 border border-red-200/80"
                         : isDueToday
-                        ? "bg-amber-50/80 border border-amber-200/80"
+                        ? "bg-blue-50/80 border border-blue-200/80"
                         : reminder.completed
                         ? "bg-stone-50 opacity-60"
-                        : "bg-white border border-stone-200/70 hover:border-amber-300"
+                        : "bg-white border border-stone-200/70 hover:border-blue-300"
                     }`}
                   >
                     {/* Completion Checkbox */}
@@ -500,7 +500,7 @@ export function NotificationPopover({
                       className={`mt-0.5 size-4.5 rounded-md border flex items-center justify-center transition cursor-pointer shrink-0 ${
                         reminder.completed
                           ? "bg-emerald-600 border-emerald-600 text-white"
-                          : "border-stone-300 bg-white hover:border-amber-600"
+                          : "border-stone-300 bg-white hover:border-blue-600"
                       }`}
                     >
                       {reminder.completed && <CheckCircle2 className="size-3.5" />}
@@ -523,7 +523,7 @@ export function NotificationPopover({
                       {/* Task & Board link or General label */}
                       {boardId === "general" ? (
                         <div className="mt-1 flex items-center gap-1 text-[10px] text-stone-500 font-medium">
-                          <span className="font-semibold text-amber-800">📌 General Reminder</span>
+                          <span className="font-semibold text-blue-800">📌 General Reminder</span>
                           <span className="text-stone-400">&bull;</span>
                           <span className="text-stone-400">Team-wide (No staff assigned)</span>
                         </div>
@@ -534,7 +534,7 @@ export function NotificationPopover({
                             onClose()
                             onSelectTask(boardId, columnId, task.id)
                           }}
-                          className="mt-1 flex items-center gap-1 text-[11px] text-stone-600 hover:text-amber-800 transition text-left cursor-pointer group/link truncate"
+                          className="mt-1 flex items-center gap-1 text-[11px] text-stone-600 hover:text-blue-800 transition text-left cursor-pointer group/link truncate"
                         >
                           <span className="font-semibold truncate">{task.title}</span>
                           <span className="text-stone-400">&bull;</span>
@@ -553,7 +553,7 @@ export function NotificationPopover({
                             <span>Overdue ({formatDate(reminder.dueDate)})</span>
                           </span>
                         ) : isDueToday ? (
-                          <span className="inline-flex items-center gap-1 font-bold text-amber-800">
+                          <span className="inline-flex items-center gap-1 font-bold text-blue-800">
                             <Clock className="size-3 shrink-0" />
                             <span>Due Today {reminder.dueTime ? `at ${reminder.dueTime}` : ""}</span>
                           </span>

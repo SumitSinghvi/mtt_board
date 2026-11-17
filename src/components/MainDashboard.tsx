@@ -59,7 +59,7 @@ function getHoldBadge(holdUntil?: string) {
   if (diff === null) return { text: holdUntil, color: "bg-stone-100 text-stone-500 border-stone-200" }
   if (diff < 0) return { text: `Expired (${Math.abs(diff)}d ago)`, color: "bg-red-100 text-red-800 border-red-300 font-bold" }
   if (diff === 0) return { text: "Expires Today!", color: "bg-rose-100 text-rose-800 border-rose-300 font-bold animate-pulse" }
-  if (diff === 1) return { text: "Expires Tomorrow", color: "bg-amber-100 text-amber-900 border-amber-300 font-bold" }
+  if (diff === 1) return { text: "Expires Tomorrow", color: "bg-blue-100 text-blue-900 border-blue-300 font-bold" }
   return { text: `Hold: ${diff} days left`, color: "bg-stone-100 text-stone-700 border-stone-200 font-medium" }
 }
 
@@ -368,7 +368,7 @@ export function MainDashboard() {
                 : "text-stone-600 hover:text-stone-900"
             }`}
           >
-            <Calendar className="size-3.5 text-amber-600" />
+            <Calendar className="size-3.5 text-blue-600" />
             Operations Calendar
           </button>
         </div>
@@ -391,11 +391,11 @@ export function MainDashboard() {
             {/* Core Operational Metrics */}
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               {/* Metric 1: Departures */}
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50/80 border border-amber-200/70 text-amber-900 font-semibold">
-                <Car className="size-3.5 text-amber-700 shrink-0" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50/80 border border-blue-200/70 text-blue-900 font-semibold">
+                <Car className="size-3.5 text-blue-700 shrink-0" />
                 <span className="text-stone-500 font-normal">Departures:</span>
-                <span className="font-extrabold text-amber-950">{next7DaysTripCount}</span>
-                <span className="text-[10px] text-amber-700/80 font-medium hidden sm:inline">(7d)</span>
+                <span className="font-extrabold text-blue-950">{next7DaysTripCount}</span>
+                <span className="text-[10px] text-blue-700/80 font-medium hidden sm:inline">(7d)</span>
               </div>
 
               {/* Metric 2: Urgent & Overdue */}
@@ -482,7 +482,7 @@ export function MainDashboard() {
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <div className={`p-1.5 rounded-lg text-white ${
-                      actionTab === "urgent" ? "bg-red-600" : actionTab === "reminders" ? "bg-amber-600" : "bg-purple-600"
+                      actionTab === "urgent" ? "bg-red-600" : actionTab === "reminders" ? "bg-blue-600" : "bg-purple-600"
                     }`}>
                       {actionTab === "urgent" ? (
                         <Flame className="size-3.5" />
@@ -541,7 +541,7 @@ export function MainDashboard() {
                   >
                     <span>Follow-ups</span>
                     <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                      todayReminders.length > 0 ? "bg-amber-200 text-amber-900 animate-pulse" : "bg-stone-200 text-stone-600"
+                      todayReminders.length > 0 ? "bg-blue-200 text-blue-900 animate-pulse" : "bg-stone-200 text-stone-600"
                     }`}>
                       {todayReminders.length}
                     </span>
@@ -617,7 +617,7 @@ export function MainDashboard() {
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-xs font-bold text-stone-900 group-hover:text-amber-800 transition truncate">
+                              <h4 className="text-xs font-bold text-stone-900 group-hover:text-blue-800 transition truncate">
                                 {task.title}
                               </h4>
                               <div className="flex items-center gap-1.5 text-[10px] text-stone-400 mt-0.5">
@@ -647,7 +647,7 @@ export function MainDashboard() {
                                 <span>Overdue ({formatDate(task.dueDate)})</span>
                               </span>
                             ) : isDueToday ? (
-                              <span className="inline-flex items-center gap-1 text-amber-700 font-bold text-[10px]">
+                              <span className="inline-flex items-center gap-1 text-blue-700 font-bold text-[10px]">
                                 <Clock className="size-3" />
                                 <span>Due Today</span>
                               </span>
@@ -662,10 +662,10 @@ export function MainDashboard() {
 
                             {getTaskAssignees(task).length > 0 ? (
                               <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${
-                                task.leader ? "font-semibold text-amber-900 bg-amber-100/90 border border-amber-300/80" : "font-medium text-stone-600 bg-stone-100"
+                                task.leader ? "font-semibold text-blue-900 bg-blue-100/90 border border-blue-300/80" : "font-medium text-stone-600 bg-stone-100"
                               }`}>
                                 {task.leader ? (
-                                  <Crown className="size-3 text-amber-700 shrink-0" />
+                                  <Crown className="size-3 text-blue-700 shrink-0" />
                                 ) : (
                                   <UserCheck className="size-3 text-stone-400 shrink-0" />
                                 )}
@@ -703,7 +703,7 @@ export function MainDashboard() {
                             }
                           }}
                           className={`py-2 px-2.5 transition flex items-start gap-2.5 group rounded-lg ${
-                            !rem.isGeneral ? "hover:bg-amber-50/40 cursor-pointer" : "hover:bg-stone-50"
+                            !rem.isGeneral ? "hover:bg-blue-50/40 cursor-pointer" : "hover:bg-stone-50"
                           }`}
                         >
                           <button
@@ -725,7 +725,7 @@ export function MainDashboard() {
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="text-xs font-bold text-stone-900 group-hover:text-amber-800 transition">
+                              <span className="text-xs font-bold text-stone-900 group-hover:text-blue-800 transition">
                                 {rem.text}
                               </span>
                               {isOverdue ? (
@@ -733,7 +733,7 @@ export function MainDashboard() {
                                   Overdue
                                 </span>
                               ) : (
-                                <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 border border-amber-200 shrink-0">
+                                <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-blue-100 text-blue-900 border border-blue-200 shrink-0">
                                   Today {rem.dueTime ? `• ${rem.dueTime}` : ""}
                                 </span>
                               )}
@@ -782,17 +782,17 @@ export function MainDashboard() {
                         <div
                           key={task.id}
                           onClick={() => setActiveTaskModal({ boardId, columnId, taskId: task.id })}
-                          className="py-2 px-2.5 hover:bg-amber-50/40 rounded-lg transition cursor-pointer group space-y-1"
+                          className="py-2 px-2.5 hover:bg-blue-50/40 rounded-lg transition cursor-pointer group space-y-1"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded border shrink-0 ${
-                                  isHold ? "bg-amber-100 text-amber-900 border-amber-300" : "bg-purple-100 text-purple-900 border-purple-300"
+                                  isHold ? "bg-blue-100 text-blue-900 border-blue-300" : "bg-purple-100 text-purple-900 border-purple-300"
                                 }`}>
                                   {h.status}
                                 </span>
-                                <h4 className="text-xs font-bold text-stone-900 truncate group-hover:text-amber-800 transition">
+                                <h4 className="text-xs font-bold text-stone-900 truncate group-hover:text-blue-800 transition">
                                   {h.hotelName || "Hotel Not Specified"}
                                 </h4>
                               </div>
@@ -862,11 +862,11 @@ export function MainDashboard() {
                   <div
                     key={board.id}
                     onClick={() => handleJumpToBoard(board.id)}
-                    className="rounded-xl border border-stone-200 bg-stone-50/60 p-4 hover:border-amber-400 hover:bg-amber-50/20 transition cursor-pointer group flex flex-col justify-between"
+                    className="rounded-xl border border-stone-200 bg-stone-50/60 p-4 hover:border-blue-400 hover:bg-blue-50/20 transition cursor-pointer group flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className="text-xs font-bold text-stone-900 group-hover:text-amber-800 transition">
+                        <h4 className="text-xs font-bold text-stone-900 group-hover:text-blue-800 transition">
                           {board.title}
                         </h4>
                         {urgentInBoard > 0 && (
@@ -886,7 +886,7 @@ export function MainDashboard() {
                       <span className="font-semibold text-[11px] text-stone-700">
                         {activeInBoard} active {doneInBoard > 0 ? `• ${doneInBoard} done` : ""}
                       </span>
-                      <span className="text-amber-700 font-bold group-hover:translate-x-1 transition flex items-center text-[11px]">
+                      <span className="text-blue-700 font-bold group-hover:translate-x-1 transition flex items-center text-[11px]">
                         Open <ChevronRight className="size-3.5 ml-0.5" />
                       </span>
                     </div>
@@ -1036,7 +1036,7 @@ export function MainDashboard() {
                               {task.leader && (
                                 <>
                                   <span>•</span>
-                                  <span className="text-amber-800 font-semibold">Lead: {task.leader}</span>
+                                  <span className="text-blue-800 font-semibold">Lead: {task.leader}</span>
                                 </>
                               )}
                             </div>
@@ -1045,7 +1045,7 @@ export function MainDashboard() {
                           <div className="text-right shrink-0">
                             <span className="text-sm font-black text-stone-900 block">
                               {summary.pending > 0 ? (
-                                <span className="text-amber-800">{formatINR(summary.pending)} pending</span>
+                                <span className="text-blue-800">{formatINR(summary.pending)} pending</span>
                               ) : (
                                 <span className="text-emerald-600 font-extrabold">Fully Paid</span>
                               )}
@@ -1118,7 +1118,7 @@ export function MainDashboard() {
                               {task.leader && (
                                 <>
                                   <span>•</span>
-                                  <span className="text-amber-800 font-semibold">Lead: {task.leader}</span>
+                                  <span className="text-blue-800 font-semibold">Lead: {task.leader}</span>
                                 </>
                               )}
                             </div>

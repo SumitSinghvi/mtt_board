@@ -71,17 +71,17 @@ export function CardRemindersSection({
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="flex items-center gap-1.5 text-xs font-bold text-stone-800 hover:text-amber-800 transition cursor-pointer select-none"
+          className="flex items-center gap-1.5 text-xs font-bold text-stone-800 hover:text-blue-800 transition cursor-pointer select-none"
         >
           {isOpen ? (
             <ChevronDown className="size-3.5 text-stone-400" />
           ) : (
             <ChevronRight className="size-3.5 text-stone-400" />
           )}
-          <Bell className="size-3.5 text-amber-600" />
+          <Bell className="size-3.5 text-blue-600" />
           <span>Scheduled Reminders &amp; Alerts</span>
           {reminders.length > 0 && (
-            <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 ml-1">
+            <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-900 ml-1">
               {activeCount}
             </span>
           )}
@@ -94,7 +94,7 @@ export function CardRemindersSection({
               setIsOpen(true)
               setIsAdding(true)
             }}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 px-2 py-0.8 rounded-lg transition cursor-pointer"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2 py-0.8 rounded-lg transition cursor-pointer"
           >
             <Plus className="size-3" />
             <span>Add Reminder</span>
@@ -106,9 +106,9 @@ export function CardRemindersSection({
         <div className="space-y-2.5">
           {/* Add Reminder Form */}
           {isAdding && (
-            <form onSubmit={handleSubmit} className="rounded-xl border border-amber-200 bg-amber-50/50 p-3 space-y-2.5">
+            <form onSubmit={handleSubmit} className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-amber-900">
+                <span className="text-[11px] font-bold text-blue-900">
                   New Scheduled Reminder
                 </span>
                 <button
@@ -128,7 +128,7 @@ export function CardRemindersSection({
                   placeholder="e.g. Verify passport copy, follow up payment, confirm cab..."
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  className="w-full rounded-lg border border-stone-200 bg-white p-2 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:outline-none"
+                  className="w-full rounded-lg border border-stone-200 bg-white p-2 text-xs text-stone-800 placeholder-stone-400 focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -142,7 +142,7 @@ export function CardRemindersSection({
                     required
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full rounded-lg border border-stone-200 bg-white p-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
+                    className="w-full rounded-lg border border-stone-200 bg-white p-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
 
@@ -154,7 +154,7 @@ export function CardRemindersSection({
                     type="time"
                     value={dueTime}
                     onChange={(e) => setDueTime(e.target.value)}
-                    className="w-full rounded-lg border border-stone-200 bg-white p-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
+                    className="w-full rounded-lg border border-stone-200 bg-white p-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
 
@@ -165,7 +165,7 @@ export function CardRemindersSection({
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as Priority)}
-                    className="w-full rounded-lg border border-stone-200 bg-white p-1.5 text-xs text-stone-800 capitalize focus:border-amber-500 focus:outline-none"
+                    className="w-full rounded-lg border border-stone-200 bg-white p-1.5 text-xs text-stone-800 capitalize focus:border-blue-500 focus:outline-none"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -185,7 +185,7 @@ export function CardRemindersSection({
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 text-xs font-bold shadow-2xs cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs font-bold shadow-2xs cursor-pointer"
                 >
                   <Check className="size-3" />
                   <span>Save Reminder</span>
@@ -214,7 +214,7 @@ export function CardRemindersSection({
                         : isOverdue
                         ? "bg-red-50/80 border border-red-200/80"
                         : isDueToday
-                        ? "bg-amber-50/80 border border-amber-200/80"
+                        ? "bg-blue-50/80 border border-blue-200/80"
                         : "hover:bg-stone-50"
                     }`}
                   >
@@ -226,7 +226,7 @@ export function CardRemindersSection({
                         className={`mt-0.5 size-4 rounded border flex items-center justify-center transition cursor-pointer shrink-0 ${
                           rem.completed
                             ? "bg-emerald-600 border-emerald-600 text-white"
-                            : "border-stone-300 bg-white hover:border-amber-600"
+                            : "border-stone-300 bg-white hover:border-blue-600"
                         }`}
                       >
                         {rem.completed && <CheckCircle2 className="size-3 text-white" />}
@@ -244,7 +244,7 @@ export function CardRemindersSection({
                               <span>Overdue ({formatDate(rem.dueDate)})</span>
                             </span>
                           ) : isDueToday ? (
-                            <span className="font-bold text-amber-700 inline-flex items-center gap-0.5">
+                            <span className="font-bold text-blue-700 inline-flex items-center gap-0.5">
                               <Clock className="size-2.5" />
                               <span>Due Today {rem.dueTime ? `at ${rem.dueTime}` : ""}</span>
                             </span>

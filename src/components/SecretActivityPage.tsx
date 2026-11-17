@@ -345,7 +345,7 @@ export function SecretActivityPage() {
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-bold tracking-tight text-stone-900 sm:text-2xl">Staff Presence & Attendance</h1>
             <span className="inline-flex items-center gap-1 rounded-full border border-stone-300 bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-800">
-              <ShieldAlert className="size-3 text-amber-700" />
+              <ShieldAlert className="size-3 text-blue-700" />
               Admin Audit Log
             </span>
           </div>
@@ -361,7 +361,7 @@ export function SecretActivityPage() {
             className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 shadow-sm transition hover:bg-stone-50 disabled:opacity-50"
             title="Refresh logs"
           >
-            <RefreshCw className={`size-3.5 ${loading ? "animate-spin text-amber-600" : ""}`} />
+            <RefreshCw className={`size-3.5 ${loading ? "animate-spin text-blue-600" : ""}`} />
             Refresh
           </button>
 
@@ -579,7 +579,7 @@ export function SecretActivityPage() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-1.5 text-xs text-stone-700 focus:border-amber-500 focus:outline-none"
+              className="rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-1.5 text-xs text-stone-700 focus:border-blue-500 focus:outline-none"
             >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
@@ -596,7 +596,7 @@ export function SecretActivityPage() {
               placeholder="Search staff, email, or page..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-stone-200 bg-stone-50 py-1.5 pl-8 pr-3 text-xs text-stone-800 placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:outline-none"
+              className="w-full rounded-lg border border-stone-200 bg-stone-50 py-1.5 pl-8 pr-3 text-xs text-stone-800 placeholder:text-stone-400 focus:border-blue-500 focus:bg-white focus:outline-none"
             />
           </div>
         </div>
@@ -641,7 +641,7 @@ export function SecretActivityPage() {
                         <div
                           onClick={() => toggleSessionExpand(session.id)}
                           className={`flex items-center w-full cursor-pointer py-3 transition hover:bg-stone-50/80 ${
-                            isExpanded ? "bg-amber-50/30" : ""
+                            isExpanded ? "bg-blue-50/30" : ""
                           }`}
                         >
                           {/* Expand chevron */}
@@ -689,7 +689,7 @@ export function SecretActivityPage() {
                                       key={item.page}
                                       className="inline-flex items-center gap-1 rounded border border-stone-200 bg-stone-50 px-2 py-0.5 text-[11px] font-medium text-stone-800"
                                     >
-                                      <MapPin className="size-2.5 text-amber-600 shrink-0" />
+                                      <MapPin className="size-2.5 text-blue-600 shrink-0" />
                                       <span className="max-w-[120px] truncate">{item.page}</span>
                                       <span className="font-bold text-stone-900">
                                         ({formatDuration(item.totalSeconds)})
@@ -697,7 +697,7 @@ export function SecretActivityPage() {
                                     </span>
                                   ))}
                                   {aggregatedPages.length > 2 && (
-                                    <span className="text-[10px] text-amber-700 font-semibold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                    <span className="text-[10px] text-blue-700 font-semibold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
                                       +{aggregatedPages.length - 2} more pages
                                     </span>
                                   )}
@@ -766,7 +766,7 @@ export function SecretActivityPage() {
                               {/* Header info */}
                               <div className="mb-3 flex items-center justify-between border-b border-stone-100 pb-2.5">
                                 <div className="flex items-center gap-2">
-                                  <Timer className="size-4 text-amber-600" />
+                                  <Timer className="size-4 text-blue-600" />
                                   <span className="font-bold text-stone-800 text-xs">
                                     Exact Time Spent on Each Page
                                   </span>
@@ -791,7 +791,7 @@ export function SecretActivityPage() {
                                       className="flex items-center justify-between rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs"
                                     >
                                       <div className="flex items-center gap-1.5 min-w-0 pr-2">
-                                        <MapPin className="size-3 text-amber-600 shrink-0" />
+                                        <MapPin className="size-3 text-blue-600 shrink-0" />
                                         <span className="font-semibold text-stone-800 truncate">{item.page}</span>
                                         <span className="text-[10px] text-stone-400">({item.count}x)</span>
                                       </div>

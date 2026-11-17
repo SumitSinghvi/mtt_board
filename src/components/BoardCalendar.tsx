@@ -209,7 +209,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
       <div className="flex items-center justify-between border-b border-stone-200 bg-white px-3 sm:px-5 py-2.5 sm:py-3 rounded-t-xl shadow-2xs">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <CalendarIcon className="size-4 sm:size-5 text-amber-700" />
+            <CalendarIcon className="size-4 sm:size-5 text-blue-700" />
             <h2 className="text-sm sm:text-base font-bold text-stone-900">
               {MONTH_NAMES[currentMonth]} {currentYear}
             </h2>
@@ -262,7 +262,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
               key={cell.dateStr}
               className={`flex flex-col bg-white p-1 sm:p-1.5 min-h-0 overflow-hidden transition-colors ${
                 !cell.isCurrentMonth ? "bg-stone-50/60 text-stone-400" : "text-stone-900"
-              } ${cell.isToday ? "bg-amber-50/30 ring-1 ring-inset ring-amber-400/50" : ""}`}
+              } ${cell.isToday ? "bg-blue-50/30 ring-1 ring-inset ring-blue-400/50" : ""}`}
             >
               {/* Day Number Row */}
               <div className="flex items-center justify-between mb-0.5 sm:mb-1">
@@ -270,7 +270,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                   <span
                     className={`inline-flex items-center justify-center text-[11px] sm:text-xs font-semibold rounded-full size-5 sm:size-6 ${
                       cell.isToday
-                        ? "bg-amber-600 text-white font-bold"
+                        ? "bg-blue-600 text-white font-bold"
                         : cell.isCurrentMonth
                         ? "text-stone-800"
                         : "text-stone-400"
@@ -282,9 +282,9 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                   {remindersForThisDay.length > 0 && (
                     <span
                       title={`${remindersForThisDay.length} scheduled reminder(s)`}
-                      className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 px-1 py-0.2 text-[9px] font-bold"
+                      className="inline-flex items-center gap-0.5 rounded-full bg-blue-100 border border-blue-300 text-blue-900 px-1 py-0.2 text-[9px] font-bold"
                     >
-                      <Bell className="size-2 text-amber-700" />
+                      <Bell className="size-2 text-blue-700" />
                       <span>{remindersForThisDay.length}</span>
                     </span>
                   )}
@@ -295,7 +295,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                     type="button"
                     onClick={() => onQuickAddForDate(cell.dateStr)}
                     title={`Add card for ${cell.dateStr}`}
-                    className="opacity-0 hover:opacity-100 text-stone-400 hover:text-amber-700 p-0.5 rounded transition hidden sm:block"
+                    className="opacity-0 hover:opacity-100 text-stone-400 hover:text-blue-700 p-0.5 rounded transition hidden sm:block"
                   >
                     <Plus className="size-3" />
                   </button>
@@ -313,10 +313,10 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                     className={`flex items-center gap-1 p-1 rounded border text-[10px] leading-tight cursor-pointer shadow-2xs transition ${
                       reminder.completed
                         ? "bg-stone-50 border-stone-200 text-stone-400 opacity-60 line-through"
-                        : "bg-amber-50 border-amber-300/80 text-amber-950 hover:bg-amber-100"
+                        : "bg-blue-50 border-blue-300/80 text-blue-950 hover:bg-blue-100"
                     }`}
                   >
-                    <Bell className="size-2.5 text-amber-600 shrink-0" />
+                    <Bell className="size-2.5 text-blue-600 shrink-0" />
                     <span className="font-bold truncate">{reminder.text}</span>
                   </div>
                 ))}
@@ -333,7 +333,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                       className={`group flex flex-col p-0.5 sm:p-1 rounded cursor-pointer shadow-2xs transition text-[10px] sm:text-[11px] leading-tight ${
                         isDone
                           ? "bg-stone-50/80 hover:bg-stone-100 border border-stone-200 text-stone-500 opacity-75"
-                          : "bg-stone-50 hover:bg-amber-50/80 border border-stone-200/80 hover:border-amber-300 text-stone-900"
+                          : "bg-stone-50 hover:bg-blue-50/80 border border-stone-200/80 hover:border-blue-300 text-stone-900"
                       }`}
                     >
                       <div className="flex items-center gap-1 min-w-0">
@@ -343,7 +343,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                           }`}
                         />
                         <span
-                          className={`font-semibold truncate group-hover:text-amber-900 ${
+                          className={`font-semibold truncate group-hover:text-blue-900 ${
                             isDone ? "line-through text-stone-500" : "text-stone-900"
                           }`}
                         >
@@ -354,7 +354,7 @@ export function BoardCalendar({ board, onOpenTask, onQuickAddForDate }: BoardCal
                       {/* Sub-label: Trip, Done, or Due badge */}
                       <div className="hidden sm:flex items-center gap-1 text-[9px] text-stone-500 mt-0.5 truncate">
                         {isTripStart && (
-                          <span className="flex items-center gap-0.5 text-amber-800 font-medium truncate">
+                          <span className="flex items-center gap-0.5 text-blue-800 font-medium truncate">
                             {card.destination ? (
                               <>
                                 <MapPin className="size-2.5 shrink-0" />

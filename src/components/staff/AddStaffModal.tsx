@@ -90,7 +90,7 @@ export function AddStaffModal({ isOpen, onClose, onAddStaff }: AddStaffModalProp
               placeholder="e.g. Surendra Meena"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none disabled:opacity-50"
+              className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none disabled:opacity-50"
             />
           </div>
 
@@ -115,7 +115,7 @@ export function AddStaffModal({ isOpen, onClose, onAddStaff }: AddStaffModalProp
               placeholder="surendra@mohittours.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none disabled:opacity-50"
+              className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none disabled:opacity-50"
             />
           </div>
 
@@ -125,7 +125,7 @@ export function AddStaffModal({ isOpen, onClose, onAddStaff }: AddStaffModalProp
               disabled={submitting}
               value={role}
               onChange={(e) => setRole(e.target.value as StaffRole)}
-              className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none disabled:opacity-50"
+              className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none disabled:opacity-50"
             >
               <option value="travel">Travel (Itineraries & Bookings)</option>
               <option value="visa">Visa (Applications & Liaison)</option>
@@ -146,7 +146,7 @@ export function AddStaffModal({ isOpen, onClose, onAddStaff }: AddStaffModalProp
               placeholder="e.g. mtt2024"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none disabled:opacity-50"
+              className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none disabled:opacity-50"
             />
             <p className="text-[10px] text-stone-400 mt-1">
               Staff will use this password and their email to sign in to the portal.
@@ -165,7 +165,7 @@ export function AddStaffModal({ isOpen, onClose, onAddStaff }: AddStaffModalProp
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 shadow-2xs disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-2xs disabled:opacity-50"
             >
               {submitting ? (
                 <>

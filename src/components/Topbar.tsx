@@ -175,9 +175,9 @@ export function Topbar() {
               title="Scheduled Task Reminders & Alerts"
               className={`relative rounded-xl p-2 transition cursor-pointer ${
                 isNotificationOpen
-                  ? "bg-amber-100 text-amber-900 shadow-2xs"
+                  ? "bg-blue-100 text-blue-900 shadow-2xs"
                   : alertCount > 0
-                  ? "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200/80"
+                  ? "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/80"
                   : "text-stone-600 hover:bg-stone-100 hover:text-stone-900 border border-transparent"
               }`}
             >

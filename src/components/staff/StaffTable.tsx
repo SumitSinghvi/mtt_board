@@ -72,7 +72,7 @@ export function StaffTable({ staff, onEditStaff, onUpdateRole, onDeleteStaff }: 
                     type="button"
                     onClick={() => onEditStaff(member)}
                     title="Edit Staff Details & Permissions"
-                    className="p-1 rounded text-stone-500 hover:text-amber-700 hover:bg-stone-100 transition"
+                    className="p-1 rounded text-stone-500 hover:text-blue-700 hover:bg-stone-100 transition"
                   >
                     <Pencil className="size-3.5" />
                   </button>

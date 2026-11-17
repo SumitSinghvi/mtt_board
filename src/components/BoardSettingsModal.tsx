@@ -52,8 +52,8 @@ const ALL_SYSTEM_COMPONENTS: ComponentMeta[] = [
     title: "Hotel Booking & Room Status",
     description: "Track hotel reservations across Hold, Blocked, and Confirmed with follow-up deadlines",
     icon: Hotel,
-    iconBg: "bg-amber-50",
-    iconColor: "text-amber-700",
+    iconBg: "bg-blue-50",
+    iconColor: "text-blue-700",
   },
   {
     key: "paymentTracking",
@@ -168,7 +168,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-200 px-3.5 sm:px-6 py-3 sm:py-4 bg-stone-50/70 shrink-0">
           <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="rounded-lg bg-amber-100 p-1.5 text-amber-800">
+            <div className="rounded-lg bg-blue-100 p-1.5 text-blue-800">
               <Sliders className="size-4" />
             </div>
             <div>
@@ -250,7 +250,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
                             onChange={(e) => handleToggleComponent(comp.key, e.target.checked)}
                             className="sr-only peer"
                           />
-                          <div className="relative w-8 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-600"></div>
+                          <div className="relative w-8 h-4 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
                           <span className="text-[11px] font-semibold text-stone-600">
                             {isEnabled ? "On" : "Off"}
                           </span>
@@ -286,7 +286,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
                   return (
                     <div
                       key={comp.key}
-                      className="flex items-center justify-between p-3 rounded-xl border border-dashed border-stone-300 bg-stone-50/60 hover:bg-white hover:border-amber-400 transition"
+                      className="flex items-center justify-between p-3 rounded-xl border border-dashed border-stone-300 bg-stone-50/60 hover:bg-white hover:border-blue-400 transition"
                     >
                       <div className="flex items-center gap-3 min-w-0 pr-2">
                         <div className="rounded-lg bg-stone-200/70 p-2 text-stone-600 shrink-0">
@@ -305,7 +305,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
                         type="button"
                         onClick={() => handleRestoreComponent(comp)}
                         title={`Restore and add ${comp.title}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 shadow-2xs transition shrink-0 cursor-pointer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-2xs transition shrink-0 cursor-pointer"
                       >
                         <Plus className="size-3.5" />
                         <span>Add Back</span>
@@ -328,7 +328,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none"
               />
             </div>
 
@@ -340,7 +340,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none"
               />
             </div>
 
@@ -354,7 +354,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
                       onClose()
                     }
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-100 transition cursor-pointer"
                 >
                   <Archive className="size-3.5" />
                   <span>Archive Board</span>
@@ -402,7 +402,7 @@ export function BoardSettingsModal({ boardId, onClose }: BoardSettingsModalProps
                   <p className="mt-1 text-xs text-stone-600 leading-relaxed">
                     This will delete this component from <span className="font-semibold text-stone-900">all boards</span> across the entire system.
                   </p>
-                  <p className="mt-1 text-[11px] text-amber-700 bg-amber-50 rounded-lg p-2 border border-amber-200">
+                  <p className="mt-1 text-[11px] text-blue-700 bg-blue-50 rounded-lg p-2 border border-blue-200">
                     💡 If you only want to turn it off on this board, use the <strong>On/Off toggle</strong> switch instead.
                   </p>
                 </div>

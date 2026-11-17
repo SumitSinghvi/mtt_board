@@ -267,7 +267,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
               placeholder="e.g. Innova Service, Udaipur Package, Client Proposal..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-xl border border-stone-300 px-3.5 py-2 text-sm text-stone-900 placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full rounded-xl border border-stone-300 px-3.5 py-2 text-sm text-stone-900 placeholder-stone-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
@@ -285,7 +285,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                     <select
                       value={selectedBoardId}
                       onChange={(e) => handleBoardChange(e.target.value)}
-                      className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-800 focus:border-amber-500 focus:outline-none"
+                      className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-800 focus:border-blue-500 focus:outline-none"
                     >
                       {allowedBoards.map((b) => (
                         <option key={b.id} value={b.id}>
@@ -303,7 +303,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                   <select
                     value={selectedColumnId}
                     onChange={(e) => setSelectedColumnId(e.target.value)}
-                    className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-800 focus:border-amber-500 focus:outline-none"
+                    className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-800 focus:border-blue-500 focus:outline-none"
                   >
                     {currentBoard.columns.map((col) => (
                       <option key={col.id} value={col.id}>
@@ -342,7 +342,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                   placeholder="Task details, instructions, special requests..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full rounded-xl border border-stone-300 p-3 text-xs text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full rounded-xl border border-stone-300 p-3 text-xs text-stone-800 placeholder-stone-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -375,21 +375,21 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                             key={name}
                             className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium transition ${
                               isLeader
-                                ? "bg-amber-100 text-amber-900 border border-amber-300 font-semibold"
+                                ? "bg-blue-100 text-blue-900 border border-blue-300 font-semibold"
                                 : "bg-stone-100 text-stone-700 border border-stone-200/80"
                             }`}
                           >
-                            {isLeader && <Crown className="size-3 text-amber-700 shrink-0" />}
+                            {isLeader && <Crown className="size-3 text-blue-700 shrink-0" />}
                             <span className="truncate max-w-[120px]">{name}</span>
-                            {isLeader && <span className="text-[9px] uppercase font-bold text-amber-700">Lead</span>}
+                            {isLeader && <span className="text-[9px] uppercase font-bold text-blue-700">Lead</span>}
                             <div className="flex items-center gap-0.5 ml-0.5">
                               <button
                                 type="button"
                                 onClick={() => setLeader(name)}
                                 className={`rounded p-0.5 cursor-pointer ${
                                   isLeader
-                                    ? "text-amber-700"
-                                    : "text-stone-300 hover:text-amber-600"
+                                    ? "text-blue-700"
+                                    : "text-stone-300 hover:text-blue-600"
                                 }`}
                                 title={isLeader ? "Team Leader" : `Make ${name} Team Leader`}
                               >
@@ -428,7 +428,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                         }
                       }
                     }}
-                    className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none cursor-pointer"
+                    className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none cursor-pointer"
                   >
                     <option value="" disabled>+ Add assignee...</option>
                     {activeStaff
@@ -450,7 +450,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
+                    className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -472,10 +472,10 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                         <button
                           type="button"
                           onClick={() => handleAddCustToDirectory()}
-                          className="inline-flex items-center gap-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-1.5 py-0.5 text-[10px] font-semibold transition cursor-pointer"
+                          className="inline-flex items-center gap-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 text-[10px] font-semibold transition cursor-pointer"
                           title="Save this client to the Customer Directory"
                         >
-                          <UserPlus className="size-3 text-amber-600" />
+                          <UserPlus className="size-3 text-blue-600" />
                           <span>+ Add to Directory</span>
                         </button>
                       )}
@@ -486,7 +486,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                         </span>
                       )}
                       {!trimmedCustName && (
-                        <span className="text-[10px] text-amber-600 font-normal">Autofills saved info</span>
+                        <span className="text-[10px] text-blue-600 font-normal">Autofills saved info</span>
                       )}
                     </label>
                     <CustomerCombobox
@@ -531,7 +531,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                       placeholder="client@mail.com"
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
-                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -542,13 +542,13 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                 <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 space-y-3 animate-in fade-in-50">
                   <div className="flex items-center justify-between">
                     <span className="block text-xs font-bold uppercase tracking-wider text-stone-600 flex items-center gap-1.5">
-                      <Hotel className="size-3.5 text-amber-600" />
+                      <Hotel className="size-3.5 text-blue-600" />
                       Hotel Booking
                     </span>
                     <span
                       className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${
                         hotelStatus === "hold"
-                          ? "bg-amber-100/80 text-amber-900 border-amber-300"
+                          ? "bg-blue-100/80 text-blue-900 border-blue-300"
                           : hotelStatus === "blocked"
                           ? "bg-purple-100/80 text-purple-900 border-purple-300"
                           : hotelStatus === "confirmed"
@@ -580,7 +580,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                           className={`py-1.5 px-2 rounded-lg text-[11px] font-semibold text-center transition cursor-pointer border ${
                             hotelStatus === opt.value
                               ? opt.value === "hold"
-                                ? "bg-amber-500 text-white border-amber-600 shadow-2xs"
+                                ? "bg-blue-500 text-white border-blue-600 shadow-2xs"
                                 : opt.value === "blocked"
                                 ? "bg-purple-600 text-white border-purple-700 shadow-2xs"
                                 : opt.value === "confirmed"
@@ -604,20 +604,20 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                       placeholder="e.g. Taj Jai Mahal, Oberoi"
                       value={hotelName}
                       onChange={(e) => setHotelName(e.target.value)}
-                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                      className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
                     />
                   </div>
 
                   {hotelStatus === "hold" && (
-                    <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-2.5 space-y-1">
-                      <label className="block text-[11px] font-bold text-amber-900">
+                    <div className="rounded-lg border border-blue-200 bg-blue-50/70 p-2.5 space-y-1">
+                      <label className="block text-[11px] font-bold text-blue-900">
                         Hold Cutoff / Follow-up Date
                       </label>
                       <input
                         type="date"
                         value={hotelHoldUntil}
                         onChange={(e) => setHotelHoldUntil(e.target.value)}
-                        className="w-full rounded-md border border-amber-300 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                        className="w-full rounded-md border border-blue-300 bg-white px-2.5 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
                       />
                     </div>
                   )}
@@ -632,7 +632,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                         placeholder="e.g. VCH-8821"
                         value={hotelConfirmationNo}
                         onChange={(e) => setHotelConfirmationNo(e.target.value)}
-                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-mono focus:border-amber-500 focus:outline-none"
+                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-mono focus:border-blue-500 focus:outline-none"
                       />
                     </div>
                   )}
@@ -647,7 +647,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                         placeholder="e.g. 2 Deluxe Rooms, MAPAI meal plan"
                         value={hotelNotes}
                         onChange={(e) => setHotelNotes(e.target.value)}
-                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none resize-none"
+                        className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-blue-500 focus:outline-none resize-none"
                       />
                     </div>
                   )}
@@ -679,7 +679,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                           placeholder="e.g. 45000"
                           value={totalBookingAmount}
                           onChange={(e) => setTotalBookingAmount(e.target.value)}
-                          className="w-full rounded-md border border-stone-200 bg-white pl-6 pr-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                          className="w-full rounded-md border border-stone-200 bg-white pl-6 pr-2.5 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
                         />
                       </div>
                     </div>
@@ -695,7 +695,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                           placeholder="e.g. 15000"
                           value={advanceAmount}
                           onChange={(e) => setAdvanceAmount(e.target.value)}
-                          className="w-full rounded-md border border-stone-200 bg-white pl-6 pr-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                          className="w-full rounded-md border border-stone-200 bg-white pl-6 pr-2.5 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
                         />
                       </div>
                     </div>
@@ -711,7 +711,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                           type="date"
                           value={advanceDate}
                           onChange={(e) => setAdvanceDate(e.target.value)}
-                          className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                          className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
                         />
                       </div>
 
@@ -722,7 +722,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
                         <select
                           value={advanceMode}
                           onChange={(e) => setAdvanceMode(e.target.value)}
-                          className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                          className="w-full rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
                         >
                           <option value="UPI">UPI / GPay / PhonePe</option>
                           <option value="Bank Transfer">Bank Transfer (NEFT/RTGS/IMPS)</option>
@@ -854,7 +854,7 @@ export function NewCardModal({ boardId, defaultColumnId, onClose }: NewCardModal
           <button
             type="submit"
             form="new-card-form"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-700 active:scale-95 transition"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition"
           >
             <Plus className="size-4" />
             <span>Create Card</span>

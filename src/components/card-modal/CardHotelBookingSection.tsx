@@ -60,7 +60,7 @@ export function CardHotelBookingSection({
           ) : (
             <ChevronRight className="size-3.5 text-stone-400" />
           )}
-          <Hotel className="size-3.5 text-amber-600" />
+          <Hotel className="size-3.5 text-blue-600" />
           <span>Hotel Booking</span>
         </button>
 
@@ -70,7 +70,7 @@ export function CardHotelBookingSection({
             currentStatus === "hold"
               ? isHoldExpired
                 ? "bg-red-50 text-red-700 border-red-300"
-                : "bg-amber-100/90 text-amber-900 border-amber-300"
+                : "bg-blue-100/90 text-blue-900 border-blue-300"
               : currentStatus === "blocked"
               ? "bg-purple-100/90 text-purple-900 border-purple-300"
               : currentStatus === "confirmed"
@@ -111,7 +111,7 @@ export function CardHotelBookingSection({
                     className={`py-1.5 px-2 rounded-lg text-[11px] font-semibold text-center transition cursor-pointer border ${
                       isActive
                         ? opt.value === "hold"
-                          ? "bg-amber-500 text-white border-amber-600 shadow-2xs"
+                          ? "bg-blue-500 text-white border-blue-600 shadow-2xs"
                           : opt.value === "blocked"
                           ? "bg-purple-600 text-white border-purple-700 shadow-2xs"
                           : opt.value === "confirmed"
@@ -138,15 +138,15 @@ export function CardHotelBookingSection({
               placeholder="e.g. Taj Jai Mahal, Oberoi, Bani Park Hotel"
               value={hotelName}
               onChange={(e) => handleUpdate({ hotelName: e.target.value })}
-              className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-stone-100 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-stone-100 disabled:cursor-not-allowed"
             />
           </div>
 
           {/* Hold Expiry / Cutoff Date (Prominent if Hold) */}
           {currentStatus === "hold" && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-2.5 space-y-1.5">
-              <label className="block text-[11px] font-bold text-amber-900 flex items-center gap-1.5">
-                <Clock className="size-3 text-amber-700" />
+            <div className="rounded-lg border border-blue-200 bg-blue-50/70 p-2.5 space-y-1.5">
+              <label className="block text-[11px] font-bold text-blue-900 flex items-center gap-1.5">
+                <Clock className="size-3 text-blue-700" />
                 <span>Hold Release Cutoff / Follow-up Date</span>
               </label>
               <input
@@ -154,10 +154,10 @@ export function CardHotelBookingSection({
                 disabled={!canEdit}
                 value={holdUntil}
                 onChange={(e) => handleUpdate({ holdUntil: e.target.value })}
-                className="w-full rounded-lg border border-amber-300 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-stone-100 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-blue-300 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-stone-100 disabled:cursor-not-allowed"
               />
               {holdUntil && (
-                <div className="text-[10px] text-amber-800 flex items-center justify-between">
+                <div className="text-[10px] text-blue-800 flex items-center justify-between">
                   <span>
                     {isHoldExpired ? (
                       <strong className="text-red-700">⚠️ Hold cutoff date has passed!</strong>
@@ -183,7 +183,7 @@ export function CardHotelBookingSection({
                 placeholder="e.g. VCH-8821, BKG-9923"
                 value={confirmationNo}
                 onChange={(e) => handleUpdate({ confirmationNo: e.target.value })}
-                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono disabled:bg-stone-100 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono disabled:bg-stone-100 disabled:cursor-not-allowed"
               />
             </div>
           )}
@@ -200,7 +200,7 @@ export function CardHotelBookingSection({
               placeholder="e.g. 2 Deluxe Rooms, MAPAI meal plan, extra bed requested..."
               value={notes}
               onChange={(e) => handleUpdate({ notes: e.target.value })}
-              className="w-full rounded-lg border border-stone-200 bg-white p-2 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:bg-stone-100 disabled:cursor-not-allowed resize-none"
+              className="w-full rounded-lg border border-stone-200 bg-white p-2 text-xs text-stone-800 leading-relaxed placeholder-stone-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-stone-100 disabled:cursor-not-allowed resize-none"
             />
           </div>
         </div>

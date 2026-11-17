@@ -51,14 +51,14 @@ export function CardSubcardsSection({
         <button
           type="button"
           onClick={onToggleOpen}
-          className="flex items-center gap-1.5 text-xs font-bold text-stone-900 hover:text-amber-800 transition cursor-pointer select-none"
+          className="flex items-center gap-1.5 text-xs font-bold text-stone-900 hover:text-blue-800 transition cursor-pointer select-none"
         >
           {isOpen ? (
             <ChevronDown className="size-3.5 text-stone-400" />
           ) : (
             <ChevronRight className="size-3.5 text-stone-400" />
           )}
-          <Layers className="size-4 text-amber-600" />
+          <Layers className="size-4 text-blue-600" />
           <span>Sub-Cards ({checklist.length})</span>
         </button>
         {checklist.length > 0 && (
@@ -71,7 +71,7 @@ export function CardSubcardsSection({
       {checklist.length > 0 && (
         <div className="h-1.5 w-full rounded-full bg-stone-200/70 overflow-hidden">
           <div
-            className="h-full bg-amber-600 transition-all duration-300"
+            className="h-full bg-blue-600 transition-all duration-300"
             style={{
               width: `${(completedCount / checklist.length) * 100}%`,
             }}
@@ -90,7 +90,7 @@ export function CardSubcardsSection({
                 className={`group rounded-xl border p-2.5 transition flex items-center justify-between gap-3 cursor-pointer ${
                   item.done
                     ? "bg-white/60 border-stone-200/70 opacity-75 hover:border-stone-300"
-                    : "bg-white border-stone-200 hover:border-amber-400 hover:shadow-xs shadow-2xs"
+                    : "bg-white border-stone-200 hover:border-blue-400 hover:shadow-xs shadow-2xs"
                 }`}
               >
                 {/* Checkbox & Title */}
@@ -103,11 +103,11 @@ export function CardSubcardsSection({
                     checked={item.done}
                     disabled={!canEdit}
                     onChange={() => onToggleItem(item.id)}
-                    className="size-4 rounded text-amber-600 focus:ring-amber-500 shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                    className="size-4 rounded text-blue-600 focus:ring-blue-500 shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                   />
                   <span
                     onClick={() => onOpenSubCard(item.id)}
-                    className={`text-xs font-semibold truncate cursor-pointer text-stone-900 group-hover:text-amber-900 ${
+                    className={`text-xs font-semibold truncate cursor-pointer text-stone-900 group-hover:text-blue-900 ${
                       item.done ? "line-through text-stone-400 font-normal" : ""
                     }`}
                   >
@@ -151,7 +151,7 @@ export function CardSubcardsSection({
                       onOpenSubCard(item.id)
                     }}
                     title="Open Sub-Card Modal"
-                    className="p-1 rounded text-stone-400 hover:text-amber-700 hover:bg-amber-50 transition"
+                    className="p-1 rounded text-stone-400 hover:text-blue-700 hover:bg-blue-50 transition"
                   >
                     <ExternalLink className="size-3.5" />
                   </button>
@@ -183,11 +183,11 @@ export function CardSubcardsSection({
                 placeholder="Add new sub-card (e.g. Arrange airport taxi, Collect advance receipt)..."
                 value={newChecklistText}
                 onChange={(e) => setNewChecklistText(e.target.value)}
-                className="flex-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs text-stone-800 focus:border-amber-500 focus:outline-none shadow-2xs"
+                className="flex-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs text-stone-800 focus:border-blue-500 focus:outline-none shadow-2xs"
               />
               <button
                 type="submit"
-                className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 shadow-2xs transition"
+                className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-2xs transition"
               >
                 <Plus className="size-3.5" />
                 <span>Add Sub-Card</span>

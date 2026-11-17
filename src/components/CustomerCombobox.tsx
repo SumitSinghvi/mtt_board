@@ -80,7 +80,7 @@ export function CustomerCombobox({
           className={`w-full rounded-md border bg-white px-2.5 py-1.5 pr-8 text-xs text-stone-800 placeholder-stone-400 focus:outline-none disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed ${
             hasError
               ? "border-red-400 focus:border-red-500 ring-1 ring-red-300"
-              : "border-stone-200 focus:border-amber-500"
+              : "border-stone-200 focus:border-blue-500"
           } ${className}`}
         />
 
@@ -112,7 +112,7 @@ export function CustomerCombobox({
                 key={customer.id}
                 onClick={() => handleSelect(customer)}
                 className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 cursor-pointer text-xs transition ${
-                  isSelected ? "bg-amber-50 text-amber-900 font-semibold" : "hover:bg-stone-50 text-stone-800"
+                  isSelected ? "bg-blue-50 text-blue-900 font-semibold" : "hover:bg-stone-50 text-stone-800"
                 }`}
               >
                 <div className="min-w-0 flex-1">
@@ -139,7 +139,7 @@ export function CustomerCombobox({
                   )}
                 </div>
 
-                {isSelected && <Check className="size-3.5 text-amber-600 shrink-0 ml-2" />}
+                {isSelected && <Check className="size-3.5 text-blue-600 shrink-0 ml-2" />}
               </div>
             )
           })}
@@ -157,9 +157,9 @@ export function CustomerCombobox({
                   }
                   setIsOpen(false)
                 }}
-                className="flex items-center gap-1.5 w-full rounded-lg border border-dashed border-amber-300 bg-amber-50/70 px-2.5 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition cursor-pointer"
+                className="flex items-center gap-1.5 w-full rounded-lg border border-dashed border-blue-300 bg-blue-50/70 px-2.5 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-100 transition cursor-pointer"
               >
-                <UserPlus className="size-3.5 text-amber-600 shrink-0" />
+                <UserPlus className="size-3.5 text-blue-600 shrink-0" />
                 <span>+ Add "{value.trim()}" to Customer Directory</span>
               </button>
             </div>

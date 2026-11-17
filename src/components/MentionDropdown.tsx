@@ -136,7 +136,7 @@ export function MentionDropdown({
       } absolute left-0 z-50 w-80 rounded-xl border border-stone-200 bg-white p-1.5 shadow-2xl animate-in fade-in-50 zoom-in-95`}
     >
       <div className="flex items-center justify-between px-2 py-1 border-b border-stone-100 text-[10px] font-bold uppercase tracking-wider text-stone-400">
-        <span className="flex items-center gap-1 text-amber-700">
+        <span className="flex items-center gap-1 text-blue-700">
           <AtSign className="size-3" />
           <span>Tag Staff or Team</span>
         </span>
@@ -165,7 +165,7 @@ export function MentionDropdown({
                     ? "bg-purple-50 text-purple-950 font-semibold"
                     : isAdminBroadcast
                     ? "bg-rose-50 text-rose-950 font-semibold"
-                    : "bg-amber-50 text-amber-950 font-semibold"
+                    : "bg-blue-50 text-blue-950 font-semibold"
                   : "text-stone-700 hover:bg-stone-50"
               }`}
             >
@@ -182,8 +182,8 @@ export function MentionDropdown({
                   <div
                     className={`size-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
                       isStaffAdmin
-                        ? "bg-amber-200 text-amber-900 border border-amber-300"
-                        : "bg-amber-100 text-amber-800"
+                        ? "bg-blue-200 text-blue-900 border border-blue-300"
+                        : "bg-blue-100 text-blue-800"
                     }`}
                   >
                     {m.name.slice(0, 2).toUpperCase()}
@@ -209,7 +209,7 @@ export function MentionDropdown({
                     : isAdminBroadcast
                     ? "bg-rose-100 text-rose-800 border border-rose-200"
                     : isStaffAdmin
-                    ? "bg-amber-100 text-amber-900 border border-amber-300"
+                    ? "bg-blue-100 text-blue-900 border border-blue-300"
                     : "bg-stone-100 text-stone-600"
                 }`}
               >
@@ -283,16 +283,16 @@ export function renderFormattedMentions(
           key={i}
           className={`inline-flex items-center gap-1 px-1.5 py-0.2 mx-0.5 rounded-md text-[11px] shadow-2xs ${
             isSelf
-              ? "bg-amber-200/90 text-amber-950 border border-amber-400 font-bold"
+              ? "bg-blue-200/90 text-blue-950 border border-blue-400 font-bold"
               : isStaffAdmin
-              ? "bg-amber-100 text-amber-950 border border-amber-300 font-semibold"
-              : "bg-amber-100/90 text-amber-900 border border-amber-300/80 font-medium"
+              ? "bg-blue-100 text-blue-950 border border-blue-300 font-semibold"
+              : "bg-blue-100/90 text-blue-900 border border-blue-300/80 font-medium"
           }`}
         >
-          <AtSign className="size-2.5 text-amber-700" />
+          <AtSign className="size-2.5 text-blue-700" />
           <span>{matchedStaff.name}</span>
           {isStaffAdmin && (
-            <span className="text-[9px] font-extrabold uppercase px-1 rounded bg-amber-200 text-amber-900">
+            <span className="text-[9px] font-extrabold uppercase px-1 rounded bg-blue-200 text-blue-900">
               Admin
             </span>
           )}

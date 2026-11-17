@@ -89,7 +89,7 @@ export function NewNoteModal({ isOpen, onClose }: NewNoteModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-stone-100 pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-amber-50 text-amber-700">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-blue-700">
               <CheckSquare className="size-4" />
             </span>
             <div>
@@ -128,7 +128,7 @@ export function NewNoteModal({ isOpen, onClose }: NewNoteModalProps) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Call client about Rajasthan package, verify itinerary..."
-              className="w-full rounded-xl border border-stone-200 px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none"
+              className="w-full rounded-xl border border-stone-200 px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
             />
           </div>
 
@@ -141,7 +141,7 @@ export function NewNoteModal({ isOpen, onClose }: NewNoteModalProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional notes or context..."
-              className="w-full rounded-xl border border-stone-200 px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none"
+              className="w-full rounded-xl border border-stone-200 px-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
             />
           </div>
 
@@ -158,7 +158,7 @@ export function NewNoteModal({ isOpen, onClose }: NewNoteModalProps) {
                     onClick={() => setDueDate(todayStr)}
                     className={`flex-1 rounded-lg border py-1 text-[11px] font-semibold transition ${
                       dueDate === todayStr
-                        ? "bg-amber-600 text-white border-amber-600"
+                        ? "bg-blue-600 text-white border-blue-600"
                         : "bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100"
                     }`}
                   >
@@ -169,7 +169,7 @@ export function NewNoteModal({ isOpen, onClose }: NewNoteModalProps) {
                     onClick={() => setDueDate(tomorrowStr)}
                     className={`flex-1 rounded-lg border py-1 text-[11px] font-semibold transition ${
                       dueDate === tomorrowStr
-                        ? "bg-amber-600 text-white border-amber-600"
+                        ? "bg-blue-600 text-white border-blue-600"
                         : "bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100"
                     }`}
                   >
@@ -182,7 +182,7 @@ export function NewNoteModal({ isOpen, onClose }: NewNoteModalProps) {
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full rounded-lg border border-stone-200 pl-8 pr-2 py-1 text-xs text-stone-800 focus:border-amber-500 focus:outline-none"
+                    className="w-full rounded-lg border border-stone-200 pl-8 pr-2 py-1 text-xs text-stone-800 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -195,7 +195,7 @@ export function NewNoteModal({ isOpen, onClose }: NewNoteModalProps) {
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as any)}
-                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-800 focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-medium text-stone-800 focus:border-blue-500 focus:outline-none"
               >
                 <option value="low">Low Priority</option>
                 <option value="medium">Medium Priority</option>
@@ -210,7 +210,7 @@ export function NewNoteModal({ isOpen, onClose }: NewNoteModalProps) {
             <button
               type="button"
               onClick={handleGoToNotes}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-800 hover:underline cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 hover:text-blue-800 hover:underline cursor-pointer"
             >
               <span>Go to Notes page</span>
               <ArrowRight className="size-3" />
@@ -227,7 +227,7 @@ export function NewNoteModal({ isOpen, onClose }: NewNoteModalProps) {
               <button
                 type="submit"
                 disabled={saving || !title.trim()}
-                className="rounded-xl bg-amber-600 px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-amber-700 disabled:opacity-50 cursor-pointer transition"
+                className="rounded-xl bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 disabled:opacity-50 cursor-pointer transition"
               >
                 {saving ? "Adding..." : "Add Note"}
               </button>

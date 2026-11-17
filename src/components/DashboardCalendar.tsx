@@ -315,7 +315,7 @@ export function DashboardCalendar({
         {/* Left: Title & Month */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-600 text-white shadow-2xs">
+            <div className="p-1.5 rounded-lg bg-blue-600 text-white shadow-2xs">
               <CalendarIcon className="size-4" />
             </div>
             <div>
@@ -331,7 +331,7 @@ export function DashboardCalendar({
           <button
             type="button"
             onClick={handleGoToday}
-            className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-100 hover:border-amber-300 transition cursor-pointer shadow-2xs"
+            className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-100 hover:border-blue-300 transition cursor-pointer shadow-2xs"
           >
             Today
           </button>
@@ -343,7 +343,7 @@ export function DashboardCalendar({
           <button
             type="button"
             onClick={() => handleOpenScheduleReminder()}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 text-xs font-bold transition shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 text-xs font-bold transition shadow-2xs cursor-pointer"
           >
             <Bell className="size-3.5" />
             <span>+ Schedule Reminder</span>
@@ -356,11 +356,11 @@ export function DashboardCalendar({
             title={onlyShowReminders ? "Show all cards and reminders" : "Filter calendar to show days with reminders"}
             className={`rounded-lg px-2.5 py-1 text-xs font-semibold border transition cursor-pointer shadow-2xs flex items-center gap-1 ${
               onlyShowReminders
-                ? "bg-amber-100 text-amber-900 border-amber-300 font-bold"
+                ? "bg-blue-100 text-blue-900 border-blue-300 font-bold"
                 : "bg-white text-stone-700 border-stone-200 hover:bg-stone-100"
             }`}
           >
-            <Bell className="size-3 text-amber-600" />
+            <Bell className="size-3 text-blue-600" />
             <span>Reminders {onlyShowReminders ? "Only" : ""}</span>
           </button>
 
@@ -370,7 +370,7 @@ export function DashboardCalendar({
             <select
               value={selectedBoardId}
               onChange={(e) => setSelectedBoardId(e.target.value)}
-              className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-800 focus:border-amber-500 focus:outline-none cursor-pointer shadow-2xs"
+              className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-800 focus:border-blue-500 focus:outline-none cursor-pointer shadow-2xs"
             >
               <option value="all">All Workflows ({boards.length})</option>
               {boards.map((b) => (
@@ -405,10 +405,10 @@ export function DashboardCalendar({
 
       {/* Operations Reminder Alert Banner */}
       {alertReminders.length > 0 && (
-        <div className="bg-amber-500/10 border-b border-amber-200 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 text-amber-900 font-medium">
-            <span className="flex size-2 rounded-full bg-amber-600 animate-ping" />
-            <AlertTriangle className="size-4 text-amber-700 shrink-0" />
+        <div className="bg-blue-500/10 border-b border-blue-200 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 text-blue-900 font-medium">
+            <span className="flex size-2 rounded-full bg-blue-600 animate-ping" />
+            <AlertTriangle className="size-4 text-blue-700 shrink-0" />
             <span>
               <strong>{alertReminders.length} reminder(s)</strong> scheduled for today or overdue requiring action!
             </span>
@@ -418,7 +418,7 @@ export function DashboardCalendar({
             <button
               type="button"
               onClick={handleGoToday}
-              className="text-[11px] font-bold text-amber-800 hover:text-amber-950 underline cursor-pointer"
+              className="text-[11px] font-bold text-blue-800 hover:text-blue-950 underline cursor-pointer"
             >
               Jump to Today &rarr;
             </button>
@@ -452,7 +452,7 @@ export function DashboardCalendar({
                   : isDimmed
                   ? "opacity-35 bg-stone-50/40"
                   : "text-stone-900"
-              } ${cell.isToday ? "bg-amber-50/30 ring-2 ring-inset ring-amber-400" : ""}`}
+              } ${cell.isToday ? "bg-blue-50/30 ring-2 ring-inset ring-blue-400" : ""}`}
             >
               {/* Day Header */}
               <div className="flex items-center justify-between mb-1">
@@ -460,7 +460,7 @@ export function DashboardCalendar({
                   <span
                     className={`inline-flex items-center justify-center text-xs font-semibold rounded-full size-6 ${
                       cell.isToday
-                        ? "bg-amber-600 text-white font-bold shadow-2xs"
+                        ? "bg-blue-600 text-white font-bold shadow-2xs"
                         : cell.isCurrentMonth
                         ? "text-stone-800"
                         : "text-stone-400"
@@ -473,9 +473,9 @@ export function DashboardCalendar({
                   {hasReminders && (
                     <span
                       title={`${remindersForDay.length} scheduled reminder(s)`}
-                      className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 px-1.5 py-0.2 text-[9px] font-extrabold"
+                      className="inline-flex items-center gap-0.5 rounded-full bg-blue-100 border border-blue-300 text-blue-900 px-1.5 py-0.2 text-[9px] font-extrabold"
                     >
-                      <Bell className="size-2.5 text-amber-700" />
+                      <Bell className="size-2.5 text-blue-700" />
                       <span>{remindersForDay.length}</span>
                     </span>
                   )}
@@ -488,7 +488,7 @@ export function DashboardCalendar({
                       type="button"
                       onClick={() => handleOpenScheduleReminder(cell.dateStr)}
                       title={`Schedule reminder for ${cell.dateStr}`}
-                      className="opacity-0 group-hover/cell:opacity-100 rounded p-0.5 text-stone-400 hover:text-amber-800 hover:bg-amber-50 transition cursor-pointer"
+                      className="opacity-0 group-hover/cell:opacity-100 rounded p-0.5 text-stone-400 hover:text-blue-800 hover:bg-blue-50 transition cursor-pointer"
                     >
                       <Plus className="size-3.5" />
                     </button>
@@ -528,8 +528,8 @@ export function DashboardCalendar({
                           : isOverdue
                           ? "bg-red-50/95 border-red-300 text-red-950 shadow-2xs hover:border-red-400"
                           : isDueToday
-                          ? "bg-amber-50/95 border-amber-300 text-amber-950 shadow-2xs ring-1 ring-amber-300/50 hover:border-amber-400"
-                          : "bg-amber-50/80 border-amber-200 text-amber-900 shadow-2xs hover:border-amber-300"
+                          ? "bg-blue-50/95 border-blue-300 text-blue-950 shadow-2xs ring-1 ring-blue-300/50 hover:border-blue-400"
+                          : "bg-blue-50/80 border-blue-200 text-blue-900 shadow-2xs hover:border-blue-300"
                       }`}
                     >
                       {/* Reminder Note + Toggle Complete */}
@@ -549,7 +549,7 @@ export function DashboardCalendar({
                             className={`mt-0.5 size-3.5 rounded flex items-center justify-center shrink-0 transition cursor-pointer ${
                               reminder.completed
                                 ? "bg-emerald-600 text-white"
-                                : "border border-amber-400 hover:bg-amber-200 bg-white"
+                                : "border border-blue-400 hover:bg-blue-200 bg-white"
                             }`}
                           >
                             {reminder.completed && <Check className="size-2.5 text-white" />}
@@ -591,7 +591,7 @@ export function DashboardCalendar({
                         }}
                         title={boardId === "general" ? "General Operational Reminder (No staff / task)" : `Linked Task: ${task.title} • ${boardTitle}`}
                         className={`mt-1 flex items-center justify-between text-[9px] font-medium truncate ${
-                          boardId === "general" ? "text-stone-400" : "text-stone-500 hover:text-amber-800 cursor-pointer"
+                          boardId === "general" ? "text-stone-400" : "text-stone-500 hover:text-blue-800 cursor-pointer"
                         }`}
                       >
                         <span className="truncate max-w-[110px] font-semibold">
@@ -630,7 +630,7 @@ export function DashboardCalendar({
                         className={`group flex flex-col p-1.5 rounded-lg border cursor-pointer shadow-2xs transition text-[11px] leading-tight ${
                           isDone
                             ? "bg-stone-50/80 hover:bg-stone-100 border-stone-200 text-stone-500 opacity-75"
-                            : "bg-white hover:bg-amber-50 border-stone-200/90 hover:border-amber-300 text-stone-900"
+                            : "bg-white hover:bg-blue-50 border-stone-200/90 hover:border-blue-300 text-stone-900"
                         }`}
                       >
                         {/* Priority Dot + Title */}
@@ -640,7 +640,7 @@ export function DashboardCalendar({
                               isDone ? "bg-stone-400 ring-stone-200" : priorityDotColors[task.priority]
                             }`}
                           />
-                          <span className={`font-semibold truncate group-hover:text-amber-900 ${
+                          <span className={`font-semibold truncate group-hover:text-blue-900 ${
                             isDone ? "line-through text-stone-500" : "text-stone-900"
                           }`}>
                             {task.title}
@@ -654,7 +654,7 @@ export function DashboardCalendar({
                           </span>
 
                           {isTripStart && (
-                            <span className="inline-flex items-center gap-0.5 text-amber-800 font-semibold truncate shrink-0">
+                            <span className="inline-flex items-center gap-0.5 text-blue-800 font-semibold truncate shrink-0">
                               {task.destination ? (
                                 <>
                                   <MapPin className="size-2.5 shrink-0" />
@@ -683,8 +683,8 @@ export function DashboardCalendar({
                         {(task.leader || assignees.length > 0) && (
                           <div className="mt-1 flex items-center gap-1 text-[9px] text-stone-500 truncate">
                             {task.leader ? (
-                              <span className="inline-flex items-center gap-0.5 font-semibold text-amber-800 truncate">
-                                <Crown className="size-2.5 text-amber-600 shrink-0" />
+                              <span className="inline-flex items-center gap-0.5 font-semibold text-blue-800 truncate">
+                                <Crown className="size-2.5 text-blue-600 shrink-0" />
                                 <span className="truncate max-w-[90px]">{task.leader}</span>
                               </span>
                             ) : (

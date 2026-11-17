@@ -100,7 +100,7 @@ export const KanbanCard = memo(function KanbanCard({
         markTaskCommentsRead(task.id)
         onSelectTask(task.id)
       }}
-      className={`group rounded-lg border border-stone-200/90 bg-white p-3 shadow-2xs transition hover:border-amber-400 hover:shadow-xs cursor-pointer ${
+      className={`group rounded-lg border border-stone-200/90 bg-white p-3 shadow-2xs transition hover:border-blue-400 hover:shadow-xs cursor-pointer ${
         canEditCard ? "active:cursor-grabbing" : ""
       }`}
     >
@@ -124,7 +124,7 @@ export const KanbanCard = memo(function KanbanCard({
               }`}
               className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                 task.hotelBooking.status === "hold"
-                  ? "bg-amber-100/80 text-amber-900 border-amber-300"
+                  ? "bg-blue-100/80 text-blue-900 border-blue-300"
                   : task.hotelBooking.status === "blocked"
                   ? "bg-purple-100/80 text-purple-900 border-purple-300"
                   : "bg-emerald-100/80 text-emerald-900 border-emerald-300"
@@ -170,7 +170,7 @@ export const KanbanCard = memo(function KanbanCard({
                 e.stopPropagation()
                 onMoveToBoard(task, columnId)
               }}
-              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 rounded p-1 text-stone-400 hover:text-amber-700 hover:bg-stone-100 transition cursor-pointer"
+              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 rounded p-1 text-stone-400 hover:text-blue-700 hover:bg-stone-100 transition cursor-pointer"
             >
               <ArrowRightLeft className="size-3" />
             </button>
@@ -195,7 +195,7 @@ export const KanbanCard = memo(function KanbanCard({
       </div>
 
       {/* Title */}
-      <h4 className="text-xs font-semibold text-stone-900 leading-snug group-hover:text-amber-800 transition-colors">
+      <h4 className="text-xs font-semibold text-stone-900 leading-snug group-hover:text-blue-800 transition-colors">
         {task.title}
       </h4>
 
@@ -209,7 +209,7 @@ export const KanbanCard = memo(function KanbanCard({
       {/* Hotel summary tag (if set) */}
       {task.hotelBooking && task.hotelBooking.status && task.hotelBooking.status !== "none" && task.hotelBooking.hotelName && (
         <div className="mt-1.5 flex items-center gap-1 text-[10px] font-medium text-stone-700 truncate">
-          <Hotel className="size-3 text-amber-700 shrink-0" />
+          <Hotel className="size-3 text-blue-700 shrink-0" />
           <span className="truncate">{task.hotelBooking.hotelName}</span>
           {task.hotelBooking.confirmationNo && (
             <span className="text-[9px] text-stone-400 font-mono">({task.hotelBooking.confirmationNo})</span>
@@ -219,7 +219,7 @@ export const KanbanCard = memo(function KanbanCard({
 
       {/* Destination tag (if set) */}
       {task.destination && (
-        <div className="mt-1.5 flex items-center gap-1 text-[10px] font-medium text-amber-700 truncate">
+        <div className="mt-1.5 flex items-center gap-1 text-[10px] font-medium text-blue-700 truncate">
           <MapPin className="size-3 shrink-0" />
           <span className="truncate">{task.destination}</span>
         </div>
@@ -243,12 +243,12 @@ export const KanbanCard = memo(function KanbanCard({
                   key={name}
                   className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${
                     isLeader
-                      ? "font-semibold text-amber-900 bg-amber-100/90 border border-amber-300/80 shadow-2xs"
+                      ? "font-semibold text-blue-900 bg-blue-100/90 border border-blue-300/80 shadow-2xs"
                       : "font-medium text-stone-700 bg-stone-100"
                   }`}
                 >
                   {isLeader ? (
-                    <Crown className="size-3 text-amber-700 shrink-0" />
+                    <Crown className="size-3 text-blue-700 shrink-0" />
                   ) : (
                     <UserCheck className="size-3 text-stone-500 shrink-0" />
                   )}
@@ -292,7 +292,7 @@ export const KanbanCard = memo(function KanbanCard({
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 title="Open WhatsApp chat"
-                className="hover:text-amber-600 hover:underline"
+                className="hover:text-blue-600 hover:underline"
               >
                 {task.customerPhone}
               </a>
@@ -319,7 +319,7 @@ export const KanbanCard = memo(function KanbanCard({
                         paySummary.isFullyPaid
                           ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                           : paySummary.isPartiallyPaid
-                          ? "bg-amber-50 text-amber-800 border-amber-200"
+                          ? "bg-blue-50 text-blue-800 border-blue-200"
                           : "bg-stone-100 text-stone-500 border-stone-200"
                       }`}
                     >
@@ -360,7 +360,7 @@ export const KanbanCard = memo(function KanbanCard({
                   title={`${doneChecklist} of ${checklistItems.length} sub-cards done`}
                   className="flex items-center gap-1 text-[10px] text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded font-medium shrink-0"
                 >
-                  <Layers className="size-3 text-amber-600" />
+                  <Layers className="size-3 text-blue-600" />
                   <span>
                     {doneChecklist}/{checklistItems.length}
                   </span>
@@ -373,7 +373,7 @@ export const KanbanCard = memo(function KanbanCard({
                 title={`${doneChecklist} of ${checklistItems.length} sub-cards done`}
                 className="flex items-center gap-1 text-[10px] text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded font-medium"
               >
-                <Layers className="size-3 text-amber-600" />
+                <Layers className="size-3 text-blue-600" />
                 <span>
                   {doneChecklist}/{checklistItems.length} sub-cards
                 </span>

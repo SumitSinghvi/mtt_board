@@ -52,7 +52,7 @@ export function SettingsPage() {
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-stone-200 bg-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-2xs">
         <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="p-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+          <div className="p-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
             <Settings className="size-5" />
           </div>
           <div>
@@ -75,7 +75,7 @@ export function SettingsPage() {
         {/* Left 2 Cols: Agency Details Form */}
         <div className="lg:col-span-2 rounded-xl border border-stone-200 bg-white p-4 sm:p-6 shadow-2xs">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-stone-100">
-            <Building className="size-4 text-amber-700" />
+            <Building className="size-4 text-blue-700" />
             <h2 className="text-sm font-bold text-stone-900">Agency & Billing Profile</h2>
           </div>
 
@@ -88,7 +88,7 @@ export function SettingsPage() {
                   required
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -98,7 +98,7 @@ export function SettingsPage() {
                   type="text"
                   value={gstin}
                   onChange={(e) => setGstin(e.target.value)}
-                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -108,7 +108,7 @@ export function SettingsPage() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -117,7 +117,7 @@ export function SettingsPage() {
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                  className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none"
                 >
                   <option value="INR (₹)">Indian Rupee (INR ₹)</option>
                   <option value="USD ($)">US Dollar (USD $)</option>
@@ -132,14 +132,14 @@ export function SettingsPage() {
                 rows={2}
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-amber-500 focus:outline-none"
+                className="w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs text-stone-900 focus:border-blue-500 focus:outline-none"
               />
             </div>
 
             <div className="pt-2 flex justify-end">
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-700 shadow-2xs transition"
+                className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 shadow-2xs transition"
               >
                 <Save className="size-3.5" />
                 <span>Save Profile</span>
@@ -152,7 +152,7 @@ export function SettingsPage() {
         <div className="space-y-6">
           <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-2xs">
             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-stone-100">
-              <Database className="size-4 text-amber-700" />
+              <Database className="size-4 text-blue-700" />
               <h2 className="text-sm font-bold text-stone-900">Database & Backup</h2>
             </div>
 
@@ -165,14 +165,14 @@ export function SettingsPage() {
               onClick={handleExportBackup}
               className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition shadow-2xs"
             >
-              <Download className="size-3.5 text-amber-700" />
+              <Download className="size-3.5 text-blue-700" />
               <span>Export Full JSON Backup</span>
             </button>
           </div>
 
-          <div className="rounded-xl border border-stone-200 bg-amber-50/50 p-5">
-            <h3 className="text-xs font-bold text-amber-900 mb-1">Offline & Browser Storage</h3>
-            <p className="text-[11px] text-amber-800 leading-relaxed">
+          <div className="rounded-xl border border-stone-200 bg-blue-50/50 p-5">
+            <h3 className="text-xs font-bold text-blue-900 mb-1">Offline & Browser Storage</h3>
+            <p className="text-[11px] text-blue-800 leading-relaxed">
               All changes are saved locally to your browser. You can export a backup whenever transitioning computers.
             </p>
           </div>

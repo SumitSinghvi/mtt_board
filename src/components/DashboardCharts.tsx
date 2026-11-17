@@ -183,7 +183,7 @@ export function DashboardCharts({
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-stone-100">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200/60">
+              <div className="p-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200/60">
                 <Users className="size-4" />
               </div>
               <div>
@@ -221,7 +221,7 @@ export function DashboardCharts({
                         {s.lead > 0 && (
                           <span
                             title={`${s.lead} cards as designated team lead`}
-                            className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded-full"
+                            className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-800 bg-blue-100 px-1.5 py-0.2 rounded-full"
                           >
                             <Crown className="size-2.5" />
                             {s.lead}
@@ -263,7 +263,7 @@ export function DashboardCharts({
                           isOverloaded
                             ? "bg-red-500"
                             : s.total > 0
-                            ? "bg-amber-500 group-hover:bg-amber-600"
+                            ? "bg-blue-500 group-hover:bg-blue-600"
                             : "bg-stone-300"
                         }`}
                         style={{ width: `${Math.max(percent, 4)}%` }}
@@ -362,7 +362,7 @@ export function DashboardCharts({
                     >
                       <div className="flex items-center justify-between text-xs mb-1">
                         <div className="flex items-center gap-1.5 truncate max-w-[220px]">
-                          <span className="font-bold text-stone-800 group-hover:text-amber-800 transition truncate">
+                          <span className="font-bold text-stone-800 group-hover:text-blue-800 transition truncate">
                             {b.title}
                           </span>
                           {b.urgentCount > 0 && (
